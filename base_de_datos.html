@@ -1,0 +1,173 @@
+<!DOCTYPE html> ((BASE DE DATOS))
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASE DE DATOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Define 'Inter' como la fuente sans-serif principal
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Paleta de colores inspirada en Apple y tonos para el resto de la interfaz
+                        sidebar_bg: '#ffffff', // Fondo blanco para la barra lateral
+                        sidebar_border: '#e5e7eb', // Borde sutil para la barra lateral
+                        main_bg: '#eef2ff', // Fondo azul/morado muy claro para el contenido principal (más color)
+                        dark_text: '#1c1c1e', // Texto oscuro principal
+                        gray_text: '#6b7280', // Texto gris secundario
+                        facba_title_color: '#4f46e5', // Color específico para el título FACBA
+                        // Eliminamos las definiciones de colores específicos para los gradientes/solidos de los botones aquí
+                    },
+                    boxShadow: {
+                        // Sombras más notorias para los botones y otros elementos
+                        sidebar: '1px 0 5px rgba(0,0,0,0.05)', // Sombra para la barra lateral
+                        card: '0 4px 16px rgba(0, 0, 0, 0.08)', // Sombra para tarjetas de contenido
+                        button_shadow: '0 4px 12px rgba(0,0,0,0.15)', // Sombra más pronunciada por defecto
+                        button_hover_shadow: '0 8px 20px rgba(0,0,0,0.25)', // Sombra aún más pronunciada al pasar el ratón
+                    },
+                     // Eliminamos las definiciones de backgroundImage y gradientColorStopRefs
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos CSS personalizados adicionales */
+        body {
+            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
+            margin: 0; /* Elimina el margen por defecto del body */
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            display: flex; /* Usa flexbox para el layout principal (barra lateral + contenido) */
+            min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura de la ventana */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+        }
+
+        /* Estilo para la barra lateral de navegación */
+        aside {
+             width: 250px; /* Ancho fijo de la barra lateral */
+             background-color: #ffffff; /* Fondo blanco */
+             border-right: 1px solid #e5e7eb; /* Borde sutil a la derecha */
+             box-shadow: 1px 0 5px rgba(0,0,0,0.05); /* Sombra suave */
+             display: flex; /* Usa flexbox para organizar el contenido de la barra lateral */
+             flex-direction: column; /* Apila el contenido verticalmente */
+             padding: 20px; /* Espaciado interno */
+        }
+
+        /* Estilo para el título en la barra lateral */
+        aside .sidebar-title {
+            font-size: 1.5rem; /* Tamaño de fuente del título */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-align: center; /* Centra el texto */
+            margin-bottom: 20px; /* Espacio debajo del título */
+            padding-bottom: 15px; /* Espacio interno inferior */
+            border-bottom: 1px solid #e5e7eb; /* Línea separadora */
+            color: #1c1c1e; /* Color de texto oscuro */
+        }
+
+        /* Estilo para la navegación dentro de la barra lateral */
+        aside nav ul {
+            list-style: none; /* Elimina los puntos de la lista */
+            padding: 0; /* Elimina el padding por defecto de la lista */
+            margin: 0; /* Elimina el margen por defecto de la lista */
+        }
+
+        aside nav li {
+            margin-bottom: 15px; /* Espacio entre elementos de la lista */
+        }
+
+        /* Estilo para los enlaces del menú en la barra lateral (los botones) */
+        aside nav a {
+            display: block; /* Hace que el enlace ocupe todo el ancho del li */
+            padding: 16px 20px; /* Espaciado interno */
+            border-radius: 8px; /* Bordes redondeados */
+            /* Aplicar color sólido azul-morado directamente con hex */
+            background-color: #5e5ce6; /* Morado */
+            color: #ffffff; /* Color de texto blanco */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-decoration: none; /* Elimina el subrayado */
+            text-align: center; /* Centra el texto en el botón */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra más pronunciada por defecto */
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave */
+            /* Añadir un borde visible para reforzar la apariencia de botón */
+            border: 1px solid #0a84ff; /* Borde azul */
+        }
+
+        /* Estilo al pasar el ratón sobre los enlaces del menú */
+        aside nav a:hover {
+            /* Cambiar a un color sólido diferente (azul) directamente con hex */
+            background-color: #0a84ff; /* Azul */
+            color: #ffffff; /* Color de texto blanco al pasar el ratón */
+            transform: translateX(5px); /* Mover ligeramente a la derecha */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25); /* Sombra aún más pronunciada */
+            /* Cambiar el color del borde al pasar el ratón */
+            border-color: #5e5ce6; /* Borde morado */
+        }
+
+        /* Estilo para el área de contenido principal */
+        main {
+            flex-grow: 1; /* Permite que el contenido principal ocupe el espacio restante */
+            background-color: #eef2ff; /* Fondo azul/morado muy claro */
+            padding: 20px; /* Espaciado interno */
+        }
+
+        /* Estilo para el contenedor del contenido principal */
+        main .main-content-container {
+            max-width: 900px; /* Ancho máximo del contenido */
+            margin: 0 auto; /* Centra el contenido */
+            background-color: #ffffff; /* Fondo blanco para el contenido (como una tarjeta grande) */
+            padding: 30px; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+        }
+
+         main .main-content-container h1 {
+             font-size: 2rem; /* Tamaño de fuente del título del contenido */
+             font-weight: 700; /* Peso de fuente bold */
+             color: #4f46e5; /* Color específico para el título FACBA */
+             margin-bottom: 20px; /* Espacio debajo del título */
+         }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="sidebar-title">
+            BASE DE DATOS
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li>
+                    <a href="#">
+                        INGRESAR USUARIO
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        RETIRAR USUARIO
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        GESTIONAR USUARIO
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        </aside>
+
+    <main>
+        <div class="main-content-container">
+            <h1>FACBA</h1>
+            <p class="text-gray-700">
+                Gestiona la información de tus usuarios de manera eficiente. Con las opciones de INGRESAR, RETIRAR y GESTIONAR, puedes mantener actualizada la base de datos, asegurando la precisión y disponibilidad de los datos esenciales para las operaciones del sistema.
+            </p>
+            </div>
+    </main>
+
+</body>
+</html>
