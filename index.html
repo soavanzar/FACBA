@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Usar Inter como fuente principal
+                    },
+                    colors: {
+                        // Paleta de colores más suave y con toques vibrantes
+                        apple_dark: '#1c1c1e', // Gris muy oscuro, casi negro, para elementos sutiles
+                        apple_gray: '#2c2c2e', // Gris oscuro para fondos o bordes
+                        apple_lightgray: '#f2f2f7', // Gris muy claro para fondos
+                        apple_blue: '#0a84ff', // Azul vibrante de Apple
+                        apple_indigo: '#5e5ce6', // Índigo
+                        apple_pink: '#ff375f', // Rosa
+                        apple_teal: '#30d5c8', // Cian/Verde azulado
+                        cardbg_light: '#ffffff', // Fondo de tarjeta claro
+                        cardbg_dark: '#1c1c1e', // Fondo de tarjeta oscuro (opcional)
+                        // Colores específicos para el gradiente azul-morado
+                        gradient_start: '#5e5ce6', // Índigo (morado)
+                        gradient_end: '#0a84ff',   // Azul de Apple
+                        // Colores para los enlaces de la barra lateral (más notorios)
+                        sidebar_link_bg: '#eef2ff', // Fondo muy claro para enlaces de barra lateral (azul/morado suave)
+                        sidebar_link_hover_bg: '#dadaff', // Fondo más oscuro al pasar el ratón (tono morado)
+                        sidebar_link_text: '#4f46e5', // Color de texto para enlaces (un tono de primary)
+                        // Colores para el fondo sutil azul-morado
+                        subtle_gradient_start: '#e0e7ff', // Un tono morado muy claro
+                        subtle_gradient_end: '#cfe2ff', // Un tono azul muy claro
+                    },
+                    boxShadow: {
+                        // Sombras suaves y elevadas
+                        'apple-sm': '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        'apple-md': '0 3px 8px rgba(0, 0, 0, 0.15)',
+                        'apple-lg': '0 10px 30px rgba(0, 0, 0, 0.2)',
+                    },
+                     backgroundImage: {
+                         // Gradiente azul-morado principal
+                         'gradient-blue-purple': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+                         // Gradiente sutil para el fondo principal
+                         'gradient-subtle-blue-purple': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+                     },
+                     gradientColorStopRefs: {
+                         'gradient-blue-purple-start': 'gradient_start',
+                         'gradient-blue-purple-end': 'gradient_end',
+                         'gradient-subtle-blue-purple-start': 'subtle_gradient_start',
+                         'gradient-subtle-blue-purple-end': 'subtle_gradient_end',
+                     }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos adicionales */
+        body {
+            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
+            margin: 0; /* Elimina el margen por defecto del body */
+            /* El fondo del body puede ser el mismo que el inicio del gradiente principal */
+            background-color: #e0e7ff; /* Un tono morado muy claro */
+            display: flex; /* Usa flexbox para el layout principal */
+            min-height: 100vh; /* Altura mínima del body para ocupar toda la pantalla */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+        }
+
+        /* Estilo para la barra lateral */
+        aside {
+             background-color: #ffffff; /* Fondo blanco limpio */
+             border-right: 1px solid #e5e5ea; /* Borde sutil a la derecha */
+             box-shadow: 1px 0 5px rgba(0,0,0,0.05); /* Sombra ligera */
+        }
+
+        /* Estilo para los enlaces del menú en la barra lateral */
+        aside a {
+            color: var(--tw-colors-sidebar_link_text); /* Color de texto definido en Tailwind */
+            font-weight: 500; /* Peso de fuente medio */
+            background-color: var(--tw-colors-sidebar_link_bg); /* Fondo de color suave */
+            /* Añadir transición para animación suave */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+
+        aside a:hover {
+            background-color: var(--tw-colors-sidebar_link_hover_bg); /* Fondo un poco más oscuro al pasar el ratón */
+            color: var(--tw-colors-sidebar_link_text); /* Mantener el color de texto */
+            /* Añadir una ligera transformación al pasar el ratón */
+            transform: translateX(5px); /* Mover ligeramente a la derecha */
+        }
+
+        /* Estilo para el área de contenido principal */
+        main {
+            /* Aplicar el gradiente sutil como fondo */
+            background-image: linear-gradient(to bottom right, #e0e7ff, #cfe2ff); /* Gradiente sutil azul-morado */
+            background-color: #e0e7ff; /* Color de respaldo si el gradiente no carga */
+        }
+
+        /* Estilo para las tarjetas de contenido */
+        .card {
+            background-color: #ffffff; /* Fondo blanco */
+            border-radius: 12px; /* Bordes más redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada pero suave */
+        }
+
+        /* Estilo para los elementos editables */
+        [contenteditable="true"] {
+             outline: 1px dashed #d5d5dc; /* Borde sutil gris */
+             padding: 12px; /* Más padding */
+             border-radius: 8px; /* Bordes redondeados */
+             transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Transición suave */
+             background-color: #ffffff; /* Fondo blanco por defecto */
+        }
+        [contenteditable="true"]:focus {
+             outline-color: #0a84ff; /* Borde azul de Apple al enfocar */
+             outline-style: solid; /* Borde sólido */
+             background-color: #eef7ff; /* Fondo azul muy claro al enfocar */
+        }
+
+        /* Estilo para la sección con gradiente azul-morado */
+        .gradient-section {
+            background-image: linear-gradient(to bottom right, #5e5ce6, #0a84ff); /* Gradiente azul-morado */
+            color: white; /* Texto blanco para contrastar */
+            padding: 2rem; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Sombra más fuerte para destacar */
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="w-64 flex flex-col">
+        <div class="p-6 text-2xl font-semibold text-center border-b border-gray-200 text-apple_dark">
+            FACBA <span id="current-year-title" class="text-base font-normal text-gray-500 ml-1"></span>
+        </div>
+        <nav class="flex-grow p-4">
+            <ul>
+                <li class="mb-2">
+                    <a href="#" class="block p-3 rounded-md transition duration-200 ease-in-out">
+                        BASE DE DATOS INDEPENDIENTES
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="block p-3 rounded-md transition duration-200 ease-in-out">
+                        BASE DE DATOS
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="block p-3 rounded-md transition duration-200 ease-in-out">
+                        CONTRASEÑAS
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="block p-3 rounded-md transition duration-200 ease-in-out">
+                        CUENTAS
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="block p-3 rounded-md transition duration-200 ease-in-out">
+                        EMPRESAS
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-4 text-center text-gray-500 text-sm border-t border-gray-200">
+            © <span id="current-year-footer"></span> FACBA
+        </div>
+    </aside>
+
+    <main class="flex-grow p-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="card p-8 mb-8">
+                <h1 class="text-3xl font-bold text-apple_dark mb-4">Bienvenido a FACBA Soluciones Inteligentes</h1>
+                <p class="text-gray-700 mb-6">
+                    FACBA fusiona bases de datos robustas con IA para ofrecer soluciones innovadoras. Gestionamos, analizamos y optimizamos tus datos para decisiones estratégicas.
+                </p>
+                <p class="text-gray-700">
+                    Nuestra plataforma potencia bases de datos, gestión de contraseñas, cuentas y perfiles de empresas con IA avanzada. Automatizamos tareas, identificamos patrones y predecimos tendencias para tu ventaja competitiva. Nos centramos en ecosistemas de datos auto-gestionados y IA adaptativa, uniendo seguridad, escalabilidad e inteligencia para redefinir la gestión empresarial.
+                </p>
+            </div>
+
+            <div class="gradient-section mb-8">
+                 <h3 class="text-xl font-semibold mb-2">Innovación con Datos e IA</h3>
+                 <p>Descubre cómo el análisis inteligente de datos y la automatización impulsada por IA pueden transformar tus operaciones.</p>
+            </div>
+
+            <div class="card p-8">
+                 <h2 class="text-2xl font-semibold text-apple_dark mb-4">Explora Nuestras Secciones</h2>
+                 <p class="text-gray-700">
+                     Navega por el menú lateral para acceder a las secciones de Bases de Datos, Contraseñas, Cuentas y Empresas y gestiona tu información de manera inteligente.
+                 </p>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Script para actualizar el año actual
+        window.onload = function() {
+            const currentYear = new Date().getFullYear();
+            const yearElements = document.querySelectorAll('#current-year-title, #current-year-footer');
+            yearElements.forEach(element => {
+                element.textContent = currentYear;
+            });
+        };
+    </script>
+
+</body>
+</html>
