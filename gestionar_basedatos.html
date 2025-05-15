@@ -806,8 +806,9 @@
              <span class="modal-close-button" id="close-import-modal">&times;</span>
              <h2>Importar Usuarios desde Excel</h2>
              <div class="import-instructions">
-                 Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga las siguientes columnas en la primera fila (en cualquier orden, pero con estos nombres exactos):<br>
-                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong>
+                 Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga **exactamente** las siguientes columnas en la primera fila (el orden no importa):<br>
+                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong> <br>
+                 Asegúrate de que las celdas para **ARL, RIESGO, EPS, CCF, AFP** no estén vacías si quieres importar esos datos.
              </div>
              <input type="file" id="excel-file-input" accept=".xlsx, .xls">
              <div class="modal-buttons">
@@ -1126,13 +1127,19 @@
                 // Aplicar filtro de asesor
                 const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
 
-                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor)
+                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, EPS, CCF, AFP, Riesgo)
                 const matchesSearch = filterText === '' ||
                     (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                     (empresaNombre.toLowerCase().includes(filterText)) ||
                     (estado.toLowerCase().includes(filterText)) ||
-                    (asesorNombre.toLowerCase().includes(filterText));
+                    (asesorNombre.toLowerCase().includes(filterText)) ||
+                    (user.arl && user.arl.toLowerCase().includes(filterText)) || // Add ARL to search
+                    (user.eps && user.eps.toLowerCase().includes(filterText)) || // Add EPS to search
+                    (user.ccf && user.ccf.toLowerCase().includes(filterText)) || // Add CCF to search
+                    (user.afp && user.afp.toLowerCase().includes(filterText)) || // Add AFP to search
+                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)); // Add Riesgo to search
+
 
                 // Retornar true si coincide con TODOS los filtros
                 return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
@@ -1833,7 +1840,13 @@
                      (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                      (empresaNombre.toLowerCase().includes(filterText)) ||
                      (estado.toLowerCase().includes(filterText)) ||
-                     (asesorNombre.toLowerCase().includes(filterText));
+                     (asesorNombre.toLowerCase().includes(filterText)) ||
+                     (user.arl && user.arl.toLowerCase().includes(filterText)) || // Add ARL to search
+                     (user.eps && user.eps.toLowerCase().includes(filterText)) || // Add EPS to search
+                     (user.ccf && user.ccf.toLowerCase().includes(filterText)) || // Add CCF to search
+                     (user.afp && user.afp.toLowerCase().includes(filterText)) || // Add AFP to search
+                      (user.riesgo && user.riesgo.toLowerCase().includes(filterText)); // Add Riesgo to search
+
 
                  return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
              });
@@ -1874,7 +1887,12 @@
                      user.valorAPagar !== undefined && user.valorAPagar !== null ? user.valorAPagar : '', // Exportar valor numérico
                      estado,
                      fechaRetiro // Incluir fecha de retiro
-                 ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','); // Envolver campos en comillas y escapar comillas dobles
+                 ].map(field => {
+                      // Convertir todo a string antes de manejar comillas
+                      let fieldString = String(field || '');
+                      // Escapar comillas dobles con dobles comillas dobles y envolver en comillas
+                      return `"${fieldString.replace(/"/g, '""')}"`;
+                 }).join(','); // Envolver campos en comillas y escapar comillas dobles
              });
 
              // Unir encabezados y filas
@@ -1943,15 +1961,23 @@
                     const worksheet = workbook.Sheets[sheetName];
 
                     // Convertir la hoja a un array de objetos (usando la primera fila como encabezados)
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    // header: 1 para usar la primera fila como encabezados
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                    if (jsonData.length === 0) {
+
+                    if (jsonData.length <= 1) { // Check if there's more than just the header row
                         showImportStatusMessage('El archivo Excel está vacío o no contiene datos en el formato esperado.', 'error');
                         processImportButton.disabled = false;
                         return;
                     }
 
-                    console.log("Datos leídos del Excel:", jsonData);
+                    // Extraer encabezados de la primera fila
+                    const headersRow = jsonData[0];
+                    const dataRows = jsonData.slice(1); // Obtener solo las filas de datos
+
+                     console.log("Encabezados leídos del Excel:", headersRow); // Log headers
+                     console.log("Número de filas de datos leídas:", dataRows.length); // Log count
+
 
                     // Mapear los nombres de columna del Excel a los nombres de campo de Firestore
                     const columnMapping = {
@@ -1976,15 +2002,27 @@
                         "FECHA INGRESO", "ASESOR", "VALOR A PAGAR" // Columnas mínimas requeridas
                     ];
 
-                    // Verificar si los encabezados requeridos existen en el archivo
-                    const excelHeaders = Object.keys(jsonData[0]).map(header => header.trim().toUpperCase());
-                    const missingHeaders = requiredColumns.filter(header => !excelHeaders.includes(header));
+                    // Crear un mapeo dinámico de índice de columna a campo de Firestore
+                    const dynamicColumnMapping = {};
+                    const excelHeadersUpper = headersRow.map(header => String(header).trim().toUpperCase());
 
-                    if (missingHeaders.length > 0) {
-                         showImportStatusMessage(`Error: Faltan las siguientes columnas requeridas en el archivo: ${missingHeaders.join(', ')}`, 'error');
-                         processImportButton.disabled = false;
-                         return;
-                    }
+                    requiredColumns.forEach(requiredHeader => {
+                         if (!excelHeadersUpper.includes(requiredHeader)) {
+                             showImportStatusMessage(`Error: Faltan la columna requerida "${requiredHeader}" en el archivo.`, 'error');
+                             processImportButton.disabled = false;
+                             return; // Stop processing if required headers are missing
+                         }
+                    });
+                     if(processImportButton.disabled) return; // Stop if missing required headers
+
+                     // Create dynamic mapping for all recognized headers
+                     excelHeadersUpper.forEach((header, index) => {
+                          if (columnMapping[header]) {
+                               dynamicColumnMapping[index] = columnMapping[header];
+                          }
+                     });
+
+                     console.log("Mapeo dinámico de columnas:", dynamicColumnMapping);
 
 
                     // Cargar mapas de empresas y asesores para mapear nombres a IDs
@@ -1995,100 +2033,132 @@
                     let errorCount = 0;
                     const importErrors = [];
 
-                    showImportStatusMessage(`Iniciando importación de ${jsonData.length} filas...`);
+                    showImportStatusMessage(`Iniciando importación de ${dataRows.length} filas de datos...`);
 
-                    for (const row of jsonData) {
+                    for (let i = 0; i < dataRows.length; i++) {
+                        const row = dataRows[i];
                         const userData = {};
                         let isValidRow = true;
                         let rowErrors = [];
+                        const rowNumber = i + 2; // Excel row number (1-indexed header + 1)
 
-                        // Mapear y validar datos por columna
-                        for (const excelHeader in row) {
-                             const firestoreField = columnMapping[excelHeader.trim().toUpperCase()];
-                             if (firestoreField) {
-                                  let value = row[excelHeader];
+                         console.log(`Procesando Fila ${rowNumber}:`, row); // Log the raw row data
 
-                                  // Validaciones y transformaciones específicas por campo
-                                  if (firestoreField === 'identificacion') {
-                                       // Asegurar que la identificación sea un string o número válido
-                                       userData[firestoreField] = String(value).trim();
-                                       if (!userData[firestoreField]) {
-                                            isValidRow = false;
-                                            rowErrors.push("Identificación vacía");
-                                       }
-                                  } else if (firestoreField === 'empresa') {
-                                       // Mapear nombre de empresa a ID
-                                       const empresaName = String(value).trim();
-                                       const empresaEntry = Array.from(empresasMap.entries()).find(([id, name]) => name.toLowerCase() === empresaName.toLowerCase());
-                                       if (empresaEntry) {
-                                            userData['empresaId'] = empresaEntry[0]; // Guardar el ID
+
+                        // Mapear y validar datos por columna usando el mapeo dinámico
+                        for (const colIndex in row) {
+                            const firestoreField = dynamicColumnMapping[colIndex];
+
+                            if (firestoreField) {
+                                 let value = row[colIndex];
+                                 // Handle potential null/undefined values from empty cells gracefully
+                                 value = value === undefined || value === null ? '' : value;
+
+
+                                 // Validaciones y transformaciones específicas por campo
+                                 if (firestoreField === 'identificacion') {
+                                      // Asegurar que la identificación sea un string o número válido
+                                      userData[firestoreField] = String(value).trim();
+                                      if (!userData[firestoreField]) {
+                                           isValidRow = false;
+                                           rowErrors.push("Identificación vacía");
+                                      }
+                                 } else if (firestoreField === 'empresa') {
+                                      // Mapear nombre de empresa a ID
+                                      const empresaName = String(value).trim();
+                                      const empresaEntry = Array.from(empresasMap.entries()).find(([id, name]) => name.toLowerCase() === empresaName.toLowerCase());
+                                      if (empresaEntry) {
+                                           userData['empresaId'] = empresaEntry[0]; // Guardar el ID
+                                      } else {
+                                           // Si la empresa no existe, marcar error
+                                           isValidRow = false;
+                                           rowErrors.push(`Empresa "${empresaName}" no encontrada`);
+                                      }
+                                 } else if (firestoreField === 'asesor') {
+                                      // Mapear nombre de asesor a ID
+                                      const asesorName = String(value).trim();
+                                       const asesorEntry = Array.from(asesoresMap.entries()).find(([id, name]) => name.toLowerCase() === asesorName.toLowerCase());
+                                       if (asesorEntry) {
+                                            userData['asesorId'] = asesorEntry[0]; // Guardar el ID
                                        } else {
-                                            // Si la empresa no existe, puedes decidir si crearla o marcar error
+                                            // Si el asesor no existe, marcar error
                                             isValidRow = false;
-                                            rowErrors.push(`Empresa "${empresaName}" no encontrada`);
-                                       }
-                                  } else if (firestoreField === 'asesor') {
-                                       // Mapear nombre de asesor a ID
-                                       const asesorName = String(value).trim();
-                                        const asesorEntry = Array.from(asesoresMap.entries()).find(([id, name]) => name.toLowerCase() === asesorName.toLowerCase());
-                                        if (asesorEntry) {
-                                             userData['asesorId'] = asesorEntry[0]; // Guardar el ID
-                                        } else {
-                                             // Si el asesor no existe, puedes decidir si crearla o marcar error
-                                             isValidRow = false;
-                                             rowErrors.push(`Asesor "${asesorName}" no encontrado`);
+                                            rowErrors.push(`Asesor "${asesorName}" no encontrado`);
                                         }
-                                  } else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
-                                       // Parsear fechas. XLSX puede devolver números (serial) o strings.
-                                       let dateValue = null;
-                                       if (typeof value === 'number') {
-                                            // Asumir que es un número serial de Excel y convertir a fecha
-                                            // Excel serial date starts from 1900-01-01. JS Date starts from 1970-01-01.
-                                            // Need to adjust for the difference and the leap year bug in Excel 1900.
-                                            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-                                            dateValue = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
-                                       } else if (typeof value === 'string') {
-                                            // Intentar parsear string de fecha (YYYY-MM-DD, MM/DD/YYYY, etc.)
-                                            try {
-                                                 dateValue = new Date(value);
-                                                 // Check if the parsed date is valid
-                                                 if (isNaN(dateValue.getTime())) {
-                                                     dateValue = null; // Invalid date string
-                                                 } else {
-                                                     // Format to YYYY-MM-DD string to match existing data format
-                                                     dateValue = formatDate(dateValue);
-                                                 }
-                                            } catch (e) {
-                                                 dateValue = null; // Parsing failed
-                                            }
-                                       }
+                                 } else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
+                                      // Parsear fechas. XLSX puede devolver números (serial) o strings.
+                                      let dateValue = null;
+                                      if (typeof value === 'number') {
+                                           // Asumir que es un número serial de Excel y convertir a fecha
+                                           // Need to adjust for the difference between Excel epoch (1899-12-30) and JS epoch (1970-01-01)
+                                           // and Excel's leap year bug prior to 1900 (handle date > 60)
+                                           const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                                           // For serial dates > 60 (after 1900-03-01), subtract 1 to account for Excel's incorrect 1900 leap year
+                                           const adjustedValue = value > 60 ? value - 1 : value;
+                                           dateValue = new Date(excelEpoch.getTime() + adjustedValue * 24 * 60 * 60 * 1000);
 
-                                       if (dateValue) {
-                                           userData[firestoreField] = dateValue; // Guardar la fecha formateada o string
-                                       } else if (firestoreField === 'fecha') { // Fecha de ingreso es requerida
-                                            isValidRow = false;
-                                            rowErrors.push(`Fecha de Ingreso inválida o vacía: "${value}"`);
-                                       }
-                                       // Fecha de retiro es opcional, no marcar error si está vacía/inválida
-                                  } else if (firestoreField === 'valorAPagar') {
-                                       // Parsear valor a pagar a número
-                                       const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Limpiar no-números excepto . y -
-                                       userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Guardar como número, 0 si no es válido
-                                  } else if (firestoreField === 'estado') {
-                                       // Validar estado (opcional, si viene en el Excel)
-                                       const estadoValue = String(value).trim().toLowerCase();
-                                       if (estadoValue === 'activo' || estadoValue === 'retirado') {
-                                            userData[firestoreField] = estadoValue;
-                                       } else {
-                                            userData[firestoreField] = 'activo'; // Estado por defecto si no es válido
-                                       }
-                                  }
-                                  else {
-                                       // Otros campos de texto
-                                       userData[firestoreField] = String(value || '').trim();
-                                  }
-                             }
+                                      } else if (typeof value === 'string' && value.trim() !== '') {
+                                           // Intentar parsear string de fecha (YYYY-MM-DD, MM/DD/YYYY, etc.)
+                                           try {
+                                                // Prefer YYYY-MM-DD if possible
+                                                if (/^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+                                                     dateValue = new Date(value.trim() + 'T00:00:00Z'); // Parse as UTC to avoid timezone issues
+                                                } else {
+                                                    dateValue = new Date(value.trim()); // Try general parsing
+                                                }
+
+                                                // Check if the parsed date is valid
+                                                if (isNaN(dateValue.getTime())) {
+                                                    dateValue = null; // Invalid date string
+                                                } else {
+                                                    // Format to YYYY-MM-DD string to match existing data format if needed,
+                                                    // or store as a Firestore Timestamp directly.
+                                                    // Let's store as Date objects and Firestore will handle Timestamps.
+                                                }
+                                           } catch (e) {
+                                                dateValue = null; // Parsing failed
+                                           }
+                                      }
+
+                                      if (dateValue) {
+                                          userData[firestoreField] = dateValue; // Guardar como objeto Date
+                                      } else if (firestoreField === 'fecha') { // Fecha de ingreso es requerida
+                                           isValidRow = false;
+                                           rowErrors.push(`Fecha de Ingreso inválida o vacía: "${value}"`);
+                                      }
+                                      // Fecha de retiro es opcional, no marcar error si está vacía/inválida
+                                 } else if (firestoreField === 'valorAPagar') {
+                                      // Parsear valor a pagar a número
+                                      const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Limpiar no-números excepto . y -
+                                      userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Guardar como número, 0 si no es válido
+                                 } else if (firestoreField === 'estado') {
+                                      // Validar estado (opcional, si viene en el Excel)
+                                      const estadoValue = String(value).trim().toLowerCase();
+                                      if (estadoValue === 'activo' || estadoValue === 'retirado') {
+                                           userData[firestoreField] = estadoValue;
+                                      } else {
+                                           userData[firestoreField] = 'activo'; // Estado por defecto si no es válido
+                                      }
+                                 }
+                                 else {
+                                      // Otros campos de texto (ARL, RIESGO, EPS, CCF, AFP, NOMBRE, TIPO DE IDENTIFICACION)
+                                      userData[firestoreField] = String(value || '').trim();
+                                 }
+                            }
                         }
+
+                        // Realizar validaciones adicionales para campos requeridos no cubiertos arriba
+                        if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha)) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
+                            if (!userData.nombre) rowErrors.push("Nombre vacío");
+                            if (!userData.tipoIdentificacion) rowErrors.push("Tipo de Identificación vacío");
+                            if (!userData.identificacion) rowErrors.push("Identificación vacía"); // Duplicated check, but good for clarity
+                            if (!userData.hasOwnProperty('empresaId')) rowErrors.push("Empresa no válida o vacía");
+                            if (!userData.hasOwnProperty('asesorId')) rowErrors.push("Asesor no válido o vacío");
+                             if (!(userData.fecha instanceof Date && !isNaN(userData.fecha))) rowErrors.push("Fecha de Ingreso inválida o vacía");
+                             if (userData.valorAPagar === undefined || userData.valorAPagar === null) rowErrors.push("Valor a Pagar inválido o vacío");
+                             isValidRow = false; // Mark row as invalid if any required field is missing/invalid
+                        }
+
 
                         // Añadir campos obligatorios que podrían no estar en el Excel o estar vacíos
                          if (!userData.hasOwnProperty('estado')) {
@@ -2096,11 +2166,29 @@
                          }
                          // fechaRetiro se maneja al parsear la fecha o se elimina si no es retirado
 
+
                         // Si la fila es válida, prepararla para el batch
                         if (isValidRow) {
+                            // Convertir Date objects to Firestore Timestamps
+                             if (userData.fecha instanceof Date) {
+                                 userData.fecha = firebase.firestore.Timestamp.fromDate(userData.fecha);
+                             }
+                             if (userData.fechaRetiro instanceof Date) {
+                                  userData.fechaRetiro = firebase.firestore.Timestamp.fromDate(userData.fechaRetiro);
+                             } else if (userData.fechaRetiro !== undefined && userData.fechaRetiro !== null && userData.estado !== 'retirado') {
+                                  // If date exists but status is not retired, delete it
+                                   userData.fechaRetiro = firebase.firestore.FieldValue.delete();
+                             } else if (userData.fechaRetiro === '') {
+                                 // If date was empty in excel, delete it
+                                  userData.fechaRetiro = firebase.firestore.FieldValue.delete();
+                             }
+
+
                             // Añadir campos de metadatos
                             userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                             userData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+                             console.log(`Datos preparados para Firestore (Fila ${rowNumber}):`, userData); // Log data before saving
 
                             // Crear una nueva referencia de documento y añadir la operación al batch
                             const newUserRef = usersCollection.doc();
@@ -2108,7 +2196,8 @@
                             importedCount++;
                         } else {
                             errorCount++;
-                            importErrors.push(`Fila ${jsonData.indexOf(row) + 2}: ${rowErrors.join(', ')}`); // +2 porque jsonData es 0-indexed y la primera fila es encabezado
+                            importErrors.push(`Fila ${rowNumber}: ${rowErrors.join(', ')}`);
+                             console.error(`Errores de validación en Fila ${rowNumber}:`, rowErrors); // Log row errors
                         }
                     }
 
@@ -2120,7 +2209,7 @@
                             let finalMessage = `Importación completada. ${importedCount} usuarios agregados con éxito.`;
                             if (errorCount > 0) {
                                 finalMessage += ` ${errorCount} filas con errores.`;
-                                console.error("Errores de importación:", importErrors);
+                                console.error("Resumen de Errores de importación:", importErrors);
                                 // Podrías mostrar los errores en un área de texto o modal adicional si son muchos
                                 alert("Errores de importación:\n" + importErrors.join('\n')); // Alerta simple por ahora
                             }
@@ -2135,7 +2224,7 @@
                         }
                     } else if (errorCount > 0) {
                          showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
-                         console.error("Errores de importación:", importErrors);
+                         console.error("Resumen de Errores de importación:", importErrors);
                          alert("Errores de importación:\n" + importErrors.join('\n'));
                     }
                     else {
