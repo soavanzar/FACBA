@@ -637,6 +637,19 @@
                 populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
             });
 
+            // --- Nuevos Listeners para manejar Autocompletado ---
+            filterInput.addEventListener('change', (e) => {
+                handleAutofill(e.target, originalOptions, selectElement);
+            });
+
+            filterInput.addEventListener('blur', (e) => {
+                 // Añadir un pequeño retraso para permitir que el evento click en la lista se dispare primero
+                 setTimeout(() => {
+                    handleAutofill(e.target, originalOptions, selectElement);
+                    optionsListElement.classList.remove('show'); // Ocultar lista al perder el foco
+                 }, 100);
+            });
+
             // Listener para mostrar la lista al enfocar (si hay texto)
              filterInput.addEventListener('focus', (e) => {
                  // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
@@ -648,11 +661,12 @@
 
 
             // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
-            filterInput.addEventListener('blur', () => {
-                setTimeout(() => {
-                    optionsListElement.classList.remove('show');
-                }, 100); // Pequeño retraso para permitir el clic en una opción
-            });
+            // Este listener original se mantiene, pero el blur ahora también llama a handleAutofill
+            // filterInput.addEventListener('blur', () => {
+            //     setTimeout(() => {
+            //         optionsListElement.classList.remove('show');
+            //     }, 100); // Pequeño retraso para permitir el clic en una opción
+            // });
 
             // Listener para seleccionar una opción de la lista flotante
             optionsListElement.addEventListener('click', (e) => {
@@ -660,31 +674,15 @@
                     const selectedValue = e.target.dataset.value;
                     const selectedText = e.target.textContent;
 
-                    console.log(`Opción seleccionada: Texto=${selectedText}, Valor=${selectedValue}`); // Debugging
+                    console.log(`Opción seleccionada (click): Texto=${selectedText}, Valor=${selectedValue}`); // Debugging
 
                     // Actualizar el input de filtro con el texto seleccionado
                     filterInput.value = selectedText;
 
-                    // --- Corrección: Iterar sobre las opciones del select oculto y seleccionar la que coincida ---
-                    let optionFound = false;
-                    for (let i = 0; i < selectElement.options.length; i++) {
-                        if (selectElement.options[i].value === selectedValue) {
-                            selectElement.options[i].selected = true;
-                            optionFound = true;
-                            break; // Salir del bucle una vez encontrada la opción
-                        }
-                    }
+                    // --- Seleccionar la opción en el select oculto ---
+                    selectOptionInSelectElement(selectElement, selectedValue);
 
-                    // Si la opción no se encontró (esto no debería pasar si originalOptions está sincronizado con el select)
-                    // Puedes añadir manejo de errores o un console.warn aquí si lo deseas.
-                    if (!optionFound) {
-                         console.warn(`Valor ${selectedValue} no encontrado en las opciones del select oculto (${selectElement.id}).`);
-                         // Opcional: Limpiar el valor si no se encuentra
-                         // selectElement.value = '';
-                    }
-
-                    console.log(`Valor del select oculto (${selectElement.id}) después de seleccionar: ${selectElement.value}`); // Debugging
-
+                    console.log(`Valor del select oculto (${selectElement.id}) después de seleccionar (click): ${selectElement.value}`); // Debugging
 
                     // Ocultar la lista
                     optionsListElement.classList.remove('show');
@@ -695,6 +693,51 @@
                 }
             });
         }
+
+        // --- Función para manejar el autocompletado ---
+        function handleAutofill(filterInput, originalOptions, selectElement) {
+             const autofilledText = filterInput.value.trim();
+             console.log(`handleAutofill activado para ${filterInput.id}. Texto: "${autofilledText}"`); // Debugging
+
+             if (autofilledText === '') {
+                 // Si el campo está vacío (ej. autocompletado borró algo), resetear el select
+                 selectElement.value = '';
+                 console.log(`Select oculto (${selectElement.id}) reseteado.`); // Debugging
+                 return;
+             }
+
+             // Buscar una opción que coincida exactamente con el texto autocompletado
+             const matchedOption = originalOptions.find(option => option.textContent.trim() === autofilledText);
+
+             if (matchedOption) {
+                 console.log(`Coincidencia encontrada por autocompletado: Texto=${matchedOption.textContent}, Valor=${matchedOption.value}`); // Debugging
+                 // Seleccionar la opción en el select oculto
+                 selectOptionInSelectElement(selectElement, matchedOption.value);
+                 console.log(`Valor del select oculto (${selectElement.id}) después de autocompletar: ${selectElement.value}`); // Debugging
+             } else {
+                 // Si no hay una coincidencia exacta, puedes decidir qué hacer.
+                 // Por ahora, no hacemos nada, lo que significa que el select oculto mantendrá su valor anterior o estará vacío.
+                 // Podrías opcionalmente limpiar el select oculto si el texto autocompletado no coincide con ninguna opción.
+                 console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}.`); // Debugging
+                 // Opcional: selectElement.value = '';
+             }
+        }
+
+        // --- Función auxiliar para seleccionar una opción en el select oculto ---
+        function selectOptionInSelectElement(selectElement, valueToSelect) {
+             let optionFound = false;
+             for (let i = 0; i < selectElement.options.length; i++) {
+                 if (selectElement.options[i].value === valueToSelect) {
+                     selectElement.options[i].selected = true;
+                     optionFound = true;
+                     break;
+                 }
+             }
+             if (!optionFound) {
+                  console.warn(`Valor ${valueToSelect} no encontrado en las opciones del select oculto (${selectElement.id}).`);
+             }
+        }
+
 
         // --- Funciones para cargar Dropdowns desde Firestore ---
         async function loadFirestoreDropdownOptions(collectionRef, filterInput, optionsListElement, selectElement) {
