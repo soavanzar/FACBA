@@ -7,6 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+
     <style>
         /* Estilos CSS personalizados adicionales */
         body {
@@ -386,12 +392,7 @@
     </div>
 
 
-    <script type="module">
-        // Import Firebase SDKs
-        import { initializeApp } from "firebase/app";
-        import { getAnalytics } from "firebase/analytics";
-        import { getDatabase, ref, push, onValue } from "firebase/database"; // Importar onValue para leer datos
-
+    <script>
         // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
@@ -404,14 +405,14 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const database = getDatabase(app); // Inicializar Realtime Database
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const database = firebase.database(); // Inicializar Realtime Database
 
         // Referencias a las ubicaciones en la base de datos
-        const usersRef = ref(database, 'usuarios');
-        const empresasRef = ref(database, 'empresas');
-        const asesoresRef = ref(database, 'asesores');
+        const usersRef = database.ref('usuarios');
+        const empresasRef = database.ref('empresas');
+        const asesoresRef = database.ref('asesores');
 
         // Obtener elementos del DOM
         const userForm = document.getElementById('user-form');
@@ -454,12 +455,12 @@
         }
 
         // Escuchar cambios en las empresas y cargar el dropdown
-        onValue(empresasRef, (snapshot) => {
+        empresasRef.on('value', (snapshot) => {
             loadDropdownOptions(empresaSelect, snapshot);
         });
 
         // Escuchar cambios en los asesores y cargar el dropdown
-        onValue(asesoresRef, (snapshot) => {
+        asesoresRef.on('value', (snapshot) => {
              loadDropdownOptions(asesorSelect, snapshot);
         });
 
@@ -505,7 +506,7 @@
             e.preventDefault();
             const nombre = document.getElementById('nueva-empresa-nombre').value;
             if (nombre) {
-                push(empresasRef, { nombre: nombre })
+                empresasRef.push({ nombre: nombre })
                     .then(() => {
                         console.log("Empresa guardada con éxito");
                         hideModal(addEmpresaModal);
@@ -524,7 +525,7 @@
             e.preventDefault();
             const nombre = document.getElementById('nuevo-asesor-nombre').value;
             if (nombre) {
-                push(asesoresRef, { nombre: nombre })
+                asesoresRef.push({ nombre: nombre })
                     .then(() => {
                         console.log("Asesor guardado con éxito");
                         hideModal(addAsesorModal);
@@ -576,7 +577,7 @@
             };
 
             // Guardar el nuevo usuario en Firebase Realtime Database
-            push(usersRef, newUser)
+            usersRef.push(newUser)
                 .then(() => {
                     // Mostrar mensaje de éxito
                     statusMessage.textContent = 'Usuario guardado con éxito!';
