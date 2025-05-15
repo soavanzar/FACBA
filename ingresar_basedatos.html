@@ -62,16 +62,78 @@
             box-sizing: border-box; /* Incluye padding y borde en el ancho total */
         }
 
+         /* Contenedor para simular combobox */
+         .combobox-container {
+             position: relative; /* Para posicionar la lista flotante */
+             width: 100%; /* Ocupa el ancho disponible */
+         }
+
+         /* Estilo para el input de filtro (el campo visible del combobox) */
+         .combobox-container input[type="text"] {
+             margin-bottom: 0; /* Eliminar margen inferior */
+             border-radius: 8px; /* Bordes redondeados */
+             position: relative; /* Para z-index */
+             z-index: 2; /* Asegura que esté sobre la lista flotante */
+         }
+
+         /* Ocultar el select nativo */
+         .combobox-container select {
+             display: none;
+         }
+
+         /* Estilo para la lista flotante de opciones */
+         .combobox-options-list {
+             position: absolute; /* Posicionamiento absoluto respecto al contenedor */
+             top: 100%; /* Debajo del input */
+             left: 0;
+             right: 0;
+             background-color: #ffffff; /* Fondo blanco */
+             border: 1px solid #d1d5db; /* Borde */
+             border-top: none; /* Sin borde superior para unirse al input */
+             border-bottom-left-radius: 8px; /* Bordes redondeados inferiores */
+             border-bottom-right-radius: 8px;
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra */
+             max-height: 150px; /* Altura máxima antes de scroll */
+             overflow-y: auto; /* Scroll vertical si hay muchas opciones */
+             z-index: 10; /* *** CORRECCIÓN: Mayor z-index para que se muestre encima *** */
+             list-style: none; /* Sin puntos de lista */
+             padding: 0; /* Sin padding */
+             margin: 0; /* Sin margen */
+             display: none; /* Oculto por defecto */
+         }
+
+         .combobox-options-list.show {
+             display: block; /* Mostrar cuando tiene la clase 'show' */
+         }
+
+         .combobox-options-list li {
+             padding: 10px 12px; /* Espaciado interno de las opciones */
+             cursor: pointer; /* Cursor de mano */
+             transition: background-color 0.1s ease-in-out; /* Transición suave */
+         }
+
+         .combobox-options-list li:hover {
+             background-color: #f3f4f6; /* Fondo gris claro al pasar el ratón */
+         }
+
+
         .form-group input[type="text"]:focus,
         .form-group input[type="email"]:focus,
         .form-group input[type="password"]:focus,
         .form-group input[type="number"]:focus,
         .form-group input[type="date"]:focus,
-        .form-group select:focus {
+        .form-group select:focus { /* Mantener estilos de enfoque para otros inputs */
             outline: none; /* Elimina el contorno por defecto */
             border-color: #4f46e5; /* Borde azul/morado al enfocar */
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
         }
+
+         /* Ajustar el box-shadow al enfocar para el input del combobox */
+         .combobox-container input[type="text"]:focus {
+             border-color: #4f46e5; /* Borde azul/morado al enfocar */
+             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
+         }
+
 
         .form-group .input-with-button {
             display: flex; /* Usa flexbox para alinear input y botón */
@@ -200,20 +262,34 @@
              background-color: #4b5563; /* Gris más oscuro al pasar el ratón */
          }
 
-         /* Estilo para el campo de filtro (opcional, si se implementa) */
-         .filter-input {
-             width: 100%;
-             padding: 8px;
-             margin-bottom: 10px;
-             border: 1px solid #d1d5db;
-             border-radius: 4px;
-         }
+        /* Estilo para el botón de ir atrás */
+        .back-button {
+            display: inline-block; /* Permite aplicar padding y margin */
+            margin-bottom: 20px; /* Espacio debajo del botón */
+            padding: 10px 15px; /* Espaciado interno */
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-decoration: none; /* Sin subrayado */
+            border-radius: 8px; /* Bordes redondeados */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro al pasar el ratón */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Sombra más pronunciada */
+        }
 
     </style>
 </head>
 <body>
 
     <div class="container">
+        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Ir Atrás
+        </a>
+
         <h1 class="text-2xl font-bold text-center mb-6">Ingresar Nuevo Usuario</h1>
 
         <form id="user-form">
@@ -224,15 +300,20 @@
 
             <div class="form-group">
                 <label for="tipo-identificacion">Tipo de Identificación:</label>
-                <select id="tipo-identificacion" required>
-                    <option value="">Seleccione</option>
-                    <option value="CC">Cédula de Ciudadanía (CC)</option>
-                    <option value="TI">Tarjeta de Identidad (TI)</option>
-                    <option value="CE">Cédula de Extranjería (CE)</option>
-                    <option value="NIT">Número de Identificación Tributaria (NIT)</option>
-                    <option value="PP">Pasaporte (PP)</option>
-                    <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
-                </select>
+                <div class="combobox-container">
+                    <input type="text" id="tipo-identificacion-filter" placeholder="Buscar tipo...">
+                    <ul id="tipo-identificacion-options" class="combobox-options-list">
+                        </ul>
+                    <select id="tipo-identificacion" required>
+                        <option value="">Seleccione</option>
+                        <option value="CC">Cédula de Ciudadanía (CC)</option>
+                        <option value="TI">Tarjeta de Identidad (TI)</option>
+                        <option value="CE">Cédula de Extranjería (CE)</option>
+                        <option value="NIT">Número de Identificación Tributaria (NIT)</option>
+                        <option value="PP">Pasaporte (PP)</option>
+                        <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
@@ -242,89 +323,116 @@
 
             <div class="form-group">
                 <label for="empresa">Empresa:</label>
-                <div class="input-with-button">
-                    <select id="empresa" required>
-                         <option value="">Seleccione</option>
-                         </select>
+                <div class="combobox-container input-with-button">
+                     <input type="text" id="empresa-filter" class="flex-grow" placeholder="Buscar empresa...">
                     <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
+                     <ul id="empresa-options" class="combobox-options-list">
+                        </ul>
+                     <select id="empresa" required> <option value="">Seleccione</option>
+                         </select>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="arl">ARL:</label>
-                <select id="arl" required>
-                    <option value="">Seleccione</option>
-                    <option value="Sura">Sura</option>
-                    <option value="Positiva">Positiva</option>
-                    <option value="Axa Colpatria">Axa Colpatria</option>
-                    <option value="Colmena">Colmena</option>
-                    <option value="Bolivar">Bolívar</option>
-                    <option value="La Equidad">La Equidad</option>
-                    <option value="Alfa">Alfa</option>
-                    <option value="Mapfre">Mapfre</option>
-                    <option value="Aurora">Aurora</option>
-                    <option value="Liberty">Liberty</option>
-                    </select>
+                 <div class="combobox-container">
+                    <input type="text" id="arl-filter" placeholder="Buscar ARL...">
+                     <ul id="arl-options" class="combobox-options-list">
+                        </ul>
+                     <select id="arl" required>
+                        <option value="">Seleccione</option>
+                        <option value="Sura">Sura</option>
+                        <option value="Positiva">Positiva</option>
+                        <option value="Axa Colpatria">Axa Colpatria</option>
+                        <option value="Colmena">Colmena</option>
+                        <option value="Bolivar">Bolívar</option>
+                        <option value="La Equidad">La Equidad</option>
+                        <option value="Alfa">Alfa</option>
+                        <option value="Mapfre">Mapfre</option>
+                        <option value="Aurora">Aurora</option>
+                        <option value="Liberty">Liberty</option>
+                        </select>
+                </div>
             </div>
 
              <div class="form-group">
                 <label for="riesgo">Riesgo:</label>
-                <select id="riesgo" required>
-                    <option value="">Seleccione</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                 <div class="combobox-container">
+                    <input type="text" id="riesgo-filter" placeholder="Buscar riesgo...">
+                     <ul id="riesgo-options" class="combobox-options-list">
+                        </ul>
+                     <select id="riesgo" required>
+                        <option value="">Seleccione</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="eps">EPS:</label>
-                <select id="eps" required>
-                    <option value="">Seleccione</option>
-                    <option value="Aliansalud">Aliansalud</option>
-                    <option value="Compensar">Compensar</option>
-                    <option value="Cruz Blanca">Cruz Blanca</option>
-                    <option value="Comfenalco Valle">Comfenalco Valle</option>
-                    <option value="Sanitas">Sanitas</option>
-                    <option value="Famisanar">Famisanar</option>
-                    <option value="Nueva EPS">Nueva EPS</option>
-                    <option value="Salud Sura">Salud Sura</option>
-                    <option value="Salud Total">Salud Total</option>
-                    <option value="Mutual Ser EPS">Mutual Ser EPS</option>
-                    <option value="Capital Salud EPS-S">Capital Salud EPS-S</option>
-                    <option value="Capresoca EPS">Capresoca EPS</option>
-                    <option value="Savia Salud EPS">Savia Salud EPS</option>
-                    <option value="Salud Bolívar EPS">Salud Bolívar EPS</option>
-                    <option value="Comparta EPS-S">Comparta EPS-S</option>
-                    </select>
+                 <div class="combobox-container">
+                    <input type="text" id="eps-filter" placeholder="Buscar EPS...">
+                     <ul id="eps-options" class="combobox-options-list">
+                        </ul>
+                     <select id="eps" required>
+                        <option value="">Seleccione</option>
+                        <option value="Aliansalud">Aliansalud</option>
+                        <option value="Compensar">Compensar</option>
+                        <option value="Cruz Blanca">Cruz Blanca</option>
+                        <option value="Comfenalco Valle">Comfenalco Valle</option>
+                        <option value="Sanitas">Sanitas</option>
+                        <option value="Famisanar">Famisanar</option>
+                        <option value="Nueva EPS">Nueva EPS</option>
+                        <option value="Salud Sura">Salud Sura</option>
+                        <option value="Salud Total">Salud Total</option>
+                        <option value="Mutual Ser EPS">Mutual Ser EPS</option>
+                        <option value="Capital Salud EPS-S">Capital Salud EPS-S</option>
+                        <option value="Capresoca EPS">Capresoca EPS</option>
+                        <option value="Savia Salud EPS">Savia Salud EPS</option>
+                        <option value="Salud Bolívar EPS">Salud Bolívar EPS</option>
+                        <option value="Comparta EPS-S">Comparta EPS-S</option>
+                        </select>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="ccf">CCF:</label>
-                <select id="ccf" required>
-                    <option value="">Seleccione</option>
-                    <option value="Colsubsidio">Colsubsidio</option>
-                    <option value="Comfama">Comfama</option>
-                    <option value="Compensar">Compensar</option>
-                    <option value="Cafam">Cafam</option>
-                    <option value="Cajacopi Atlántico">Cajacopi Atlántico</option>
-                    <option value="Comfenalco Antioquia">Comfenalco Antioquia</option>
-                    </select>
+                 <div class="combobox-container">
+                    <input type="text" id="ccf-filter" placeholder="Buscar CCF...">
+                     <ul id="ccf-options" class="combobox-options-list">
+                        </ul>
+                     <select id="ccf" required>
+                        <option value="">Seleccione</option>
+                        <option value="Comfenalco Santander">Comfenalco Santander</option> <option value="Colsubsidio">Colsubsidio</option>
+                        <option value="Comfama">Comfama</option>
+                        <option value="Compensar">Compensar</option>
+                        <option value="Cafam">Cafam</option>
+                        <option value="Cajacopi Atlántico">Cajacopi Atlántico</option>
+                        <option value="Comfenalco Antioquia">Comfenalco Antioquia</option>
+                        </select>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="afp">AFP:</label>
-                <select id="afp" required>
-                    <option value="">Seleccione</option>
-                    <option value="Proteccion">Protección</option>
-                    <option value="Porvenir">Porvenir</option>
-                    <option value="Colfondos">Colfondos</option>
-                    <option value="Skandia">Skandia (Old Mutual)</option>
-                    <option value="Colpensiones">Colpensiones</option>
-                    <option value="Fondo Nacional del Ahorro">Fondo Nacional del Ahorro</option>
-                    </select>
+                 <div class="combobox-container">
+                    <input type="text" id="afp-filter" placeholder="Buscar AFP...">
+                     <ul id="afp-options" class="combobox-options-list">
+                        </ul>
+                     <select id="afp" required>
+                        <option value="">Seleccione</option>
+                        <option value="Proteccion">Protección</option>
+                        <option value="Porvenir">Porvenir</option>
+                        <option value="Colfondos">Colfondos</option>
+                        <option value="Skandia">Skandia (Old Mutual)</option>
+                        <option value="Colpensiones">Colpensiones</option>
+                        <option value="Fondo Nacional del Ahorro">Fondo Nacional del Ahorro</option>
+                        </select>
+                </div>
             </div>
 
             <div class="form-group">
@@ -339,11 +447,13 @@
 
             <div class="form-group">
                 <label for="asesor">Asesor:</label>
-                 <div class="input-with-button">
-                    <select id="asesor" required>
-                         <option value="">Seleccione</option>
-                         </select>
+                 <div class="combobox-container input-with-button">
+                     <input type="text" id="asesor-filter" class="flex-grow" placeholder="Buscar asesor...">
                     <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
+                     <ul id="asesor-options" class="combobox-options-list">
+                        </ul>
+                     <select id="asesor" required> <option value="">Seleccione</option>
+                         </select>
                 </div>
             </div>
 
@@ -417,8 +527,7 @@
         // Obtener elementos del DOM
         const userForm = document.getElementById('user-form');
         const statusMessage = document.getElementById('status-message');
-        const empresaSelect = document.getElementById('empresa');
-        const asesorSelect = document.getElementById('asesor');
+
         const addEmpresaBtn = document.getElementById('add-empresa-btn');
         const addAsesorBtn = document.getElementById('add-asesor-btn');
         const addEmpresaModal = document.getElementById('add-empresa-modal');
@@ -429,6 +538,51 @@
         const cancelAddAsesorBtn = document.getElementById('cancel-add-asesor');
         const valorAPagarInput = document.getElementById('valor-a-pagar');
 
+        // Obtener inputs de filtro y listas flotantes
+        const tipoIdentificacionFilterInput = document.getElementById('tipo-identificacion-filter');
+        const tipoIdentificacionOptionsList = document.getElementById('tipo-identificacion-options');
+        const tipoIdentificacionSelect = document.getElementById('tipo-identificacion'); // Select nativo oculto
+
+        const empresaFilterInput = document.getElementById('empresa-filter');
+        const empresaOptionsList = document.getElementById('empresa-options');
+        const empresaSelect = document.getElementById('empresa'); // Select nativo oculto
+
+        const arlFilterInput = document.getElementById('arl-filter');
+        const arlOptionsList = document.getElementById('arl-options');
+        const arlSelect = document.getElementById('arl'); // Select nativo oculto
+
+        const riesgoFilterInput = document.getElementById('riesgo-filter');
+        const riesgoOptionsList = document.getElementById('riesgo-options');
+        const riesgoSelect = document.getElementById('riesgo'); // Select nativo oculto
+
+        const epsFilterInput = document.getElementById('eps-filter');
+        const epsOptionsList = document.getElementById('eps-options');
+        const epsSelect = document.getElementById('eps'); // Select nativo oculto
+
+        const ccfFilterInput = document.getElementById('ccf-filter');
+        const ccfOptionsList = document.getElementById('ccf-options');
+        const ccfSelect = document.getElementById('ccf'); // Select nativo oculto
+
+        const afpFilterInput = document.getElementById('afp-filter');
+        const afpOptionsList = document.getElementById('afp-options');
+        const afpSelect = document.getElementById('afp'); // Select nativo oculto
+
+        const asesorFilterInput = document.getElementById('asesor-filter');
+        const asesorOptionsList = document.getElementById('asesor-options');
+        const asesorSelect = document.getElementById('asesor'); // Select nativo oculto
+
+
+        // Almacenar opciones originales para filtrado (ahora desde los select nativos ocultos)
+        let originalTipoIdentificacionOptions = Array.from(tipoIdentificacionSelect.options);
+        let originalArlOptions = Array.from(arlSelect.options);
+        let originalRiesgoOptions = Array.from(riesgoSelect.options);
+        let originalEpsOptions = Array.from(epsSelect.options);
+        let originalCcfOptions = Array.from(ccfSelect.options);
+        let originalAfpOptions = Array.from(afpSelect.options);
+        let originalEmpresaOptions = []; // Para opciones de Firebase
+        let originalAsesorOptions = []; // Para opciones de Firebase
+
+
         // --- Funciones para Modales ---
         function showModal(modalElement) {
             modalElement.classList.add('show');
@@ -438,40 +592,128 @@
             modalElement.classList.remove('show');
         }
 
+        // --- Funciones para manejar la lista flotante (Combobox simulado) ---
+
+        // Función genérica para poblar y filtrar la lista flotante
+        function populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, filterText) {
+            optionsListElement.innerHTML = ''; // Limpiar lista actual
+
+            const lowerCaseFilterText = filterText.toLowerCase();
+
+            originalOptions.forEach(option => {
+                // No clonamos aquí, creamos nuevos li elementos
+                if (option.textContent.toLowerCase().includes(lowerCaseFilterText)) {
+                    const li = document.createElement('li');
+                    li.textContent = option.textContent;
+                    li.dataset.value = option.value; // Guardar el valor original
+                    optionsListElement.appendChild(li);
+                }
+            });
+
+            // Mostrar u ocultar la lista
+            if (optionsListElement.children.length > 0 && filterText.length > 0) {
+                 optionsListElement.classList.add('show');
+            } else {
+                 optionsListElement.classList.remove('show');
+            }
+        }
+
+        // Función para configurar listeners para un combobox simulado
+        function setupCombobox(filterInput, optionsListElement, originalOptions, selectElement) {
+            // Listener para filtrar al escribir
+            filterInput.addEventListener('input', (e) => {
+                populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
+            });
+
+            // Listener para mostrar la lista al enfocar (si hay texto)
+             filterInput.addEventListener('focus', (e) => {
+                 // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
+                 if (originalOptions.length > 0 || e.target.value.length > 0) {
+                      populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
+                      optionsListElement.classList.add('show');
+                 }
+             });
+
+
+            // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
+            filterInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    optionsListElement.classList.remove('show');
+                }, 100); // Pequeño retraso para permitir el clic en una opción
+            });
+
+            // Listener para seleccionar una opción de la lista flotante
+            optionsListElement.addEventListener('click', (e) => {
+                if (e.target.tagName === 'LI') {
+                    const selectedValue = e.target.dataset.value;
+                    const selectedText = e.target.textContent;
+
+                    // Actualizar el input de filtro con el texto seleccionado
+                    filterInput.value = selectedText;
+
+                    // Actualizar el valor del select nativo oculto
+                    selectElement.value = selectedValue;
+
+                    // Ocultar la lista
+                    optionsListElement.classList.remove('show');
+
+                     // Opcional: Disparar un evento 'change' en el select nativo si es necesario
+                     // const event = new Event('change');
+                     // selectElement.dispatchEvent(event);
+                }
+            });
+        }
+
         // --- Funciones para cargar Dropdowns desde Firestore ---
-        async function loadDropdownOptions(selectElement, collectionRef) {
-            // Limpiar opciones actuales excepto la primera (Seleccione)
-            selectElement.innerHTML = '<option value="">Seleccione</option>';
-            try {
-                // Escuchar cambios en tiempo real (usando onSnapshot)
-                collectionRef.onSnapshot((snapshot) => { // Usar onSnapshot directamente en la referencia
-                    selectElement.innerHTML = '<option value="">Seleccione</option>'; // Limpiar de nuevo en cada cambio
+        async function loadFirestoreDropdownOptions(collectionRef, filterInput, optionsListElement, selectElement) {
+             try {
+                collectionRef.onSnapshot((snapshot) => {
+                    let currentOptions = []; // Para almacenar las opciones actuales de Firestore
+                    // Añadir la opción "Seleccione" al inicio de las opciones de Firestore
+                     const defaultOption = document.createElement('option');
+                     defaultOption.value = "";
+                     defaultOption.textContent = "Seleccione";
+                     currentOptions.push(defaultOption);
+
                     snapshot.forEach((doc) => {
                         const item = doc.data();
                         const option = document.createElement('option');
                         option.value = doc.id; // Usar el ID del documento de Firestore como valor
                         option.textContent = item.nombre; // Asumir que el documento tiene una propiedad 'nombre'
-                        selectElement.appendChild(option);
+                        currentOptions.push(option);
                     });
+
+                    // Actualizar la lista de opciones originales para este combobox
+                    if (selectElement === empresaSelect) originalEmpresaOptions = currentOptions;
+                    if (selectElement === asesorSelect) originalAsesorOptions = currentOptions;
+
+                    // Configurar el combobox con las opciones cargadas
+                    setupCombobox(filterInput, optionsListElement, currentOptions, selectElement);
+
                 }, (error) => { // Agregar callback de error a onSnapshot
                     console.error("Error en onSnapshot al cargar dropdown:", error); // Logear el objeto de error completo
                     // Opcional: Mostrar un mensaje de error al usuario en la interfaz
-                    // statusMessage.textContent = 'Error al cargar opciones: ' + error.message;
-                    // statusMessage.className = 'error';
                 });
             } catch (error) {
                 console.error("Error al configurar el listener onSnapshot:", error); // Logear el objeto de error completo
                 // Opcional: Mostrar un mensaje de error al usuario en la interfaz
-                // statusMessage.textContent = 'Error al inicializar la carga de opciones: ' + error.message;
-                // statusMessage.className = 'error';
             }
         }
 
-        // Cargar opciones iniciales y escuchar cambios en las empresas
-        loadDropdownOptions(empresaSelect, empresasCollection);
 
-        // Cargar opciones iniciales y escuchar cambios en los asesores
-        loadDropdownOptions(asesorSelect, asesoresCollection);
+        // --- Cargar opciones iniciales y configurar comboboxes ---
+
+        // Configurar comboboxes estáticos
+        setupCombobox(tipoIdentificacionFilterInput, tipoIdentificacionOptionsList, originalTipoIdentificacionOptions, tipoIdentificacionSelect);
+        setupCombobox(arlFilterInput, arlOptionsList, originalArlOptions, arlSelect);
+        setupCombobox(riesgoFilterInput, riesgoOptionsList, originalRiesgoOptions, riesgoSelect);
+        setupCombobox(epsFilterInput, epsOptionsList, originalEpsOptions, epsSelect);
+        setupCombobox(ccfFilterInput, ccfOptionsList, originalCcfOptions, ccfSelect);
+        setupCombobox(afpFilterInput, afpOptionsList, originalAfpOptions, afpSelect);
+
+        // Cargar opciones de Firestore y configurar comboboxes
+        loadFirestoreDropdownOptions(empresasCollection, empresaFilterInput, empresaOptionsList, empresaSelect);
+        loadFirestoreDropdownOptions(asesoresCollection, asesorFilterInput, asesorOptionsList, asesorSelect);
 
 
         // --- Manejo de Formularios y Botones ---
@@ -517,16 +759,14 @@
             const nombre = document.getElementById('nueva-empresa-nombre').value;
             if (nombre) {
                 try {
-                    // Usar addDoc para agregar un nuevo documento con ID automático
                     await empresasCollection.add({ nombre: nombre });
                     console.log("Empresa guardada con éxito");
                     hideModal(addEmpresaModal);
                     empresaModalForm.reset();
-                    // onSnapshot en loadDropdownOptions se encargará de actualizar el dropdown
+                    // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
                 } catch (error) {
                     console.error("Error al guardar empresa:", error);
                     // Mostrar mensaje de error en el modal si es necesario
-                    // alert('Error al guardar empresa: ' + error.message); // Evitar alert en producción
                 }
             }
         });
@@ -537,16 +777,14 @@
             const nombre = document.getElementById('nuevo-asesor-nombre').value;
             if (nombre) {
                 try {
-                    // Usar addDoc para agregar un nuevo documento con ID automático
                     await asesoresCollection.add({ nombre: nombre });
                     console.log("Asesor guardado con éxito");
                     hideModal(addAsesorModal);
                     asesorModalForm.reset();
-                    // onSnapshot en loadDropdownOptions se encargará de actualizar el dropdown
+                    // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
                 } catch (error) {
                     console.error("Error al guardar asesor:", error);
                      // Mostrar mensaje de error en el modal si es necesario
-                     // alert('Error al guardar asesor: ' + error.message); // Evitar alert en producción
                 }
             }
         });
@@ -557,18 +795,19 @@
             e.preventDefault(); // Prevenir el envío por defecto del formulario
 
             // Obtener los valores del formulario
+            // Ahora obtenemos los valores seleccionados del select nativo oculto
             const nombre = document.getElementById('nombre').value;
-            const tipoIdentificacion = document.getElementById('tipo-identificacion').value;
+            const tipoIdentificacion = tipoIdentificacionSelect.value;
             const identificacion = document.getElementById('identificacion').value;
-            const empresa = document.getElementById('empresa').value; // Esto será el ID del documento de la empresa en Firestore
-            const arl = document.getElementById('arl').value;
-            const riesgo = document.getElementById('riesgo').value;
-            const eps = document.getElementById('eps').value;
-            const ccf = document.getElementById('ccf').value;
-            const afp = document.getElementById('afp').value;
+            const empresa = empresaSelect.value; // Esto será el ID del documento de la empresa en Firestore
+            const arl = arlSelect.value;
+            const riesgo = riesgoSelect.value;
+            const eps = epsSelect.value;
+            const ccf = ccfSelect.value;
+            const afp = afpSelect.value;
             const fecha = document.getElementById('fecha').value;
             const ingreso = document.getElementById('ingreso').value;
-            const asesor = document.getElementById('asesor').value; // Esto será el ID del documento del asesor en Firestore
+            const asesor = asesorSelect.value; // Esto será el ID del documento del asesor en Firestore
             const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
 
             // Validar que los campos obligatorios no estén vacíos
@@ -603,12 +842,30 @@
 
             // Guardar el nuevo usuario en Firestore
             try {
-                // Usar addDoc para agregar un nuevo documento con ID automático
                 await usersCollection.add(newUser);
                 // Mostrar mensaje de éxito
                 statusMessage.textContent = 'Usuario guardado con éxito!';
                 statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
                 userForm.reset(); // Limpiar el formulario
+                // Limpiar los inputs de filtro y restablecer los selects nativos
+                tipoIdentificacionFilterInput.value = '';
+                tipoIdentificacionSelect.value = '';
+                empresaFilterInput.value = '';
+                empresaSelect.value = '';
+                arlFilterInput.value = '';
+                arlSelect.value = '';
+                riesgoFilterInput.value = '';
+                riesgoSelect.value = '';
+                epsFilterInput.value = '';
+                epsSelect.value = '';
+                ccfFilterInput.value = '';
+                ccfSelect.value = '';
+                afpFilterInput.value = '';
+                afpSelect.value = '';
+                asesorFilterInput.value = '';
+                asesorSelect.value = '';
+
+
                 // Limpiar el mensaje después de unos segundos
                 setTimeout(() => {
                     statusMessage.textContent = '';
@@ -627,12 +884,6 @@
             }
         });
 
-        // --- Funcionalidad de Filtro para Dropdowns (Ejemplo básico para SELECTs grandes) ---
-        // Para implementar un filtro en un select nativo, necesitarías un input de texto
-        // encima del select y JavaScript para ocultar/mostrar opciones o recrear el select.
-        // Esto puede volverse complejo rápidamente. Considera usar una librería de select
-        // con funcionalidad de búsqueda si el número de opciones es muy grande.
-        // El código actual carga todas las opciones de ARL, EPS, CCF, AFP directamente.
 
         // --- Formato de Moneda para Valor a Pagar ---
         valorAPagarInput.addEventListener('input', (e) => {
