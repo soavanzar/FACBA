@@ -832,28 +832,51 @@
                  return; // Detener el envío si faltan campos
             }
 
+            // --- Validación de duplicados ---
+            statusMessage.textContent = 'Verificando duplicados...';
+            statusMessage.className = ''; // Limpiar clases de estado anteriores
 
-            // Crear un objeto con los datos del usuario
-            const newUser = {
-                nombre: nombre,
-                tipoIdentificacion: tipoIdentificacion,
-                identificacion: identificacion,
-                empresaId: empresa, // Guardar el ID de la empresa
-                arl: arl,
-                riesgo: riesgo,
-                eps: eps,
-                ccf: ccf,
-                afp: afp,
-                fecha: fecha,
-                ingreso: ingreso,
-                asesorId: asesor, // Guardar el ID del asesor
-                valorAPagar: valorAPagar, // Guardar el valor formateado
-                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp
-            };
-
-            // Guardar el nuevo usuario en Firestore
             try {
+                // Consultar Firestore para ver si ya existe un usuario con la misma identificación y tipo
+                const existingUsersSnapshot = await usersCollection
+                    .where('identificacion', '==', identificacion)
+                    .where('tipoIdentificacion', '==', tipoIdentificacion)
+                    .get();
+
+                if (!existingUsersSnapshot.empty) {
+                    // Si el snapshot no está vacío, significa que ya existe un usuario con esa combinación
+                    statusMessage.textContent = 'Error: Ya existe un usuario con este número y tipo de identificación.';
+                    statusMessage.className = 'error';
+                     setTimeout(() => {
+                        statusMessage.textContent = '';
+                        statusMessage.className = '';
+                    }, 5000);
+                    return; // Detener el proceso de guardado
+                }
+
+                // Si no se encontraron duplicados, proceder a guardar el nuevo usuario
+
+                // Crear un objeto con los datos del usuario
+                const newUser = {
+                    nombre: nombre,
+                    tipoIdentificacion: tipoIdentificacion,
+                    identificacion: identificacion,
+                    empresaId: empresa, // Guardar el ID de la empresa
+                    arl: arl,
+                    riesgo: riesgo,
+                    eps: eps,
+                    ccf: ccf,
+                    afp: afp,
+                    fecha: fecha,
+                    ingreso: ingreso,
+                    asesorId: asesor, // Guardar el ID del asesor
+                    valorAPagar: valorAPagar, // Guardar el valor formateado
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp
+                };
+
+                // Guardar el nuevo usuario en Firestore
                 await usersCollection.add(newUser);
+
                 // Mostrar mensaje de éxito
                 statusMessage.textContent = 'Usuario guardado con éxito!';
                 statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
@@ -882,8 +905,9 @@
                     statusMessage.textContent = '';
                     statusMessage.className = '';
                 }, 5000); // 5 segundos
+
             } catch (error) {
-                // Mostrar mensaje de error
+                // Mostrar mensaje de error si algo falla durante la consulta o el guardado
                 statusMessage.textContent = 'Error al guardar usuario: ' + error.message;
                 statusMessage.className = 'error'; // Aplicar clase de estilo para error
                 console.error("Error al guardar usuario:", error);
