@@ -444,7 +444,7 @@
             selectElement.innerHTML = '<option value="">Seleccione</option>';
             try {
                 // Escuchar cambios en tiempo real (usando onSnapshot)
-                onSnapshot(collectionRef, (snapshot) => {
+                collectionRef.onSnapshot((snapshot) => { // Usar onSnapshot directamente en la referencia
                     selectElement.innerHTML = '<option value="">Seleccione</option>'; // Limpiar de nuevo en cada cambio
                     snapshot.forEach((doc) => {
                         const item = doc.data();
@@ -453,10 +453,17 @@
                         option.textContent = item.nombre; // Asumir que el documento tiene una propiedad 'nombre'
                         selectElement.appendChild(option);
                     });
+                }, (error) => { // Agregar callback de error a onSnapshot
+                    console.error("Error en onSnapshot al cargar dropdown:", error); // Logear el objeto de error completo
+                    // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                    // statusMessage.textContent = 'Error al cargar opciones: ' + error.message;
+                    // statusMessage.className = 'error';
                 });
             } catch (error) {
-                console.error("Error al cargar opciones del dropdown:", error);
-                // Opcional: Mostrar un mensaje de error al usuario
+                console.error("Error al configurar el listener onSnapshot:", error); // Logear el objeto de error completo
+                // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                // statusMessage.textContent = 'Error al inicializar la carga de opciones: ' + error.message;
+                // statusMessage.className = 'error';
             }
         }
 
@@ -510,7 +517,8 @@
             const nombre = document.getElementById('nueva-empresa-nombre').value;
             if (nombre) {
                 try {
-                    await addDoc(empresasCollection, { nombre: nombre });
+                    // Usar addDoc para agregar un nuevo documento con ID automático
+                    await empresasCollection.add({ nombre: nombre });
                     console.log("Empresa guardada con éxito");
                     hideModal(addEmpresaModal);
                     empresaModalForm.reset();
@@ -518,6 +526,7 @@
                 } catch (error) {
                     console.error("Error al guardar empresa:", error);
                     // Mostrar mensaje de error en el modal si es necesario
+                    // alert('Error al guardar empresa: ' + error.message); // Evitar alert en producción
                 }
             }
         });
@@ -528,7 +537,8 @@
             const nombre = document.getElementById('nuevo-asesor-nombre').value;
             if (nombre) {
                 try {
-                    await addDoc(asesoresCollection, { nombre: nombre });
+                    // Usar addDoc para agregar un nuevo documento con ID automático
+                    await asesoresCollection.add({ nombre: nombre });
                     console.log("Asesor guardado con éxito");
                     hideModal(addAsesorModal);
                     asesorModalForm.reset();
@@ -536,6 +546,7 @@
                 } catch (error) {
                     console.error("Error al guardar asesor:", error);
                      // Mostrar mensaje de error en el modal si es necesario
+                     // alert('Error al guardar asesor: ' + error.message); // Evitar alert en producción
                 }
             }
         });
@@ -592,7 +603,8 @@
 
             // Guardar el nuevo usuario en Firestore
             try {
-                await addDoc(usersCollection, newUser);
+                // Usar addDoc para agregar un nuevo documento con ID automático
+                await usersCollection.add(newUser);
                 // Mostrar mensaje de éxito
                 statusMessage.textContent = 'Usuario guardado con éxito!';
                 statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
