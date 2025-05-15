@@ -479,7 +479,7 @@
              max-width: 400px; /* Ancho adecuado para el formulario simple */
          }
 
-         /* Estilos para el nuevo modal de gestión de entidades */
+         /* Estilos para el nuevo modal genérico de gestión de entidades */
          #manage-entity-modal .modal-content {
              max-width: 500px; /* Ancho adecuado para la lista */
          }
@@ -595,10 +595,13 @@
             <button class="filter-button" data-filter="retirado">Retirados</button>
             <button class="filter-button" data-filter="empresa">Filtrar por Empresa</button>
             <button class="filter-button" data-filter="asesor">Filtrar por Asesor</button>
+             <button class="filter-button" data-filter="arl">Filtrar por ARL</button> <button class="filter-button" data-filter="eps">Filtrar por EPS</button>
+            <button class="filter-button" data-filter="ccf">Filtrar por CCF</button>
+            <button class="filter-button" data-filter="afp">Filtrar por AFP</button>
         </div>
 
         <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Buscar por nombre, identificación, empresa...">
+            <input type="text" id="search-input" placeholder="Buscar por nombre, identificación, empresa, EPS, AFP...">
         </div>
 
         <div class="table-container">
@@ -612,6 +615,10 @@
                         <th>Fecha Ingreso</th>
                         <th>Fecha Registro</th>
                         <th>Asesor</th>
+                        <th>ARL</th> <th>Riesgo</th>
+                        <th>EPS</th>
+                        <th>CCF</th>
+                        <th>AFP</th>
                         <th>Valor a Pagar</th>
                         <th>Acciones</th>
                     </tr>
@@ -659,7 +666,9 @@
 
                 <div class="modal-form-group">
                     <label for="edit-arl">ARL:</label>
-                    <input type="text" id="edit-arl" name="arl">
+                     <select id="edit-arl" name="arlId">
+                         <option value="">Selecciona una ARL</option>
+                         </select>
                 </div>
 
                 <div class="modal-form-group">
@@ -669,18 +678,25 @@
 
                 <div class="modal-form-group">
                     <label for="edit-eps">EPS:</label>
-                    <input type="text" id="edit-eps" name="eps">
+                     <select id="edit-eps" name="epsId">
+                         <option value="">Selecciona una EPS</option>
+                         </select>
                 </div>
 
                 <div class="modal-form-group">
                     <label for="edit-ccf">CCF:</label>
-                    <input type="text" id="edit-ccf" name="ccf">
+                     <select id="edit-ccf" name="ccfId">
+                         <option value="">Selecciona una CCF</option>
+                         </select>
                 </div>
 
                 <div class="modal-form-group">
                     <label for="edit-afp">AFP:</label>
-                    <input type="text" id="edit-afp" name="afp">
+                     <select id="edit-afp" name="afpId">
+                         <option value="">Selecciona una AFP</option>
+                         </select>
                 </div>
+
 
                 <div class="modal-form-group">
                     <label for="edit-fecha-ingreso">Fecha de Ingreso:</label>
@@ -742,6 +758,32 @@
                     <option value="">Todos los Asesores</option>
                     </select>
             </div>
+            <div class="modal-form-group" id="filter-arl-group" style="display: none;">
+                <label for="filter-arl-select">Seleccionar ARL:</label>
+                <select id="filter-arl-select">
+                    <option value="">Todas las ARL</option>
+                    </select>
+            </div>
+            <div class="modal-form-group" id="filter-eps-group" style="display: none;">
+                <label for="filter-eps-select">Seleccionar EPS:</label>
+                <select id="filter-eps-select">
+                    <option value="">Todas las EPS</option>
+                    </select>
+            </div>
+             <div class="modal-form-group" id="filter-ccf-group" style="display: none;">
+                <label for="filter-ccf-select">Seleccionar CCF:</label>
+                <select id="filter-ccf-select">
+                    <option value="">Todas las CCF</option>
+                    </select>
+            </div>
+             <div class="modal-form-group" id="filter-afp-group" style="display: none;">
+                <label for="filter-afp-select">Seleccionar AFP:</label>
+                <select id="filter-afp-select">
+                    <option value="">Todas las AFP</option>
+                    </select>
+            </div>
+
+
             <div class="modal-buttons">
                 <button type="button" class="cancel-button" id="cancel-filter">Cancelar</button>
                 <button type="button" class="save-changes-button" id="apply-filter">Aplicar Filtro</button>
@@ -753,7 +795,7 @@
         <div class="modal-content">
              <span class="modal-close-button" id="close-settings-modal">&times;</span>
              <h2>Opciones de Configuración</h2>
-             <button class="menu-option-button" data-entity-type="eps">Gestionar EPS</button>
+             <button class="menu-option-button" data-entity-type="arl">Gestionar ARL</button> <button class="menu-option-button" data-entity-type="eps">Gestionar EPS</button>
              <button class="menu-option-button" data-entity-type="ccf">Gestionar CCF</button>
              <button class="menu-option-button" data-entity-type="afp">Gestionar AFP</button>
              <button class="menu-option-button" data-entity-type="asesor">Gestionar Asesores</button>
@@ -808,7 +850,7 @@
              <div class="import-instructions">
                  Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga **exactamente** las siguientes columnas en la primera fila (el orden no importa):<br>
                  <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong> <br>
-                 Asegúrate de que las celdas para **ARL, RIESGO, EPS, CCF, AFP** no estén vacías si quieres importar esos datos.
+                 Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente.
              </div>
              <input type="file" id="excel-file-input" accept=".xlsx, .xls">
              <div class="modal-buttons">
@@ -841,7 +883,7 @@
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas');
         const asesoresCollection = db.collection('asesores');
-        // Referencias a nuevas colecciones para EPS, CCF, AFP
+        const arlCollection = db.collection('arl'); // Nueva colección para ARL
         const epsCollection = db.collection('eps');
         const ccfCollection = db.collection('ccf');
         const afpCollection = db.collection('afp');
@@ -868,11 +910,11 @@
         const editTipoIdentificacionSelect = document.getElementById('edit-tipo-identificacion');
         const editIdentificacionInput = document.getElementById('edit-identificacion');
         const editEmpresaSelect = document.getElementById('edit-empresa');
-        const editArlInput = document.getElementById('edit-arl');
+        const editArlSelect = document.getElementById('edit-arl'); // Selector para ARL
         const editRiesgoInput = document.getElementById('edit-riesgo');
-        const editEpsInput = document.getElementById('edit-eps');
-        const editCcfInput = document.getElementById('edit-ccf');
-        const editAfpInput = document.getElementById('edit-afp');
+        const editEpsSelect = document.getElementById('edit-eps'); // Selector para EPS
+        const editCcfSelect = document.getElementById('edit-ccf'); // Selector para CCF
+        const editAfpSelect = document.getElementById('edit-afp'); // Selector para AFP
         const editFechaIngresoInput = document.getElementById('edit-fecha-ingreso');
         const editFechaRegistroInput = document.getElementById('edit-fecha-registro');
         const editAsesorSelect = document.getElementById('edit-asesor');
@@ -891,6 +933,15 @@
         const filterEmpresaSelect = document.getElementById('filter-empresa-select');
         const filterAsesorGroup = document.getElementById('filter-asesor-group');
         const filterAsesorSelect = document.getElementById('filter-asesor-select');
+        const filterArlGroup = document.getElementById('filter-arl-group'); // Grupo de filtro para ARL
+        const filterArlSelect = document.getElementById('filter-arl-select'); // Selector para ARL
+        const filterEpsGroup = document.getElementById('filter-eps-group'); // Grupo de filtro para EPS
+        const filterEpsSelect = document.getElementById('filter-eps-select'); // Selector para EPS
+        const filterCcfGroup = document.getElementById('filter-ccf-group'); // Grupo de filtro para CCF
+        const filterCcfSelect = document.getElementById('filter-ccf-select'); // Selector para CCF
+        const filterAfpGroup = document.getElementById('filter-afp-group'); // Grupo de filtro para AFP
+        const filterAfpSelect = document.getElementById('filter-afp-select'); // Selector para AFP
+
 
         // Modal de Configuración/Menú DOM elements
         const settingsModal = document.getElementById('settings-modal');
@@ -930,9 +981,14 @@
         const importStatusMessage = document.getElementById('import-status-message');
 
 
-        // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
+        // Mapas para almacenar nombres de entidades (para mostrar en la tabla y selectores)
         let empresasMap = new Map();
         let asesoresMap = new Map();
+        let arlMap = new Map(); // Nuevo mapa para ARL
+        let epsMap = new Map(); // Nuevo mapa para EPS
+        let ccfMap = new Map(); // Nuevo mapa para CCF
+        let afpMap = new Map(); // Nuevo mapa para AFP
+
 
         // Variable para almacenar todos los documentos de usuario fetched por onSnapshot
         let allUserDocs = [];
@@ -941,6 +997,10 @@
         let currentStatusFilter = 'todos'; // 'todos', 'activo', 'retirado'
         let currentEmpresaFilterId = ''; // ID de empresa seleccionado para filtrar
         let currentAsesorFilterId = ''; // ID de asesor seleccionado para filtrar
+        let currentArlFilterId = ''; // Nuevo: ID de ARL seleccionado para filtrar
+        let currentEpsFilterId = ''; // Nuevo: ID de EPS seleccionado para filtrar
+        let currentCcfFilterId = ''; // Nuevo: ID de CCF seleccionado para filtrar
+        let currentAfpFilterId = ''; // Nuevo: ID de AFP seleccionado para filtrar
 
 
         // --- Funciones de Utilidad ---
@@ -1024,54 +1084,160 @@
 
         // --- Carga de Datos Inicial y Filtrado ---
 
-        // Cargar mapas de empresas y asesores (y potencialmente otros para EPS, CCF, AFP si se usan IDs)
+        // Cargar mapas de todas las entidades (empresas, asesores, arl, eps, ccf, afp)
         async function loadLookupMaps() {
             try {
-                const empresasSnapshot = await empresasCollection.get();
+                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
+                    empresasCollection.get(),
+                    asesoresCollection.get(),
+                    arlCollection.get(), // Cargar ARL
+                    epsCollection.get(), // Cargar EPS
+                    ccfCollection.get(), // Cargar CCF
+                    afpCollection.get()  // Cargar AFP
+                ]);
+
                 empresasMap = new Map();
                 empresasSnapshot.forEach(doc => {
                     empresasMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
                 });
 
-                const asesoresSnapshot = await asesoresCollection.get();
                 asesoresMap = new Map();
                 asesoresSnapshot.forEach(doc => {
                     asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
                 });
-                 console.log("Mapas de Empresas y Asesores cargados."); // Debugging
-                 // TODO: Si EPS, CCF, AFP se convierten en colecciones con IDs, cargar sus mapas aquí también
+
+                arlMap = new Map(); // Llenar mapa de ARL
+                arlSnapshot.forEach(doc => {
+                    arlMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                epsMap = new Map(); // Llenar mapa de EPS
+                epsSnapshot.forEach(doc => {
+                    epsMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                ccfMap = new Map(); // Llenar mapa de CCF
+                ccfSnapshot.forEach(doc => {
+                    ccfMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                afpMap = new Map(); // Llenar mapa de AFP
+                afpSnapshot.forEach(doc => {
+                    afpMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+
+                 console.log("Mapas de Empresas, Asesores, ARL, EPS, CCF, AFP cargados."); // Debugging
             } catch (error) {
                 console.error("Error al cargar mapas:", error);
-                showStatusMessage('Error al cargar datos de referencia (empresas, asesores).', 'error');
+                showStatusMessage('Error al cargar datos de referencia (empresas, asesores, ARL, EPS, CCF, AFP).', 'error');
             }
         }
 
-        // Poblar selectores de empresa y asesor en los modales (edición y filtro)
-        async function populateSelects(empresaSelectElement, asesorSelectElement) {
+        // Poblar selectores de entidades en los modales (edición y filtro)
+        async function populateSelects() {
              try {
                  // Empresas
                  const empresasSnapshot = await empresasCollection.get();
-                 empresaSelectElement.innerHTML = '<option value="">Selecciona una empresa</option>'; // Limpiar y añadir opción por defecto
+                 editEmpresaSelect.innerHTML = '<option value="">Selecciona una empresa</option>'; // Limpiar y añadir opción por defecto
+                 filterEmpresaSelect.innerHTML = '<option value="">Todas las Empresas</option>';
                  empresasSnapshot.forEach(doc => {
-                     const option = document.createElement('option');
-                     option.value = doc.id;
-                     option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                     empresaSelectElement.appendChild(option);
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editEmpresaSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterEmpresaSelect.appendChild(optionFilter);
                  });
 
                  // Asesores
                  const asesoresSnapshot = await asesoresCollection.get();
-                 asesorSelectElement.innerHTML = '<option value="">Selecciona un asesor</option>'; // Limpiar y añadir opción por defecto
+                 editAsesorSelect.innerHTML = '<option value="">Selecciona un asesor</option>'; // Limpiar y añadir opción por defecto
+                 filterAsesorSelect.innerHTML = '<option value="">Todos los Asesores</option>';
                  asesoresSnapshot.forEach(doc => {
-                     const option = document.createElement('option');
-                     option.value = doc.id;
-                     option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                     asesorSelectElement.appendChild(option);
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editAsesorSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterAsesorSelect.appendChild(optionFilter);
                  });
+
+                 // ARL
+                 const arlSnapshot = await arlCollection.get();
+                 editArlSelect.innerHTML = '<option value="">Selecciona una ARL</option>'; // Limpiar y añadir opción por defecto
+                 filterArlSelect.innerHTML = '<option value="">Todas las ARL</option>';
+                 arlSnapshot.forEach(doc => {
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editArlSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterArlSelect.appendChild(optionFilter);
+                 });
+
+                 // EPS
+                 const epsSnapshot = await epsCollection.get();
+                 editEpsSelect.innerHTML = '<option value="">Selecciona una EPS</option>'; // Limpiar y añadir opción por defecto
+                 filterEpsSelect.innerHTML = '<option value="">Todas las EPS</option>';
+                 epsSnapshot.forEach(doc => {
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editEpsSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterEpsSelect.appendChild(optionFilter);
+                 });
+
+                 // CCF
+                 const ccfSnapshot = await ccfCollection.get();
+                 editCcfSelect.innerHTML = '<option value="">Selecciona una CCF</option>'; // Limpiar y añadir opción por defecto
+                 filterCcfSelect.innerHTML = '<option value="">Todas las CCF</option>';
+                 ccfSnapshot.forEach(doc => {
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editCcfSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterCcfSelect.appendChild(optionFilter);
+                 });
+
+                 // AFP
+                 const afpSnapshot = await afpCollection.get();
+                 editAfpSelect.innerHTML = '<option value="">Selecciona una AFP</option>'; // Limpiar y añadir opción por defecto
+                 filterAfpSelect.innerHTML = '<option value="">Todas las AFP</option>';
+                 afpSnapshot.forEach(doc => {
+                     const optionEdit = document.createElement('option');
+                     optionEdit.value = doc.id;
+                     optionEdit.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editAfpSelect.appendChild(optionEdit);
+
+                     const optionFilter = document.createElement('option');
+                     optionFilter.value = doc.id;
+                     optionFilter.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     filterAfpSelect.appendChild(optionFilter);
+                 });
+
+
                   console.log("Selectores poblados."); // Debugging
              } catch (error) {
                  console.error("Error al poblar selectores:", error);
-                 showStatusMessage('Error al cargar opciones de empresa/asesor.', 'error');
+                 showStatusMessage('Error al cargar opciones de empresa/asesor/ARL/EPS/CCF/AFP.', 'error');
              }
         }
 
@@ -1086,15 +1252,28 @@
             const estado = user.estado || 'activo'; // Estado por defecto si no está definido
             const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
 
+            // Obtener nombres de entidades usando los mapas
+            const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+            const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+            const arlNombre = arlMap.get(user.arlId) || 'Desconocida'; // Usar mapa para ARL
+            const epsNombre = epsMap.get(user.epsId) || 'Desconocida'; // Usar mapa para EPS
+            const ccfNombre = ccfMap.get(user.ccfId) || 'Desconocida'; // Usar mapa para CCF
+            const afpNombre = afpMap.get(user.afpId) || 'Desconocida'; // Usar mapa para AFP
+
+
             // Añadir data-label para la responsividad de la tabla
             row.innerHTML = `
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Identificación">${user.identificacion || 'Sin Identificación'}</td>
-                <td data-label="Empresa">${empresasMap.get(user.empresaId) || 'Desconocida'}</td>
+                <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Estado">${estado}</td>
                 <td data-label="Fecha Ingreso">${formatDate(user.fecha)}</td>
                 <td data-label="Fecha Registro">${formatDate(user.ingreso)}</td>
-                <td data-label="Asesor">${asesoresMap.get(user.asesorId) || 'Desconocido'}</td>
+                <td data-label="Asesor">${asesorNombre}</td>
+                <td data-label="ARL">${arlNombre}</td> <td data-label="Riesgo">${user.riesgo || 'Sin Riesgo'}</td>
+                <td data-label="EPS">${epsNombre}</td>
+                <td data-label="CCF">${ccfNombre}</td>
+                <td data-label="AFP">${afpNombre}</td>
                 <td data-label="Valor a Pagar">${formatCurrency(user.valorAPagar)}</td>
                 <td class="action-buttons" data-label="Acciones">
                     <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
@@ -1116,6 +1295,10 @@
                 const user = userDoc.data();
                 const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
                 const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+                const arlNombre = arlMap.get(user.arlId) || 'Desconocida'; // Usar mapa para ARL
+                const epsNombre = epsMap.get(user.epsId) || 'Desconocida'; // Usar mapa para EPS
+                const ccfNombre = ccfMap.get(user.ccfId) || 'Desconocida'; // Usar mapa para CCF
+                const afpNombre = afpMap.get(user.afpId) || 'Desconocida'; // Usar mapa para AFP
                 const estado = user.estado || 'activo'; // Estado por defecto
 
                 // Aplicar filtro de estado
@@ -1127,22 +1310,35 @@
                 // Aplicar filtro de asesor
                 const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
 
-                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, EPS, CCF, AFP, Riesgo)
+                 // Aplicar filtro de ARL
+                 const matchesArlFilter = currentArlFilterId === '' || user.arlId === currentArlFilterId;
+
+                 // Aplicar filtro de EPS
+                 const matchesEpsFilter = currentEpsFilterId === '' || user.epsId === currentEpsFilterId;
+
+                 // Aplicar filtro de CCF
+                 const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
+
+                 // Aplicar filtro de AFP
+                 const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
+
+
+                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, Riesgo, EPS, CCF, AFP)
                 const matchesSearch = filterText === '' ||
                     (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                     (empresaNombre.toLowerCase().includes(filterText)) ||
                     (estado.toLowerCase().includes(filterText)) ||
                     (asesorNombre.toLowerCase().includes(filterText)) ||
-                    (user.arl && user.arl.toLowerCase().includes(filterText)) || // Add ARL to search
-                    (user.eps && user.eps.toLowerCase().includes(filterText)) || // Add EPS to search
-                    (user.ccf && user.ccf.toLowerCase().includes(filterText)) || // Add CCF to search
-                    (user.afp && user.afp.toLowerCase().includes(filterText)) || // Add AFP to search
-                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)); // Add Riesgo to search
+                    (arlNombre.toLowerCase().includes(filterText)) || // Incluir ARL en búsqueda
+                    (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
+                    (epsNombre.toLowerCase().includes(filterText)) || // Incluir EPS en búsqueda
+                    (ccfNombre.toLowerCase().includes(filterText)) || // Incluir CCF en búsqueda
+                    (afpNombre.toLowerCase().includes(filterText)); // Incluir AFP en búsqueda
 
 
                 // Retornar true si coincide con TODOS los filtros
-                return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
+                return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesArlFilter && matchesEpsFilter && matchesCcfFilter && matchesAfpFilter && matchesSearch;
             });
 
             // Renderizar las filas filtradas
@@ -1153,7 +1349,7 @@
                 });
             } else {
                 const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
+                noDataRow.innerHTML = `<td colspan="14" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
                 userTableBody.appendChild(noDataRow);
             }
 
@@ -1164,7 +1360,7 @@
         // Cargar usuarios inicialmente y configurar el listener de onSnapshot
         async function loadUsersTable() {
              // Cargar mapas antes de la primera carga de la tabla si aún no están cargados
-             if (empresasMap.size === 0 || asesoresMap.size === 0) {
+             if (empresasMap.size === 0 || asesoresMap.size === 0 || arlMap.size === 0 || epsMap.size === 0 || ccfMap.size === 0 || afpMap.size === 0) {
                  await loadLookupMaps();
              }
 
@@ -1191,7 +1387,7 @@
         });
 
 
-        // --- Funcionalidad de Filtro por Estado, Empresa, Asesor ---
+        // --- Funcionalidad de Filtro por Estado, Empresa, Asesor, ARL, EPS, CCF, AFP ---
         filterButtonsContainer.addEventListener('click', async (e) => {
             const targetButton = e.target.closest('.filter-button');
             if (!targetButton) return; // No es un botón de filtro
@@ -1201,35 +1397,73 @@
             // Remover clase 'active' de todos los botones de estado (Todos, Activos, Retirados)
             document.querySelectorAll('.filter-button[data-filter="todos"], .filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
              // Remover clase 'active' de los botones de filtro de modal
-             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"]').forEach(button => button.classList.remove('active'));
+             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"], .filter-button[data-filter="arl"], .filter-button[data-filter="eps"], .filter-button[data-filter="ccf"], .filter-button[data-filter="afp"]').forEach(button => button.classList.remove('active'));
 
 
             if (filterType === 'todos' || filterType === 'activo' || filterType === 'retirado') {
                 // Filtro por estado
                 targetButton.classList.add('active');
                 currentStatusFilter = filterType;
-                currentEmpresaFilterId = ''; // Resetear filtro de empresa
-                currentAsesorFilterId = ''; // Resetear filtro de asesor
+                // Resetear todos los filtros de ID
+                currentEmpresaFilterId = '';
+                currentAsesorFilterId = '';
+                currentArlFilterId = ''; // Resetear filtro de ARL
+                currentEpsFilterId = '';
+                currentCcfFilterId = '';
+                currentAfpFilterId = '';
                 console.log("Filtro de estado cambiado a:", currentStatusFilter);
                 renderFilteredUsers(); // Re-renderizar la tabla con el nuevo filtro
 
-            } else if (filterType === 'empresa') {
-                // Filtro por empresa (mostrar modal)
+            } else { // Es un filtro que usa modal (empresa, asesor, arl, eps, ccf, afp)
                  targetButton.classList.add('active');
-                 filterModalTitle.textContent = 'Filtrar por Empresa';
-                 filterEmpresaGroup.style.display = 'block';
-                 filterAsesorGroup.style.display = 'none';
-                 await populateSelects(filterEmpresaSelect, filterAsesorSelect); // Poblar selectores
-                 filterEmpresaSelect.value = currentEmpresaFilterId; // Seleccionar filtro actual si existe
-                 showFilterModal();
-            } else if (filterType === 'asesor') {
-                 // Filtro por asesor (mostrar modal)
-                 targetButton.classList.add('active');
-                 filterModalTitle.textContent = 'Filtrar por Asesor';
-                 filterAsesorGroup.style.display = 'block';
+                 // Resetear la visualización de todos los grupos de filtro de modal
                  filterEmpresaGroup.style.display = 'none';
-                 await populateSelects(filterEmpresaSelect, filterAsesorSelect); // Poblar selectores
-                 filterAsesorSelect.value = currentAsesorFilterId; // Seleccionar filtro actual si existe
+                 filterAsesorGroup.style.display = 'none';
+                 filterArlGroup.style.display = 'none'; // Ocultar grupo de ARL
+                 filterEpsGroup.style.display = 'none';
+                 filterCcfGroup.style.display = 'none';
+                 filterAfpGroup.style.display = 'none';
+
+                 // Mostrar el grupo de filtro correcto
+                 switch (filterType) {
+                      case 'empresa':
+                           filterModalTitle.textContent = 'Filtrar por Empresa';
+                           filterEmpresaGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterEmpresaSelect.value = currentEmpresaFilterId; // Seleccionar filtro actual si existe
+                           break;
+                      case 'asesor':
+                           filterModalTitle.textContent = 'Filtrar por Asesor';
+                           filterAsesorGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterAsesorSelect.value = currentAsesorFilterId; // Seleccionar filtro actual si existe
+                           break;
+                      case 'arl': // Mostrar grupo de ARL
+                           filterModalTitle.textContent = 'Filtrar por ARL';
+                           filterArlGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterArlSelect.value = currentArlFilterId; // Seleccionar filtro actual si existe
+                           break;
+                      case 'eps':
+                           filterModalTitle.textContent = 'Filtrar por EPS';
+                           filterEpsGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterEpsSelect.value = currentEpsFilterId; // Seleccionar filtro actual si existe
+                           break;
+                      case 'ccf':
+                           filterModalTitle.textContent = 'Filtrar por CCF';
+                           filterCcfGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterCcfSelect.value = currentCcfFilterId; // Seleccionar filtro actual si existe
+                           break;
+                      case 'afp':
+                           filterModalTitle.textContent = 'Filtrar por AFP';
+                           filterAfpGroup.style.display = 'block';
+                           await populateSelects(); // Asegurarse de que los selectores estén poblados
+                           filterAfpSelect.value = currentAfpFilterId; // Seleccionar filtro actual si existe
+                           break;
+                 }
+
                  showFilterModal();
             }
 
@@ -1245,8 +1479,12 @@
             // Resetear la visualización de los grupos al cerrar el modal
             filterEmpresaGroup.style.display = 'none';
             filterAsesorGroup.style.display = 'none';
+            filterArlGroup.style.display = 'none'; // Ocultar grupo de ARL
+            filterEpsGroup.style.display = 'none';
+            filterCcfGroup.style.display = 'none';
+            filterAfpGroup.style.display = 'none';
              // Asegurarse de que el botón de filtro de modal activo se desactive si se cierra sin aplicar
-             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"]').forEach(button => button.classList.remove('active'));
+             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"], .filter-button[data-filter="arl"], .filter-button[data-filter="eps"], .filter-button[data-filter="ccf"], .filter-button[data-filter="afp"]').forEach(button => button.classList.remove('active'));
         }
 
         closeFilterModalButton.addEventListener('click', hideFilterModal);
@@ -1260,27 +1498,40 @@
 
         applyFilterButton.addEventListener('click', () => {
              // Aplicar el filtro seleccionado del modal
+             // Resetear todos los filtros de ID primero
+             currentEmpresaFilterId = '';
+             currentAsesorFilterId = '';
+             currentArlFilterId = ''; // Resetear filtro de ARL
+             currentEpsFilterId = '';
+             currentCcfFilterId = '';
+             currentAfpFilterId = '';
+
+             // Aplicar el filtro del selector visible
              if (filterEmpresaGroup.style.display !== 'none') {
                   currentEmpresaFilterId = filterEmpresaSelect.value;
-                  currentAsesorFilterId = ''; // Resetear el otro filtro
-                  // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de empresa/asesor
-                  currentStatusFilter = 'todos';
-                  document.querySelector('.filter-button[data-filter="todos"]').classList.add('active');
-                  document.querySelectorAll('.filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
-
-
                   console.log("Filtro de Empresa aplicado:", currentEmpresaFilterId);
              } else if (filterAsesorGroup.style.display !== 'none') {
                   currentAsesorFilterId = filterAsesorSelect.value;
-                  currentEmpresaFilterId = ''; // Resetear el otro filtro
-                  // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de empresa/asesor
-                   currentStatusFilter = 'todos';
-                   document.querySelector('.filter-button[data-filter="todos"]').classList.add('active');
-                   document.querySelectorAll('.filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
-
-
                   console.log("Filtro de Asesor aplicado:", currentAsesorFilterId);
+             } else if (filterArlGroup.style.display !== 'none') { // Aplicar filtro de ARL
+                  currentArlFilterId = filterArlSelect.value;
+                  console.log("Filtro de ARL aplicado:", currentArlFilterId);
+             } else if (filterEpsGroup.style.display !== 'none') {
+                  currentEpsFilterId = filterEpsSelect.value;
+                  console.log("Filtro de EPS aplicado:", currentEpsFilterId);
+             } else if (filterCcfGroup.style.display !== 'none') {
+                  currentCcfFilterId = filterCcfSelect.value;
+                  console.log("Filtro de CCF aplicado:", currentCcfFilterId);
+             } else if (filterAfpGroup.style.display !== 'none') {
+                  currentAfpFilterId = filterAfpSelect.value;
+                  console.log("Filtro de AFP aplicado:", currentAfpFilterId);
              }
+
+             // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de ID
+             currentStatusFilter = 'todos';
+             document.querySelector('.filter-button[data-filter="todos"]').classList.add('active');
+             document.querySelectorAll('.filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
+
 
              hideFilterModal();
              renderFilteredUsers(); // Re-renderizar la tabla con los nuevos filtros
@@ -1299,7 +1550,7 @@
             if (targetButton.classList.contains('edit-button')) {
                 // Acción de Editar
                 console.log("Botón Editar clickeado para usuario:", userId);
-                await populateSelects(editEmpresaSelect, editAsesorSelect); // Asegurarse de que los selectores estén poblados
+                await populateSelects(); // Asegurarse de que los selectores estén poblados con las últimas entidades
                 await loadUserDataForEdit(userId);
                 showEditModal();
 
@@ -1333,18 +1584,18 @@
                     editTipoIdentificacionSelect.value = userData.tipoIdentificacion || '';
                     editIdentificacionInput.value = userData.identificacion || '';
                     editEmpresaSelect.value = userData.empresaId || ''; // Seleccionar por ID
-                    editArlInput.value = userData.arl || '';
+                    editArlSelect.value = userData.arlId || ''; // Seleccionar por ID de ARL
                     editRiesgoInput.value = userData.riesgo || '';
-                    editEpsInput.value = userData.eps || '';
-                    editCcfInput.value = userData.ccf || '';
-                    editAfpInput.value = userData.afp || '';
+                    editEpsSelect.value = userData.epsId || ''; // Seleccionar por ID de EPS
+                    editCcfSelect.value = userData.ccfId || ''; // Seleccionar por ID de CCF
+                    editAfpSelect.value = userData.afpId || ''; // Seleccionar por ID de AFP
                     editFechaIngresoInput.value = formatDate(userData.fecha);
                     editFechaRegistroInput.value = formatDate(userData.ingreso);
                     editAsesorSelect.value = userData.asesorId || ''; // Seleccionar por ID
                     let valorAPagarNumeric = userData.valorAPagar;
                      if (typeof userData.valorAPagar === 'string') {
                          const cleanedString = userData.valorAPagar.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
-                         valorAPagarNumeric = parseFloat(cleanedString);
+                         numericValue = parseFloat(cleanedString);
                      }
                     editValorAPagarInput.value = valorAPagarNumeric || ''; // Poner el valor numérico o vacío
 
@@ -1420,15 +1671,15 @@
                 nombre: editNombreInput.value,
                 tipoIdentificacion: editTipoIdentificacionSelect.value,
                 identificacion: editIdentificacionInput.value,
-                empresaId: editEmpresaSelect.value, // Guardar solo el ID
-                arl: editArlInput.value,
+                empresaId: editEmpresaSelect.value || null, // Guardar ID o null si no se selecciona
+                arlId: editArlSelect.value || null, // Guardar ID de ARL o null
                 riesgo: editRiesgoInput.value,
-                eps: editEpsInput.value,
-                ccf: editCcfInput.value,
-                afp: editAfpInput.value,
+                epsId: editEpsSelect.value || null, // Guardar ID de EPS o null
+                ccfId: editCcfSelect.value || null, // Guardar ID de CCF o null
+                afpId: editAfpSelect.value || null, // Guardar ID de AFP o null
                 fecha: editFechaIngresoInput.value, // Guardar como stringYYYY-MM-DD
                 ingreso: editFechaRegistroInput.value, // Guardar como stringYYYY-MM-DD
-                asesorId: editAsesorSelect.value, // Guardar solo el ID
+                asesorId: editAsesorSelect.value || null, // Guardar ID o null
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1566,6 +1817,10 @@
 
             // Determinar la colección y el mensaje de éxito basado en el tipo de entidad
             switch (entityType) {
+                case 'arl': // Caso para ARL
+                    collectionRef = arlCollection;
+                    successMessage = 'Nueva ARL agregada con éxito!';
+                    break;
                 case 'eps':
                     collectionRef = epsCollection;
                     successMessage = 'Nueva EPS agregada con éxito!';
@@ -1598,14 +1853,10 @@
                 showStatusMessage(successMessage, 'success');
                 hideAddEntityModal(); // Cerrar modal después de guardar
 
-                // Después de agregar una nueva entidad (especialmente empresa o asesor),
-                // recargar los mapas y poblar los selectores en los otros modales.
-                if (entityType === 'empresa' || entityType === 'asesor') {
-                     await loadLookupMaps(); // Recargar los mapas globales
-                     // Repoblar los selectores en el modal de edición y filtro
-                     await populateSelects(editEmpresaSelect, editAsesorSelect);
-                     await populateSelects(filterEmpresaSelect, filterAsesorSelect);
-                }
+                // Después de agregar una nueva entidad, recargar los mapas y poblar los selectores
+                 await loadLookupMaps(); // Recargar todos los mapas globales
+                 await populateSelects(); // Repoblar todos los selectores en los modales
+
 
                 // Si el modal de gestión de esta entidad está abierto, recargarlo
                 if (manageEntityModal.classList.contains('show') && manageEntityTypeInput.value === entityType) {
@@ -1650,6 +1901,7 @@
              const entityType = manageEntityTypeInput.value;
              let modalTitle = '';
              switch (entityType) {
+                 case 'arl': modalTitle = 'Agregar Nueva ARL'; break; // Caso para ARL
                  case 'eps': modalTitle = 'Agregar Nueva EPS'; break;
                  case 'ccf': modalTitle = 'Agregar Nueva CCF'; break;
                  case 'afp': modalTitle = 'Agregar Nueva AFP'; break;
@@ -1669,6 +1921,7 @@
             let entityTypeName = '';
 
             switch (entityType) {
+                case 'arl': collectionRef = arlCollection; entityTypeName = 'ARL'; break; // Caso para ARL
                 case 'eps': collectionRef = epsCollection; entityTypeName = 'EPS'; break;
                 case 'ccf': collectionRef = ccfCollection; entityTypeName = 'CCF'; break;
                 case 'afp': collectionRef = afpCollection; entityTypeName = 'AFP'; break;
@@ -1730,6 +1983,7 @@
              // Determine the entity type name for the status message
              let entityTypeName = '';
              switch (entityType) {
+                 case 'arl': entityTypeName = 'ARL'; break; // Caso para ARL
                  case 'eps': entityTypeName = 'EPS'; break;
                  case 'ccf': entityTypeName = 'CCF'; break;
                  case 'afp': entityTypeName = 'AFP'; break;
@@ -1743,6 +1997,7 @@
              let collectionRef;
 
              switch (entityType) {
+                 case 'arl': collectionRef = arlCollection; break; // Caso para ARL
                  case 'eps': collectionRef = epsCollection; break;
                  case 'ccf': collectionRef = ccfCollection; break;
                  case 'afp': collectionRef = afpCollection; break;
@@ -1760,15 +2015,11 @@
                  // Recargar la lista en el modal de gestión
                  loadEntitiesForManagement(entityType);
 
-                 // Si se elimina una empresa o asesor, recargar los mapas y selectores
-                 if (entityType === 'empresa' || entityType === 'asesor') {
-                      await loadLookupMaps(); // Recargar los mapas globales
-                      // Repoblar los selectores en el modal de edición y filtro
-                      await populateSelects(editEmpresaSelect, editAsesorSelect);
-                      await populateSelects(filterEmpresaSelect, filterAsesorSelect);
-                      // Re-renderizar la tabla de usuarios por si algún usuario estaba asociado a la entidad eliminada
-                      renderFilteredUsers();
-                 }
+                 // Después de eliminar una entidad, recargar los mapas y selectores
+                 await loadLookupMaps(); // Recargar todos los mapas globales
+                 await populateSelects(); // Repoblar todos los selectores en los modales
+                 // Re-renderizar la tabla de usuarios por si algún usuario estaba asociado a la entidad eliminada
+                 renderFilteredUsers();
 
 
              } catch (error) {
@@ -1788,6 +2039,7 @@
                 if (entityType) { // Si tiene data-entity-type, es un botón de gestionar entidad
                     let entityTypeName = '';
                     switch (entityType) {
+                        case 'arl': entityTypeName = 'ARL'; break; // Caso para ARL
                         case 'eps': entityTypeName = 'EPS'; break;
                         case 'ccf': entityTypeName = 'CCF'; break;
                         case 'afp': entityTypeName = 'AFP'; break;
@@ -1830,25 +2082,34 @@
                  const user = userDoc.data();
                  const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
                  const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+                 const arlNombre = arlMap.get(user.arlId) || 'Desconocida'; // Usar mapa para ARL
+                 const epsNombre = epsMap.get(user.epsId) || 'Desconocida'; // Usar mapa para EPS
+                 const ccfNombre = ccfMap.get(user.ccfId) || 'Desconocida'; // Usar mapa para CCF
+                 const afpNombre = afpMap.get(user.afpId) || 'Desconocida'; // Usar mapa para AFP
                  const estado = user.estado || 'activo';
 
                  const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
                  const matchesEmpresaFilter = currentEmpresaFilterId === '' || user.empresaId === currentEmpresaFilterId;
                  const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
+                 const matchesArlFilter = currentArlFilterId === '' || user.arlId === currentArlFilterId; // Aplicar filtro de ARL
+                 const matchesEpsFilter = currentEpsFilterId === '' || user.epsId === currentEpsFilterId;
+                 const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
+                 const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
+
                  const matchesSearch = filterText === '' ||
                      (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
                      (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                      (empresaNombre.toLowerCase().includes(filterText)) ||
                      (estado.toLowerCase().includes(filterText)) ||
                      (asesorNombre.toLowerCase().includes(filterText)) ||
-                     (user.arl && user.arl.toLowerCase().includes(filterText)) || // Add ARL to search
-                     (user.eps && user.eps.toLowerCase().includes(filterText)) || // Add EPS to search
-                     (user.ccf && user.ccf.toLowerCase().includes(filterText)) || // Add CCF to search
-                     (user.afp && user.afp.toLowerCase().includes(filterText)) || // Add AFP to search
-                      (user.riesgo && user.riesgo.toLowerCase().includes(filterText)); // Add Riesgo to search
+                     (arlNombre.toLowerCase().includes(filterText)) || // Incluir ARL en búsqueda
+                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
+                     (epsNombre.toLowerCase().includes(filterText)) ||
+                     (ccfNombre.toLowerCase().includes(filterText)) ||
+                     (afpNombre.toLowerCase().includes(filterText));
 
 
-                 return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
+                 return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesArlFilter && matchesEpsFilter && matchesCcfFilter && matchesAfpFilter && matchesSearch;
              });
 
 
@@ -1868,6 +2129,10 @@
                  const user = userDoc.data();
                  const empresaNombre = empresasMap.get(user.empresaId) || '';
                  const asesorNombre = asesoresMap.get(user.asesorId) || '';
+                 const arlNombre = arlMap.get(user.arlId) || ''; // Usar mapa para ARL
+                 const epsNombre = epsMap.get(user.epsId) || ''; // Usar mapa para EPS
+                 const ccfNombre = ccfMap.get(user.ccfId) || ''; // Usar mapa para CCF
+                 const afpNombre = afpMap.get(user.afpId) || ''; // Usar mapa para AFP
                  const estado = user.estado || 'activo';
                  const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
 
@@ -1877,11 +2142,11 @@
                      user.tipoIdentificacion || '',
                      user.identificacion || '',
                      empresaNombre, // Usar el nombre de la empresa
-                     user.arl || '',
+                     arlNombre, // Usar el nombre de la ARL
                      user.riesgo || '',
-                     user.eps || '',
-                     user.ccf || '',
-                     user.afp || '',
+                     epsNombre, // Usar el nombre de la EPS
+                     ccfNombre, // Usar el nombre de la CCF
+                     afpNombre, // Usar el nombre de la AFP
                      formatDate(user.fecha), // Formatear fecha de ingreso
                      asesorNombre, // Usar el nombre del asesor
                      user.valorAPagar !== undefined && user.valorAPagar !== null ? user.valorAPagar : '', // Exportar valor numérico
@@ -1984,15 +2249,15 @@
                         "NOMBRE": "nombre",
                         "TIPO DE IDENTIFICACION": "tipoIdentificacion",
                         "IDENTIFICACION": "identificacion",
-                        "EMPRESA": "empresa", // Nota: Necesitaremos mapear el nombre de la empresa a su ID
-                        "ARL": "arl",
-                        "RIESGO": "riesgo",
-                        "EPS": "eps",
-                        "CCF": "ccf",
-                        "AFP": "afp",
-                        "FECHA INGRESO": "fecha", // Nota: Necesitaremos parsear la fecha
-                        "ASESOR": "asesor", // Nota: Necesitaremos mapear el nombre del asesor a su ID
-                        "VALOR A PAGAR": "valorAPagar", // Nota: Necesitaremos parsear a número
+                        "EMPRESA": "empresa", // Nombre de la Empresa (para buscar/crear ID)
+                        "ARL": "arl", // Nombre de la ARL (para buscar/crear ID)
+                        "RIESGO": "riesgo", // Texto directo
+                        "EPS": "eps", // Nombre de la EPS (para buscar/crear ID)
+                        "CCF": "ccf", // Nombre de la CCF (para buscar/crear ID)
+                        "AFP": "afp", // Nombre de la AFP (para buscar/crear ID)
+                        "FECHA INGRESO": "fecha", // Fecha
+                        "ASESOR": "asesor", // Nombre del Asesor (para buscar/crear ID)
+                        "VALOR A PAGAR": "valorAPagar", // Número
                          "ESTADO": "estado", // Opcional: Si el estado viene en el Excel
                          "FECHA RETIRO": "fechaRetiro" // Opcional: Si la fecha de retiro viene en el Excel
                     };
@@ -2006,14 +2271,14 @@
                     const dynamicColumnMapping = {};
                     const excelHeadersUpper = headersRow.map(header => String(header).trim().toUpperCase());
 
-                    requiredColumns.forEach(requiredHeader => {
+                    // Check for required headers
+                    for (const requiredHeader of requiredColumns) {
                          if (!excelHeadersUpper.includes(requiredHeader)) {
                              showImportStatusMessage(`Error: Faltan la columna requerida "${requiredHeader}" en el archivo.`, 'error');
                              processImportButton.disabled = false;
                              return; // Stop processing if required headers are missing
                          }
-                    });
-                     if(processImportButton.disabled) return; // Stop if missing required headers
+                    }
 
                      // Create dynamic mapping for all recognized headers
                      excelHeadersUpper.forEach((header, index) => {
@@ -2025,15 +2290,141 @@
                      console.log("Mapeo dinámico de columnas:", dynamicColumnMapping);
 
 
-                    // Cargar mapas de empresas y asesores para mapear nombres a IDs
-                    await loadLookupMaps(); // Asegurarse de que los mapas estén actualizados
+                    // --- PASO 1: Identificar y crear nuevas Entidades (Empresas, Asesores, ARL, EPS, CCF, AFP) ---
+                    showImportStatusMessage('Identificando nuevas Entidades (Empresas, Asesores, ARL, EPS, CCF, AFP)...', 'info');
+                    const newEmpresasToCreate = new Set();
+                    const newAsesoresToCreate = new Set();
+                    const newArlToCreate = new Set(); // Nuevo Set para ARL
+                    const newEpsToCreate = new Set(); // Nuevo Set para EPS
+                    const newCcfToCreate = new Set(); // Nuevo Set para CCF
+                    const newAfpToCreate = new Set(); // Nuevo Set para AFP
 
-                    const batch = db.batch(); // Usar batch para escritura eficiente
+
+                    // Recargar mapas para tener la información más reciente antes de identificar faltantes
+                    await loadLookupMaps();
+
+                    for (const row of dataRows) {
+                        const empresaName = String(row[excelHeadersUpper.indexOf("EMPRESA")] || '').trim();
+                        const asesorName = String(row[excelHeadersUpper.indexOf("ASESOR")] || '').trim();
+                        const arlName = String(row[excelHeadersUpper.indexOf("ARL")] || '').trim(); // Leer nombre de ARL
+                        const epsName = String(row[excelHeadersUpper.indexOf("EPS")] || '').trim(); // Leer nombre de EPS
+                        const ccfName = String(row[excelHeadersUpper.indexOf("CCF")] || '').trim(); // Leer nombre de CCF
+                        const afpName = String(row[excelHeadersUpper.indexOf("AFP")] || '').trim(); // Leer nombre de AFP
+
+
+                        if (empresaName && !Array.from(empresasMap.values()).some(name => name.toLowerCase() === empresaName.toLowerCase())) {
+                            newEmpresasToCreate.add(empresaName);
+                        }
+                        if (asesorName && !Array.from(asesoresMap.values()).some(name => name.toLowerCase() === asesorName.toLowerCase())) {
+                            newAsesoresToCreate.add(asesorName);
+                        }
+                         if (arlName && !Array.from(arlMap.values()).some(name => name.toLowerCase() === arlName.toLowerCase())) { // Identificar ARL faltantes
+                             newArlToCreate.add(arlName);
+                         }
+                         if (epsName && !Array.from(epsMap.values()).some(name => name.toLowerCase() === epsName.toLowerCase())) { // Identificar EPS faltantes
+                             newEpsToCreate.add(epsName);
+                         }
+                         if (ccfName && !Array.from(ccfMap.values()).some(name => name.toLowerCase() === ccfName.toLowerCase())) { // Identificar CCF faltantes
+                             newCcfToCreate.add(ccfName);
+                         }
+                         if (afpName && !Array.from(afpMap.values()).some(name => name.toLowerCase() === afpName.toLowerCase())) { // Identificar AFP faltantes
+                             newAfpToCreate.add(afpName);
+                         }
+                    }
+
+                    console.log("Nuevas Empresas a crear:", Array.from(newEmpresasToCreate));
+                    console.log("Nuevos Asesores a crear:", Array.from(newAsesoresToCreate));
+                    console.log("Nuevas ARL a crear:", Array.from(newArlToCreate)); // Log nuevas ARL
+                    console.log("Nuevas EPS a crear:", Array.from(newEpsToCreate)); // Log nuevas EPS
+                    console.log("Nuevas CCF a crear:", Array.from(newCcfToCreate)); // Log nuevas CCF
+                    console.log("Nuevas AFP a crear:", Array.from(newAfpToCreate)); // Log nuevas AFP
+
+
+                    const entitiesBatch = db.batch();
+                    let entitiesCreatedCount = 0;
+
+                    newEmpresasToCreate.forEach(name => {
+                        const newEmpresaRef = empresasCollection.doc();
+                        entitiesBatch.set(newEmpresaRef, {
+                            nombre: name,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                         entitiesCreatedCount++;
+                    });
+
+                    newAsesoresToCreate.forEach(name => {
+                        const newAsesorRef = asesoresCollection.doc();
+                        entitiesBatch.set(newAsesorRef, {
+                            nombre: name,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                         entitiesCreatedCount++;
+                    });
+
+                     newArlToCreate.forEach(name => { // Añadir nuevas ARL al batch
+                         const newArlRef = arlCollection.doc();
+                         entitiesBatch.set(newArlRef, {
+                             nombre: name,
+                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                         });
+                          entitiesCreatedCount++;
+                     });
+
+                     newEpsToCreate.forEach(name => { // Añadir nuevas EPS al batch
+                         const newEpsRef = epsCollection.doc();
+                         entitiesBatch.set(newEpsRef, {
+                             nombre: name,
+                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                         });
+                          entitiesCreatedCount++;
+                     });
+
+                     newCcfToCreate.forEach(name => { // Añadir nuevas CCF al batch
+                         const newCcfRef = ccfCollection.doc();
+                         entitiesBatch.set(newCcfRef, {
+                             nombre: name,
+                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                         });
+                          entitiesCreatedCount++;
+                     });
+
+                     newAfpToCreate.forEach(name => { // Añadir nuevas AFP al batch
+                         const newAfpRef = afpCollection.doc();
+                         entitiesBatch.set(newAfpRef, {
+                             nombre: name,
+                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                         });
+                          entitiesCreatedCount++;
+                     });
+
+
+                    if (entitiesCreatedCount > 0) {
+                         showImportStatusMessage(`Creando ${entitiesCreatedCount} nuevas entidades...`, 'info');
+                         try {
+                             await entitiesBatch.commit();
+                             console.log("Nuevas entidades creadas con éxito.");
+                             // Recargar mapas después de crear nuevas entidades
+                             await loadLookupMaps();
+                              showImportStatusMessage('Nuevas entidades creadas. Preparando importación de usuarios...', 'info');
+                         } catch (entityBatchError) {
+                             console.error("Error al crear nuevas entidades:", entityBatchError);
+                             showImportStatusMessage('Error al crear nuevas entidades. Importación cancelada.', 'error');
+                             processImportButton.disabled = false;
+                             excelFileInput.value = null;
+                             return; // Stop the process
+                         }
+                    } else {
+                         showImportStatusMessage('No se encontraron nuevas entidades para crear. Preparando importación de usuarios...', 'info');
+                    }
+
+
+                    // --- PASO 2: Importar Usuarios (ahora con todos los IDs de Entidades disponibles) ---
+                    const userBatch = db.batch(); // Usar un nuevo batch para los usuarios
                     let importedCount = 0;
                     let errorCount = 0;
                     const importErrors = [];
 
-                    showImportStatusMessage(`Iniciando importación de ${dataRows.length} filas de datos...`);
+                    showImportStatusMessage(`Iniciando importación de ${dataRows.length} filas de usuarios...`, 'info');
 
                     for (let i = 0; i < dataRows.length; i++) {
                         const row = dataRows[i];
@@ -2064,28 +2455,85 @@
                                            rowErrors.push("Identificación vacía");
                                       }
                                  } else if (firestoreField === 'empresa') {
-                                      // Mapear nombre de empresa a ID
+                                       // Mapear nombre de empresa a ID (ahora garantizado que existe en mapas)
                                       const empresaName = String(value).trim();
                                       const empresaEntry = Array.from(empresasMap.entries()).find(([id, name]) => name.toLowerCase() === empresaName.toLowerCase());
                                       if (empresaEntry) {
                                            userData['empresaId'] = empresaEntry[0]; // Guardar el ID
                                       } else {
-                                           // Si la empresa no existe, marcar error
+                                           // Esto no debería ocurrir si el paso 1 fue exitoso, pero como fallback
                                            isValidRow = false;
-                                           rowErrors.push(`Empresa "${empresaName}" no encontrada`);
+                                           rowErrors.push(`Error interno: Empresa "${empresaName}" no encontrada después de la creación.`);
                                       }
                                  } else if (firestoreField === 'asesor') {
-                                      // Mapear nombre de asesor a ID
+                                      // Mapear nombre de asesor a ID (ahora garantizado que existe en mapas)
                                       const asesorName = String(value).trim();
                                        const asesorEntry = Array.from(asesoresMap.entries()).find(([id, name]) => name.toLowerCase() === asesorName.toLowerCase());
-                                       if (asesorEntry) {
-                                            userData['asesorId'] = asesorEntry[0]; // Guardar el ID
-                                       } else {
-                                            // Si el asesor no existe, marcar error
-                                            isValidRow = false;
-                                            rowErrors.push(`Asesor "${asesorName}" no encontrado`);
+                                        if (asesorEntry) {
+                                             userData['asesorId'] = asesorEntry[0]; // Guardar el ID
+                                        } else {
+                                             // Esto no debería ocurrir si el paso 1 fue exitoso, pero como fallback
+                                             isValidRow = false;
+                                             rowErrors.push(`Error interno: Asesor "${asesorName}" no encontrado después de la creación.`);
                                         }
-                                 } else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
+                                 } else if (firestoreField === 'arl') { // Mapear nombre de ARL a ID
+                                       const arlName = String(value).trim();
+                                       if (arlName) { // Only try to map if the name is not empty
+                                            const arlEntry = Array.from(arlMap.entries()).find(([id, name]) => name.toLowerCase() === arlName.toLowerCase());
+                                            if (arlEntry) {
+                                                 userData['arlId'] = arlEntry[0]; // Guardar el ID
+                                            } else {
+                                                 // This shouldn't happen if step 1 was successful, but as a fallback
+                                                 isValidRow = false;
+                                                 rowErrors.push(`Error interno: ARL "${arlName}" no encontrada después de la creación.`);
+                                            }
+                                       } else {
+                                            userData['arlId'] = null; // Store null if ARL name is empty in Excel
+                                       }
+                                  } else if (firestoreField === 'eps') { // Mapear nombre de EPS a ID
+                                       const epsName = String(value).trim();
+                                       if (epsName) { // Only try to map if the name is not empty
+                                            const epsEntry = Array.from(epsMap.entries()).find(([id, name]) => name.toLowerCase() === epsName.toLowerCase());
+                                            if (epsEntry) {
+                                                 userData['epsId'] = epsEntry[0]; // Guardar el ID
+                                            } else {
+                                                 // This shouldn't happen if step 1 was successful, but as a fallback
+                                                 isValidRow = false;
+                                                 rowErrors.push(`Error interno: EPS "${epsName}" no encontrada después de la creación.`);
+                                            }
+                                       } else {
+                                            userData['epsId'] = null; // Store null if EPS name is empty in Excel
+                                       }
+                                  } else if (firestoreField === 'ccf') { // Mapear nombre de CCF a ID
+                                       const ccfName = String(value).trim();
+                                        if (ccfName) { // Only try to map if the name is not empty
+                                             const ccfEntry = Array.from(ccfMap.entries()).find(([id, name]) => name.toLowerCase() === ccfName.toLowerCase());
+                                             if (ccfEntry) {
+                                                  userData['ccfId'] = ccfEntry[0]; // Guardar el ID
+                                             } else {
+                                                  // This shouldn't happen if step 1 was successful, but as a fallback
+                                                  isValidRow = false;
+                                                  rowErrors.push(`Error interno: CCF "${ccfName}" no encontrada después de la creación.`);
+                                             }
+                                        } else {
+                                             userData['ccfId'] = null; // Store null if CCF name is empty in Excel
+                                        }
+                                  } else if (firestoreField === 'afp') { // Mapear nombre de AFP a ID
+                                       const afpName = String(value).trim();
+                                        if (afpName) { // Only try to map if the name is not empty
+                                             const afpEntry = Array.from(afpMap.entries()).find(([id, name]) => name.toLowerCase() === afpName.toLowerCase());
+                                             if (afpEntry) {
+                                                  userData['afpId'] = afpEntry[0]; // Guardar el ID
+                                             } else {
+                                                  // This shouldn't happen if step 1 was successful, but as a fallback
+                                                  isValidRow = false;
+                                                  rowErrors.push(`Error interno: AFP "${afpName}" no encontrada después de la creación.`);
+                                            }
+                                        } else {
+                                             userData['afpId'] = null; // Store null if AFP name is empty in Excel
+                                        }
+                                  }
+                                  else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
                                       // Parsear fechas. XLSX puede devolver números (serial) o strings.
                                       let dateValue = null;
                                       if (typeof value === 'number') {
@@ -2100,7 +2548,7 @@
                                       } else if (typeof value === 'string' && value.trim() !== '') {
                                            // Intentar parsear string de fecha (YYYY-MM-DD, MM/DD/YYYY, etc.)
                                            try {
-                                                // Prefer YYYY-MM-DD if possible
+                                                // PreferYYYY-MM-DD if possible
                                                 if (/^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
                                                      dateValue = new Date(value.trim() + 'T00:00:00Z'); // Parse as UTC to avoid timezone issues
                                                 } else {
@@ -2111,9 +2559,7 @@
                                                 if (isNaN(dateValue.getTime())) {
                                                     dateValue = null; // Invalid date string
                                                 } else {
-                                                    // Format to YYYY-MM-DD string to match existing data format if needed,
-                                                    // or store as a Firestore Timestamp directly.
-                                                    // Let's store as Date objects and Firestore will handle Timestamps.
+                                                    // Store as Date objects and Firestore will handle Timestamps.
                                                 }
                                            } catch (e) {
                                                 dateValue = null; // Parsing failed
@@ -2138,22 +2584,23 @@
                                            userData[firestoreField] = estadoValue;
                                       } else {
                                            userData[firestoreField] = 'activo'; // Estado por defecto si no es válido
-                                      }
+                                       }
                                  }
                                  else {
-                                      // Otros campos de texto (ARL, RIESGO, EPS, CCF, AFP, NOMBRE, TIPO DE IDENTIFICACION)
+                                      // Otros campos de texto (RIESGO, NOMBRE, TIPO DE IDENTIFICACION)
                                       userData[firestoreField] = String(value || '').trim();
                                  }
                             }
                         }
 
                         // Realizar validaciones adicionales para campos requeridos no cubiertos arriba
+                        // Check if required fields are present and valid AFTER mapping
                         if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha)) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
                             if (!userData.nombre) rowErrors.push("Nombre vacío");
                             if (!userData.tipoIdentificacion) rowErrors.push("Tipo de Identificación vacío");
-                            if (!userData.identificacion) rowErrors.push("Identificación vacía"); // Duplicated check, but good for clarity
-                            if (!userData.hasOwnProperty('empresaId')) rowErrors.push("Empresa no válida o vacía");
-                            if (!userData.hasOwnProperty('asesorId')) rowErrors.push("Asesor no válido o vacío");
+                            if (!userData.identificacion) rowErrors.push("Identificación vacía");
+                            if (!userData.hasOwnProperty('empresaId') || userData.empresaId === null) rowErrors.push("Empresa no válida o vacía"); // Check for null ID
+                            if (!userData.hasOwnProperty('asesorId') || userData.asesorId === null) rowErrors.push("Asesor no válido o vacío"); // Check for null ID
                              if (!(userData.fecha instanceof Date && !isNaN(userData.fecha))) rowErrors.push("Fecha de Ingreso inválida o vacía");
                              if (userData.valorAPagar === undefined || userData.valorAPagar === null) rowErrors.push("Valor a Pagar inválido o vacío");
                              isValidRow = false; // Mark row as invalid if any required field is missing/invalid
@@ -2164,7 +2611,24 @@
                          if (!userData.hasOwnProperty('estado')) {
                              userData.estado = 'activo'; // Estado por defecto si no viene en Excel
                          }
+                         // Ensure arlId, epsId, ccfId, afpId are null if not set during mapping
+                         if (!userData.hasOwnProperty('arlId')) userData.arlId = null;
+                         if (!userData.hasOwnProperty('epsId')) userData.epsId = null;
+                         if (!userData.hasOwnProperty('ccfId')) userData.ccfId = null;
+                         if (!userData.hasOwnProperty('afpId')) userData.afpId = null;
+
+
                          // fechaRetiro se maneja al parsear la fecha o se elimina si no es retirado
+                         if (userData.hasOwnProperty('fechaRetiro') && !(userData.fechaRetiro instanceof Date && !isNaN(userData.fechaRetiro))) {
+                             // If fechaRetiro was in Excel but invalid or empty, delete it
+                             userData.fechaRetiro = firebase.firestore.FieldValue.delete();
+                         } else if (userData.hasOwnProperty('fechaRetiro') && userData.estado !== 'retirado') {
+                             // If fechaRetiro is valid but status is not retired, delete it
+                             userData.fechaRetiro = firebase.firestore.FieldValue.delete();
+                         } else if (!userData.hasOwnProperty('fechaRetiro') && userData.estado === 'retirado') {
+                             // If status is retired but no fechaRetiro was provided, add current date
+                             userData.fechaRetiro = new Date(); // Will be converted to Timestamp
+                         }
 
 
                         // Si la fila es válida, prepararla para el batch
@@ -2175,12 +2639,6 @@
                              }
                              if (userData.fechaRetiro instanceof Date) {
                                   userData.fechaRetiro = firebase.firestore.Timestamp.fromDate(userData.fechaRetiro);
-                             } else if (userData.fechaRetiro !== undefined && userData.fechaRetiro !== null && userData.estado !== 'retirado') {
-                                  // If date exists but status is not retired, delete it
-                                   userData.fechaRetiro = firebase.firestore.FieldValue.delete();
-                             } else if (userData.fechaRetiro === '') {
-                                 // If date was empty in excel, delete it
-                                  userData.fechaRetiro = firebase.firestore.FieldValue.delete();
                              }
 
 
@@ -2192,7 +2650,7 @@
 
                             // Crear una nueva referencia de documento y añadir la operación al batch
                             const newUserRef = usersCollection.doc();
-                            batch.set(newUserRef, userData);
+                            userBatch.set(newUserRef, userData);
                             importedCount++;
                         } else {
                             errorCount++;
@@ -2201,11 +2659,11 @@
                         }
                     }
 
-                    // Ejecutar el batch
+                    // Ejecutar el batch de usuarios
                     if (importedCount > 0) {
                         showImportStatusMessage(`Guardando ${importedCount} usuarios...`, 'info');
                         try {
-                            await batch.commit();
+                            await userBatch.commit();
                             let finalMessage = `Importación completada. ${importedCount} usuarios agregados con éxito.`;
                             if (errorCount > 0) {
                                 finalMessage += ` ${errorCount} filas con errores.`;
@@ -2219,8 +2677,8 @@
                              // loadUsersTable();
 
                         } catch (batchError) {
-                            console.error("Error al guardar batch en Firestore:", batchError);
-                            showImportStatusMessage('Error al guardar datos en la base de datos: ' + batchError.message, 'error');
+                            console.error("Error al guardar batch de usuarios en Firestore:", batchError);
+                            showImportStatusMessage('Error al guardar datos de usuarios en la base de datos: ' + batchError.message, 'error');
                         }
                     } else if (errorCount > 0) {
                          showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
