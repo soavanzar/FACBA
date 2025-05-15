@@ -12,6 +12,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
     <style>
         /* Estilos CSS personalizados */
         body {
@@ -541,6 +544,36 @@
              background-color: #059669; /* Verde más oscuro */
          }
 
+         /* Estilos para el modal de Importar Usuarios */
+         #import-users-modal .modal-content {
+             max-width: 450px; /* Ancho adecuado */
+         }
+
+         #import-users-modal input[type="file"] {
+             display: block; /* Asegura que ocupe su propia línea */
+             width: 100%;
+             padding: 10px;
+             border: 1px solid #d1d5db;
+             border-radius: 6px;
+             font-size: 1rem;
+             box-sizing: border-box;
+             margin-bottom: 15px; /* Espacio debajo del input */
+         }
+
+         #import-users-modal .import-instructions {
+             font-size: 0.9rem;
+             color: #4b5563;
+             margin-bottom: 20px;
+             padding: 10px;
+             background-color: #f9fafb;
+             border-left: 4px solid #4f46e5;
+             border-radius: 4px;
+         }
+
+         #import-users-modal .import-instructions strong {
+             color: #1f2937;
+         }
+
 
     </style>
 </head>
@@ -725,6 +758,9 @@
              <button class="menu-option-button" data-entity-type="afp">Gestionar AFP</button>
              <button class="menu-option-button" data-entity-type="asesor">Gestionar Asesores</button>
              <button class="menu-option-button" data-entity-type="empresa">Gestionar Empresas</button>
+             <button class="menu-option-button" id="export-users-button">Exportar Usuarios a Excel</button>
+             <button class="menu-option-button" id="import-users-button">Importar Usuarios desde Excel</button>
+
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
              </div>
@@ -762,6 +798,23 @@
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-manage-entity-modal-button">Cerrar</button>
              </div>
+         </div>
+    </div>
+
+    <div id="import-users-modal" class="modal-overlay">
+         <div class="modal-content">
+             <span class="modal-close-button" id="close-import-modal">&times;</span>
+             <h2>Importar Usuarios desde Excel</h2>
+             <div class="import-instructions">
+                 Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga las siguientes columnas en la primera fila (en cualquier orden, pero con estos nombres exactos):<br>
+                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong>
+             </div>
+             <input type="file" id="excel-file-input" accept=".xlsx, .xls">
+             <div class="modal-buttons">
+                 <button type="button" class="cancel-button" id="cancel-import">Cancelar</button>
+                 <button type="button" class="save-changes-button" id="process-import-button">Procesar Importación</button>
+             </div>
+             <div id="import-status-message" class="mt-4 text-center text-sm text-gray-600"></div>
          </div>
     </div>
 
@@ -845,6 +898,8 @@
 
         // Botones de opción dentro del modal de configuración
         const menuOptionButtons = document.querySelectorAll('#settings-modal .menu-option-button');
+        const exportUsersButton = document.getElementById('export-users-button'); // Botón Exportar
+        const importUsersButton = document.getElementById('import-users-button'); // Botón Importar
 
 
         // Modal Genérico para Agregar Entidades DOM elements
@@ -861,9 +916,17 @@
         const closeManageEntityModalButton = document.getElementById('close-manage-entity-modal');
         const closeManageEntityModalButtonInModal = document.getElementById('close-manage-entity-modal-button');
         const manageEntityModalTitle = document.getElementById('manage-entity-modal-title');
-        const manageEntityTypeInput = document.getElementById('manage-entity-type'); // <-- FIX: Get reference to the input
+        const manageEntityTypeInput = document.getElementById('manage-entity-type');
         const entityList = document.getElementById('entity-list');
         const openAddFromManageButton = document.getElementById('open-add-from-manage-button');
+
+        // Nuevo Modal para Importar Usuarios DOM elements
+        const importUsersModal = document.getElementById('import-users-modal');
+        const closeImportModalButton = document.getElementById('close-import-modal');
+        const cancelImportButton = document.getElementById('cancel-import');
+        const excelFileInput = document.getElementById('excel-file-input');
+        const processImportButton = document.getElementById('process-import-button');
+        const importStatusMessage = document.getElementById('import-status-message');
 
 
         // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
@@ -881,16 +944,39 @@
 
         // --- Funciones de Utilidad ---
 
-        // Función para mostrar mensajes de estado
+        // Función para mostrar mensajes de estado (en la parte inferior de la tabla)
         function showStatusMessage(message, type = 'info') {
             statusMessage.textContent = message;
             statusMessage.className = ''; // Reset classes
             statusMessage.classList.add(type);
+            // Fade in
+            statusMessage.style.opacity = '1';
+            statusMessage.style.transform = 'translateY(0)';
+
+            // Fade out after 5 seconds
             setTimeout(() => {
-                statusMessage.classList.remove(type);
-                statusMessage.textContent = '';
-            }, 5000); // Ocultar después de 5 segundos
+                statusMessage.style.opacity = '0';
+                statusMessage.style.transform = 'translateY(10px)';
+                 // Clear text after transition
+                setTimeout(() => {
+                     statusMessage.textContent = '';
+                }, 400); // Match the transition duration
+            }, 5000);
         }
+
+         // Función para mostrar mensajes de estado en el modal de importación
+         function showImportStatusMessage(message, type = 'info') {
+             importStatusMessage.textContent = message;
+             importStatusMessage.className = 'mt-4 text-center text-sm'; // Reset classes and apply base styles
+             if (type === 'success') {
+                 importStatusMessage.classList.add('text-green-600');
+             } else if (type === 'error') {
+                 importStatusMessage.classList.add('text-red-600');
+             } else {
+                 importStatusMessage.classList.add('text-gray-600');
+             }
+         }
+
 
         // Función para formatear fechas (Firestore Timestamp aYYYY-MM-DD)
         function formatDate(timestamp) {
@@ -1687,27 +1773,393 @@
         }
 
 
-        // Listener para los botones de opción en el modal de configuración (actualizados para abrir el modal de gestión)
+        // Listener para los botones de opción en el modal de configuración (actualizados para abrir el modal de gestión o importar/exportar)
         menuOptionButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 const entityType = e.target.dataset.entityType;
-                let modalTitle = '';
-                let entityTypeName = ''; // Para el título del modal de gestión
 
-                switch (entityType) {
-                    case 'eps': entityTypeName = 'EPS'; break;
-                    case 'ccf': entityTypeName = 'CCF'; break;
-                    case 'afp': entityTypeName = 'AFP'; break;
-                    case 'asesor': entityTypeName = 'Asesor'; break;
-                    case 'empresa': entityTypeName = 'Empresa'; break;
-                    default: entityTypeName = 'Entidad';
+                if (entityType) { // Si tiene data-entity-type, es un botón de gestionar entidad
+                    let entityTypeName = '';
+                    switch (entityType) {
+                        case 'eps': entityTypeName = 'EPS'; break;
+                        case 'ccf': entityTypeName = 'CCF'; break;
+                        case 'afp': entityTypeName = 'AFP'; break;
+                        case 'asesor': entityTypeName = 'Asesor'; break;
+                        case 'empresa': entityTypeName = 'Empresa'; break;
+                        default: entityTypeName = 'Entidad';
+                    }
+                    const modalTitle = `Gestionar ${entityTypeName}s`;
+                    hideSettingsModal();
+                    showManageEntityModal(modalTitle, entityType);
                 }
-
-                modalTitle = `Gestionar ${entityTypeName}s`; // Título para el modal de gestión
-
-                hideSettingsModal(); // Ocultar el modal de configuración
-                showManageEntityModal(modalTitle, entityType); // Mostrar el modal de gestión
             });
+        });
+
+        // Listener para el botón Exportar Usuarios
+        exportUsersButton.addEventListener('click', () => {
+            hideSettingsModal(); // Ocultar el modal de configuración
+            exportUsersToCsv(); // Llamar a la función de exportación
+        });
+
+        // Listener para el botón Importar Usuarios
+        importUsersButton.addEventListener('click', () => {
+            hideSettingsModal(); // Ocultar el modal de configuración
+            showImportUsersModal(); // Mostrar el modal de importación
+        });
+
+
+        // --- Funcionalidad de Exportar Usuarios a CSV ---
+        function exportUsersToCsv() {
+             showStatusMessage('Preparando exportación...', 'info');
+
+             // Obtener los datos actualmente filtrados y mostrados en la tabla
+             // Una forma simple es iterar sobre las filas renderizadas,
+             // pero es más robusto usar los `filteredDocs` que se usan para renderizar.
+             // Sin embargo, `filteredDocs` no es global. Vamos a usar `allUserDocs`
+             // y aplicar los filtros actuales para garantizar que se exporte lo que se ve.
+
+             const filterText = searchInput.value.toLowerCase();
+             const usersToExport = allUserDocs.filter(userDoc => {
+                 const user = userDoc.data();
+                 const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+                 const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+                 const estado = user.estado || 'activo';
+
+                 const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
+                 const matchesEmpresaFilter = currentEmpresaFilterId === '' || user.empresaId === currentEmpresaFilterId;
+                 const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
+                 const matchesSearch = filterText === '' ||
+                     (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
+                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
+                     (empresaNombre.toLowerCase().includes(filterText)) ||
+                     (estado.toLowerCase().includes(filterText)) ||
+                     (asesorNombre.toLowerCase().includes(filterText));
+
+                 return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
+             });
+
+
+             if (usersToExport.length === 0) {
+                 showStatusMessage('No hay usuarios para exportar con los filtros actuales.', 'info');
+                 return;
+             }
+
+             // Definir los encabezados del CSV
+             const headers = [
+                 "NOMBRE", "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA", "ARL", "RIESGO",
+                 "EPS", "CCF", "AFP", "FECHA INGRESO", "ASESOR", "VALOR A PAGAR", "ESTADO", "FECHA RETIRO"
+             ];
+
+             // Crear las filas del CSV
+             const rows = usersToExport.map(userDoc => {
+                 const user = userDoc.data();
+                 const empresaNombre = empresasMap.get(user.empresaId) || '';
+                 const asesorNombre = asesoresMap.get(user.asesorId) || '';
+                 const estado = user.estado || 'activo';
+                 const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
+
+
+                 return [
+                     user.nombre || '',
+                     user.tipoIdentificacion || '',
+                     user.identificacion || '',
+                     empresaNombre, // Usar el nombre de la empresa
+                     user.arl || '',
+                     user.riesgo || '',
+                     user.eps || '',
+                     user.ccf || '',
+                     user.afp || '',
+                     formatDate(user.fecha), // Formatear fecha de ingreso
+                     asesorNombre, // Usar el nombre del asesor
+                     user.valorAPagar !== undefined && user.valorAPagar !== null ? user.valorAPagar : '', // Exportar valor numérico
+                     estado,
+                     fechaRetiro // Incluir fecha de retiro
+                 ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','); // Envolver campos en comillas y escapar comillas dobles
+             });
+
+             // Unir encabezados y filas
+             const csvContent = [headers.join(','), ...rows].join('\n');
+
+             // Crear un Blob y un enlace para descargar
+             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+             const link = document.createElement('a');
+             const url = URL.createObjectURL(blob);
+
+             link.setAttribute('href', url);
+             link.setAttribute('download', 'usuarios_facba.csv'); // Nombre del archivo
+             link.style.visibility = 'hidden'; // Ocultar el enlace
+             document.body.appendChild(link); // Añadir al DOM temporalmente
+             link.click(); // Simular clic para descargar
+             document.body.removeChild(link); // Eliminar del DOM
+             URL.revokeObjectURL(url); // Liberar el URL del Blob
+
+             showStatusMessage('Usuarios exportados con éxito a usuarios_facba.csv', 'success');
+        }
+
+
+        // --- Funcionalidad de Importar Usuarios desde Excel ---
+
+        // Mostrar el modal de importación
+        function showImportUsersModal() {
+             importUsersModal.classList.add('show');
+             excelFileInput.value = null; // Limpiar el input de archivo
+             showImportStatusMessage('Selecciona un archivo Excel (.xlsx o .xls).');
+        }
+
+        // Ocultar el modal de importación
+        function hideImportUsersModal() {
+             importUsersModal.classList.remove('show');
+        }
+
+        // Listeners para cerrar el modal de importación
+        closeImportModalButton.addEventListener('click', hideImportUsersModal);
+        cancelImportButton.addEventListener('click', hideImportUsersModal);
+        importUsersModal.addEventListener('click', (e) => {
+            if (e.target === importUsersModal) {
+                hideImportUsersModal();
+            }
+        });
+
+        // Listener para el botón "Procesar Importación"
+        processImportButton.addEventListener('click', async () => {
+            const file = excelFileInput.files[0];
+            if (!file) {
+                showImportStatusMessage('Por favor, selecciona un archivo primero.', 'error');
+                return;
+            }
+
+            showImportStatusMessage('Procesando archivo...', 'info');
+            processImportButton.disabled = true; // Deshabilitar botón durante el proceso
+
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Asumimos que los datos están en la primera hoja
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+
+                    // Convertir la hoja a un array de objetos (usando la primera fila como encabezados)
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonData.length === 0) {
+                        showImportStatusMessage('El archivo Excel está vacío o no contiene datos en el formato esperado.', 'error');
+                        processImportButton.disabled = false;
+                        return;
+                    }
+
+                    console.log("Datos leídos del Excel:", jsonData);
+
+                    // Mapear los nombres de columna del Excel a los nombres de campo de Firestore
+                    const columnMapping = {
+                        "NOMBRE": "nombre",
+                        "TIPO DE IDENTIFICACION": "tipoIdentificacion",
+                        "IDENTIFICACION": "identificacion",
+                        "EMPRESA": "empresa", // Nota: Necesitaremos mapear el nombre de la empresa a su ID
+                        "ARL": "arl",
+                        "RIESGO": "riesgo",
+                        "EPS": "eps",
+                        "CCF": "ccf",
+                        "AFP": "afp",
+                        "FECHA INGRESO": "fecha", // Nota: Necesitaremos parsear la fecha
+                        "ASESOR": "asesor", // Nota: Necesitaremos mapear el nombre del asesor a su ID
+                        "VALOR A PAGAR": "valorAPagar", // Nota: Necesitaremos parsear a número
+                         "ESTADO": "estado", // Opcional: Si el estado viene en el Excel
+                         "FECHA RETIRO": "fechaRetiro" // Opcional: Si la fecha de retiro viene en el Excel
+                    };
+
+                    const requiredColumns = [
+                        "NOMBRE", "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA",
+                        "FECHA INGRESO", "ASESOR", "VALOR A PAGAR" // Columnas mínimas requeridas
+                    ];
+
+                    // Verificar si los encabezados requeridos existen en el archivo
+                    const excelHeaders = Object.keys(jsonData[0]).map(header => header.trim().toUpperCase());
+                    const missingHeaders = requiredColumns.filter(header => !excelHeaders.includes(header));
+
+                    if (missingHeaders.length > 0) {
+                         showImportStatusMessage(`Error: Faltan las siguientes columnas requeridas en el archivo: ${missingHeaders.join(', ')}`, 'error');
+                         processImportButton.disabled = false;
+                         return;
+                    }
+
+
+                    // Cargar mapas de empresas y asesores para mapear nombres a IDs
+                    await loadLookupMaps(); // Asegurarse de que los mapas estén actualizados
+
+                    const batch = db.batch(); // Usar batch para escritura eficiente
+                    let importedCount = 0;
+                    let errorCount = 0;
+                    const importErrors = [];
+
+                    showImportStatusMessage(`Iniciando importación de ${jsonData.length} filas...`);
+
+                    for (const row of jsonData) {
+                        const userData = {};
+                        let isValidRow = true;
+                        let rowErrors = [];
+
+                        // Mapear y validar datos por columna
+                        for (const excelHeader in row) {
+                             const firestoreField = columnMapping[excelHeader.trim().toUpperCase()];
+                             if (firestoreField) {
+                                  let value = row[excelHeader];
+
+                                  // Validaciones y transformaciones específicas por campo
+                                  if (firestoreField === 'identificacion') {
+                                       // Asegurar que la identificación sea un string o número válido
+                                       userData[firestoreField] = String(value).trim();
+                                       if (!userData[firestoreField]) {
+                                            isValidRow = false;
+                                            rowErrors.push("Identificación vacía");
+                                       }
+                                  } else if (firestoreField === 'empresa') {
+                                       // Mapear nombre de empresa a ID
+                                       const empresaName = String(value).trim();
+                                       const empresaEntry = Array.from(empresasMap.entries()).find(([id, name]) => name.toLowerCase() === empresaName.toLowerCase());
+                                       if (empresaEntry) {
+                                            userData['empresaId'] = empresaEntry[0]; // Guardar el ID
+                                       } else {
+                                            // Si la empresa no existe, puedes decidir si crearla o marcar error
+                                            isValidRow = false;
+                                            rowErrors.push(`Empresa "${empresaName}" no encontrada`);
+                                       }
+                                  } else if (firestoreField === 'asesor') {
+                                       // Mapear nombre de asesor a ID
+                                       const asesorName = String(value).trim();
+                                        const asesorEntry = Array.from(asesoresMap.entries()).find(([id, name]) => name.toLowerCase() === asesorName.toLowerCase());
+                                        if (asesorEntry) {
+                                             userData['asesorId'] = asesorEntry[0]; // Guardar el ID
+                                        } else {
+                                             // Si el asesor no existe, puedes decidir si crearla o marcar error
+                                             isValidRow = false;
+                                             rowErrors.push(`Asesor "${asesorName}" no encontrado`);
+                                        }
+                                  } else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
+                                       // Parsear fechas. XLSX puede devolver números (serial) o strings.
+                                       let dateValue = null;
+                                       if (typeof value === 'number') {
+                                            // Asumir que es un número serial de Excel y convertir a fecha
+                                            // Excel serial date starts from 1900-01-01. JS Date starts from 1970-01-01.
+                                            // Need to adjust for the difference and the leap year bug in Excel 1900.
+                                            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                                            dateValue = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+                                       } else if (typeof value === 'string') {
+                                            // Intentar parsear string de fecha (YYYY-MM-DD, MM/DD/YYYY, etc.)
+                                            try {
+                                                 dateValue = new Date(value);
+                                                 // Check if the parsed date is valid
+                                                 if (isNaN(dateValue.getTime())) {
+                                                     dateValue = null; // Invalid date string
+                                                 } else {
+                                                     // Format to YYYY-MM-DD string to match existing data format
+                                                     dateValue = formatDate(dateValue);
+                                                 }
+                                            } catch (e) {
+                                                 dateValue = null; // Parsing failed
+                                            }
+                                       }
+
+                                       if (dateValue) {
+                                           userData[firestoreField] = dateValue; // Guardar la fecha formateada o string
+                                       } else if (firestoreField === 'fecha') { // Fecha de ingreso es requerida
+                                            isValidRow = false;
+                                            rowErrors.push(`Fecha de Ingreso inválida o vacía: "${value}"`);
+                                       }
+                                       // Fecha de retiro es opcional, no marcar error si está vacía/inválida
+                                  } else if (firestoreField === 'valorAPagar') {
+                                       // Parsear valor a pagar a número
+                                       const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Limpiar no-números excepto . y -
+                                       userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Guardar como número, 0 si no es válido
+                                  } else if (firestoreField === 'estado') {
+                                       // Validar estado (opcional, si viene en el Excel)
+                                       const estadoValue = String(value).trim().toLowerCase();
+                                       if (estadoValue === 'activo' || estadoValue === 'retirado') {
+                                            userData[firestoreField] = estadoValue;
+                                       } else {
+                                            userData[firestoreField] = 'activo'; // Estado por defecto si no es válido
+                                       }
+                                  }
+                                  else {
+                                       // Otros campos de texto
+                                       userData[firestoreField] = String(value || '').trim();
+                                  }
+                             }
+                        }
+
+                        // Añadir campos obligatorios que podrían no estar en el Excel o estar vacíos
+                         if (!userData.hasOwnProperty('estado')) {
+                             userData.estado = 'activo'; // Estado por defecto si no viene en Excel
+                         }
+                         // fechaRetiro se maneja al parsear la fecha o se elimina si no es retirado
+
+                        // Si la fila es válida, prepararla para el batch
+                        if (isValidRow) {
+                            // Añadir campos de metadatos
+                            userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                            userData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+                            // Crear una nueva referencia de documento y añadir la operación al batch
+                            const newUserRef = usersCollection.doc();
+                            batch.set(newUserRef, userData);
+                            importedCount++;
+                        } else {
+                            errorCount++;
+                            importErrors.push(`Fila ${jsonData.indexOf(row) + 2}: ${rowErrors.join(', ')}`); // +2 porque jsonData es 0-indexed y la primera fila es encabezado
+                        }
+                    }
+
+                    // Ejecutar el batch
+                    if (importedCount > 0) {
+                        showImportStatusMessage(`Guardando ${importedCount} usuarios...`, 'info');
+                        try {
+                            await batch.commit();
+                            let finalMessage = `Importación completada. ${importedCount} usuarios agregados con éxito.`;
+                            if (errorCount > 0) {
+                                finalMessage += ` ${errorCount} filas con errores.`;
+                                console.error("Errores de importación:", importErrors);
+                                // Podrías mostrar los errores en un área de texto o modal adicional si son muchos
+                                alert("Errores de importación:\n" + importErrors.join('\n')); // Alerta simple por ahora
+                            }
+                            showImportStatusMessage(finalMessage, errorCount === 0 ? 'success' : 'info');
+
+                            // Opcional: Recargar la tabla después de la importación (onSnapshot debería manejarlo)
+                             // loadUsersTable();
+
+                        } catch (batchError) {
+                            console.error("Error al guardar batch en Firestore:", batchError);
+                            showImportStatusMessage('Error al guardar datos en la base de datos: ' + batchError.message, 'error');
+                        }
+                    } else if (errorCount > 0) {
+                         showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
+                         console.error("Errores de importación:", importErrors);
+                         alert("Errores de importación:\n" + importErrors.join('\n'));
+                    }
+                    else {
+                        showImportStatusMessage('No se encontraron datos válidos para importar.', 'info');
+                    }
+
+
+                } catch (parseError) {
+                    console.error("Error al leer o parsear el archivo Excel:", parseError);
+                    showImportStatusMessage('Error al leer o procesar el archivo: ' + parseError.message, 'error');
+                } finally {
+                    processImportButton.disabled = false; // Habilitar botón nuevamente
+                    excelFileInput.value = null; // Limpiar el input de archivo
+                }
+            };
+
+            reader.onerror = (error) => {
+                console.error("Error al leer el archivo:", error);
+                showImportStatusMessage('Error al leer el archivo.', 'error');
+                processImportButton.disabled = false;
+                 excelFileInput.value = null; // Limpiar el input de archivo
+            };
+
+            reader.readAsArrayBuffer(file); // Leer el archivo como ArrayBuffer
         });
 
 
