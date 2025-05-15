@@ -1,1 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirar Usuario - FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+
+    <style>
+        /* Estilos CSS personalizados adicionales */
+        body {
+            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
+            margin: 0; /* Elimina el margen por defecto del body */
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+            display: flex; /* Usa flexbox para centrar el contenido */
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+            padding: 20px; /* Espaciado interno */
+        }
+
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            max-width: 600px; /* Ancho máximo del formulario */
+            width: 100%; /* Ocupa todo el ancho disponible hasta el max-width */
+        }
+
+        .form-group {
+            margin-bottom: 20px; /* Espacio entre grupos de formulario */
+        }
+
+        .form-group label {
+            display: block; /* Etiqueta en su propia línea */
+            margin-bottom: 8px; /* Espacio debajo de la etiqueta */
+            font-weight: 500; /* Peso de fuente medio */
+            color: #1c1c1e; /* Color de texto oscuro */
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: 100%; /* Ocupa todo el ancho del contenedor */
+            padding: 12px; /* Espaciado interno */
+            border: 1px solid #d1d5db; /* Borde gris sutil */
+            border-radius: 8px; /* Bordes redondeados */
+            font-size: 1rem; /* Tamaño de fuente */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+        }
+
+         /* Estilo para campos deshabilitados o de solo lectura */
+        .form-group input:disabled,
+        .form-group select:disabled,
+        .form-group input[readonly],
+        .form-group select[readonly] {
+            background-color: #e5e7eb; /* Fondo gris claro para indicar que no son editables */
+            cursor: not-allowed; /* Cursor de no permitido */
+        }
+
+
+         /* Contenedor para simular combobox */
+         .combobox-container {
+             position: relative; /* Para posicionar la lista flotante */
+             width: 100%; /* Ocupa el ancho disponible */
+         }
+
+         /* Estilo para el input de filtro (el campo visible del combobox) */
+         .combobox-container input[type="text"] {
+             margin-bottom: 0; /* Eliminar margen inferior */
+             border-radius: 8px; /* Bordes redondeados */
+             position: relative; /* Para z-index */
+             z-index: 2; /* Asegura que esté sobre la lista flotante */
+         }
+
+         /* Ocultar el select nativo */
+         .combobox-container select {
+             display: none;
+         }
+
+         /* Estilo para la lista flotante de opciones */
+         .combobox-options-list {
+             position: absolute; /* Posicionamiento absoluto respecto al contenedor */
+             top: 100%; /* Debajo del input */
+             left: 0;
+             right: 0;
+             background-color: #ffffff; /* Fondo blanco */
+             border: 1px solid #d1d5db; /* Borde */
+             border-top: none; /* Sin borde superior para unirse al input */
+             border-bottom-left-radius: 8px; /* Bordes redondeados inferiores */
+             border-bottom-right-radius: 8px;
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra */
+             max-height: 150px; /* Altura máxima antes de scroll */
+             overflow-y: auto; /* Scroll vertical si hay muchas opciones */
+             z-index: 10; /* Mayor z-index para que se muestre encima */
+             list-style: none; /* Sin puntos de lista */
+             padding: 0; /* Sin padding */
+             margin: 0; /* Sin margen */
+             display: none; /* Oculto por defecto */
+         }
+
+         .combobox-options-list.show {
+             display: block; /* Mostrar cuando tiene la clase 'show' */
+         }
+
+         .combobox-options-list li {
+             padding: 10px 12px; /* Espaciado interno de las opciones */
+             cursor: pointer; /* Cursor de mano */
+             transition: background-color 0.1s ease-in-out; /* Transición suave */
+         }
+
+         .combobox-options-list li:hover {
+             background-color: #f3f4f6; /* Fondo gris claro al pasar el ratón */
+         }
+
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="email"]:focus,
+        .form-group input[type="password"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group select:focus { /* Mantener estilos de enfoque para otros inputs */
+            outline: none; /* Elimina el contorno por defecto */
+            border-color: #4f46e5; /* Borde azul/morado al enfocar */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
+        }
+
+         /* Ajustar el box-shadow al enfocar para el input del combobox */
+         .combobox-container input[type="text"]:focus {
+             border-color: #4f46e5; /* Borde azul/morado al enfocar */
+             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
+         }
+
+
+        .form-group .input-with-button {
+            display: flex; /* Usa flexbox para alinear input y botón */
+            align-items: center; /* Centra verticalmente */
+        }
+
+        .form-group .input-with-button input,
+        .form-group .input-with-button select {
+            flex-grow: 1; /* Permite que el input/select ocupe el espacio restante */
+            margin-right: 10px; /* Espacio entre el input/select y el botón */
+        }
+
+        .form-group .input-with-button button {
+            width: auto; /* Ancho automático basado en contenido */
+            padding: 12px 15px; /* Espaciado interno del botón */
+            flex-shrink: 0; /* Evita que el botón se encoja */
+        }
+
+
+        /* Estilos mejorados para el botón de guardar */
+        button[type="submit"] {
+            display: block; /* Botón en su propia línea */
+            width: 100%; /* Ocupa todo el ancho del contenedor */
+            padding: 14px 24px; /* Espaciado interno ligeramente mayor */
+            background-color: #e53e3e; /* Color rojo para retirar */
+            color: #ffffff; /* Texto blanco */
+            font-weight: 700; /* Peso de fuente bold */
+            border: none; /* Sin borde */
+            border-radius: 8px; /* Bordes redondeados */
+            cursor: pointer; /* Cursor de mano */
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave con transform */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+            letter-spacing: 0.05em; /* Espaciado entre letras sutil */
+            text-transform: uppercase; /* Texto en mayúsculas */
+        }
+
+        button[type="submit"]:hover {
+            background-color: #c53030; /* Rojo más oscuro al pasar el ratón */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra aún más pronunciada */
+            transform: translateY(-2px); /* Mover ligeramente hacia arriba */
+        }
+
+        button[type="submit"]:active {
+             background-color: #9b2c2c; /* Rojo un poco más oscuro al hacer clic */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra reducida al hacer clic */
+             transform: translateY(0); /* Volver a la posición original */
+        }
+
+
+        /* Estilo para mensajes de estado (animado) */
+        #status-message {
+            margin-top: 20px;
+            padding: 15px; /* Aumentar padding */
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600; /* Semibold */
+            opacity: 0; /* Oculto por defecto */
+            transform: translateY(10px); /* Ligeramente desplazado */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Transición suave */
+        }
+
+        /* Estilo para mensajes de éxito (visible y animado) */
+        #status-message.success {
+            background-color: #d4edda; /* Verde claro */
+            color: #155724; /* Verde oscuro */
+            border: 1px solid #c3e6cb; /* Borde verde */
+            opacity: 1; /* Visible */
+            transform: translateY(0); /* Posición normal */
+        }
+
+        /* Estilo para mensajes de error (visible y animado) */
+        #status-message.error {
+            background-color: #f8d7da; /* Rojo claro */
+            color: #721c24; /* Rojo oscuro */
+            border: 1px solid #f5c6cb; /* Borde rojo */
+            opacity: 1; /* Visible */
+            transform: translateY(0); /* Posición normal */
+        }
+
+
+        /* Estilos para el modal (mantener si se planea usar para otras acciones, aunque no para agregar empresa/asesor aquí) */
+        .modal {
+            position: fixed; /* Posición fija */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente oscuro */
+            display: flex; /* Usa flexbox para centrar el contenido */
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            z-index: 100; /* Asegura que esté por encima de otros elementos */
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0; /* Transparente por defecto */
+            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Transición suave */
+        }
+
+        .modal.show {
+            visibility: visible; /* Visible cuando tiene la clase 'show' */
+            opacity: 1; /* Opaco cuando tiene la clase 'show' */
+        }
+
+        .modal-content {
+            background-color: #ffffff; /* Fondo blanco para el contenido del modal */
+            padding: 30px; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); /* Sombra */
+            max-width: 400px; /* Ancho máximo del modal */
+            width: 90%; /* Ocupa el 90% del ancho disponible hasta el max-width */
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem; /* Tamaño de fuente del título del modal */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-align: center; /* Centra el texto */
+            margin-bottom: 20px; /* Espacio debajo del título */
+            color: #1c1c1e; /* Color de texto oscuro */
+        }
+
+        .modal-content .form-group {
+             margin-bottom: 15px; /* Espacio entre grupos de formulario en el modal */
+        }
+
+        .modal-content button {
+            margin-top: 15px; /* Espacio encima del botón */
+            padding: 10px 20px; /* Espaciado interno del botón */
+        }
+
+        .modal-content .button-group {
+            display: flex;
+            justify-content: flex-end; /* Alinea botones a la derecha */
+            gap: 10px; /* Espacio entre botones */
+            margin-top: 20px; /* Espacio encima del grupo de botones */
+        }
+
+        .modal-content .button-group button {
+            width: auto; /* Ancho automático */
+            padding: 10px 15px; /* Espaciado interno */
+            box-shadow: none; /* Sin sombra en los botones del modal */
+        }
+
+         .modal-content .button-group button.cancel-button {
+             background-color: #6b7280; /* Color gris para cancelar */
+         }
+
+         .modal-content .button-group button.cancel-button:hover {
+             background-color: #4b5563; /* Gris más oscuro al pasar el ratón */
+         }
+
+        /* Estilo para el botón de ir atrás */
+        .back-button {
+            display: inline-block; /* Permite aplicar padding y margin */
+            margin-bottom: 20px; /* Espacio debajo del botón */
+            padding: 10px 15px; /* Espaciado interno */
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-decoration: none; /* Sin subrayado */
+            border-radius: 8px; /* Bordes redondeados */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro al pasar el ratón */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Sombra más pronunciada */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Ir Atrás
+        </a>
+
+        <h1 class="text-2xl font-bold text-center mb-6">Retirar Usuario</h1>
+
+        <form id="retire-user-form">
+            <div class="form-group">
+                <label for="user-name-filter">Seleccionar Usuario:</label>
+                <div class="combobox-container">
+                    <input type="text" id="user-name-filter" placeholder="Buscar usuario por nombre o identificación...">
+                    <ul id="user-name-options" class="combobox-options-list">
+                        </ul>
+                    <select id="user-name-select" name="userId">
+                         <option value="">Seleccione un usuario</option>
+                         </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo-identificacion">Tipo de Identificación:</label>
+                <input type="text" id="tipo-identificacion" readonly name="tipoIdentificacion">
+            </div>
+
+            <div class="form-group">
+                <label for="identificacion">Identificación:</label>
+                <input type="number" id="identificacion" readonly name="identificacion">
+            </div>
+
+            <div class="form-group">
+                <label for="empresa">Empresa:</label>
+                 <input type="text" id="empresa" readonly name="empresaNombre"> </div>
+
+            <div class="form-group">
+                <label for="arl">ARL:</label>
+                 <input type="text" id="arl" readonly name="arl">
+            </div>
+
+             <div class="form-group">
+                <label for="riesgo">Riesgo:</label>
+                 <input type="text" id="riesgo" readonly name="riesgo">
+            </div>
+
+            <div class="form-group">
+                <label for="eps">EPS:</label>
+                 <input type="text" id="eps" readonly name="eps">
+            </div>
+
+            <div class="form-group">
+                <label for="ccf">CCF:</label>
+                 <input type="text" id="ccf" readonly name="ccf">
+            </div>
+
+            <div class="form-group">
+                <label for="afp">AFP:</label>
+                 <input type="text" id="afp" readonly name="afp">
+            </div>
+
+            <div class="form-group">
+                <label for="fecha">Fecha de Ingreso:</label>
+                <input type="date" id="fecha" readonly name="fechaIngreso">
+            </div>
+
+            <div class="form-group">
+                <label for="ingreso">Fecha de Registro Inicial:</label>
+                <input type="date" id="ingreso" readonly name="fechaRegistro">
+            </div>
+
+            <div class="form-group">
+                <label for="asesor">Asesor:</label>
+                 <input type="text" id="asesor" readonly name="asesorNombre"> </div>
+
+            <div class="form-group">
+                <label for="valor-a-pagar">Valor a Pagar (COP):</label>
+                <input type="text" id="valor-a-pagar" readonly name="valorAPagar">
+            </div>
+
+            <div class="form-group">
+                <label for="fecha-retiro">Fecha de Retiro:</label>
+                <input type="date" id="fecha-retiro" required name="fechaRetiro">
+            </div>
+
+
+            <button type="submit">Marcar como Retirado</button>
+        </form>
+
+        <div id="status-message"></div>
+    </div>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const db = firebase.firestore(); // Inicializar Firestore
+
+        // Referencias a las colecciones en Firestore
+        const usersCollection = db.collection('usuarios');
+        const empresasCollection = db.collection('empresas'); // Necesario para obtener nombres de empresa
+        const asesoresCollection = db.collection('asesores'); // Necesario para obtener nombres de asesor
+
+        // Obtener elementos del DOM
+        const retireUserForm = document.getElementById('retire-user-form');
+        const statusMessage = document.getElementById('status-message');
+
+        // Combobox para seleccionar usuario
+        const userNameFilterInput = document.getElementById('user-name-filter');
+        const userNameOptionsList = document.getElementById('user-name-options');
+        const userNameSelect = document.getElementById('user-name-select'); // Select oculto para el ID del usuario
+
+        // Campos de información del usuario (solo lectura)
+        const tipoIdentificacionInput = document.getElementById('tipo-identificacion');
+        const identificacionInput = document.getElementById('identificacion');
+        const empresaInput = document.getElementById('empresa');
+        const arlInput = document.getElementById('arl');
+        const riesgoInput = document.getElementById('riesgo');
+        const epsInput = document.getElementById('eps');
+        const ccfInput = document.getElementById('ccf');
+        const afpInput = document.getElementById('afp');
+        const fechaIngresoInput = document.getElementById('fecha'); // Campo 'fecha' original ahora es fecha de ingreso
+        const fechaRegistroInput = document.getElementById('ingreso'); // Campo 'ingreso' original ahora es fecha de registro
+        const asesorInput = document.getElementById('asesor');
+        const valorAPagarInput = document.getElementById('valor-a-pagar');
+        const fechaRetiroInput = document.getElementById('fecha-retiro'); // Nuevo campo de fecha de retiro
+
+        // Almacenar opciones originales para filtrado (usuarios de Firestore)
+        let originalUserOptions = [];
+        let empresasMap = new Map(); // Para mapear IDs de empresa a nombres
+        let asesoresMap = new Map(); // Para mapear IDs de asesor a nombres
+
+
+        // --- Funciones para manejar la lista flotante (Combobox simulado) ---
+
+        // Función genérica para poblar y filtrar la lista flotante
+        function populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, filterText) {
+            optionsListElement.innerHTML = ''; // Limpiar lista actual
+
+            const lowerCaseFilterText = filterText.toLowerCase();
+
+            originalOptions.forEach(option => {
+                // Filtrar por nombre o identificación
+                const optionText = option.textContent.toLowerCase();
+                const optionValue = option.value; // En este caso, option.value es el ID del usuario
+                const identificacion = option.dataset.identificacion ? option.dataset.identificacion.toLowerCase() : ''; // Obtener identificación si existe
+
+                if (optionText.includes(lowerCaseFilterText) || identificacion.includes(lowerCaseFilterText)) {
+                    const li = document.createElement('li');
+                    // Mostrar nombre e identificación en la lista
+                    li.textContent = `${option.textContent} (${option.dataset.identificacion})`;
+                    li.dataset.value = option.value; // Guardar el ID del usuario
+                    optionsListElement.appendChild(li);
+                }
+            });
+
+            // Mostrar u ocultar la lista
+            if (optionsListElement.children.length > 0 && filterText.length > 0) {
+                 optionsListElement.classList.add('show');
+            } else {
+                 optionsListElement.classList.remove('show');
+            }
+        }
+
+        // Función para configurar listeners para un combobox simulado
+        function setupCombobox(filterInput, optionsListElement, originalOptions, selectElement) {
+            // Listener para filtrar al escribir
+            filterInput.addEventListener('input', (e) => {
+                populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
+            });
+
+            // --- Nuevos Listeners para manejar Autocompletado ---
+            filterInput.addEventListener('change', (e) => {
+                handleAutofill(e.target, originalOptions, selectElement);
+            });
+
+            filterInput.addEventListener('blur', (e) => {
+                 // Añadir un pequeño retraso para permitir que el evento click en la lista se dispare primero
+                 setTimeout(() => {
+                    handleAutofill(e.target, originalOptions, selectElement);
+                    optionsListElement.classList.remove('show'); // Ocultar lista al perder el foco
+                 }, 100);
+            });
+
+            // Listener para mostrar la lista al enfocar (si hay texto)
+             filterInput.addEventListener('focus', (e) => {
+                 // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
+                 if (originalOptions.length > 0 || e.target.value.length > 0) {
+                      populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
+                      optionsListElement.classList.add('show');
+                 }
+             });
+
+
+            // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
+            // Este listener original se mantiene, pero el blur ahora también llama a handleAutofill
+            // filterInput.addEventListener('blur', () => {
+            //     setTimeout(() => {
+            //         optionsListElement.classList.remove('show');
+            //     }, 100); // Pequeño retraso para permitir el clic en una opción
+            // });
+
+            // Listener para seleccionar una opción de la lista flotante
+            optionsListElement.addEventListener('click', async (e) => {
+                if (e.target.tagName === 'LI') {
+                    const selectedUserId = e.target.dataset.value;
+                    const selectedUserText = e.target.textContent; // Texto mostrado en la lista (Nombre + Identificación)
+
+                    console.log(`Opción de usuario seleccionada (click): Texto=${selectedUserText}, ID=${selectedUserId}`); // Debugging
+
+                    // Actualizar el input de filtro con el texto seleccionado
+                    userNameFilterInput.value = selectedUserText; // Usar el input específico para el nombre de usuario
+
+                    // --- Seleccionar la opción en el select oculto ---
+                    selectOptionInSelectElement(selectElement, selectedUserId);
+
+                    console.log(`Valor del select oculto (${selectElement.id}) después de seleccionar (click): ${selectElement.value}`); // Debugging
+
+                    // Ocultar la lista
+                    optionsListElement.classList.remove('show');
+
+                    // --- Cargar datos del usuario seleccionado ---
+                    if (selectedUserId) {
+                        await loadUserData(selectedUserId);
+                    } else {
+                        // Si se selecciona la opción "Seleccione un usuario", limpiar campos
+                        clearUserDataFields();
+                    }
+
+                     // Opcional: Disparar un evento 'change' en el select nativo si es necesario
+                     // const event = new Event('change');
+                     // selectElement.dispatchEvent(event);
+                }
+            });
+        }
+
+        // --- Función para manejar el autocompletado ---
+        async function handleAutofill(filterInput, originalOptions, selectElement) {
+             const autofilledText = filterInput.value.trim();
+             console.log(`handleAutofill activado para ${filterInput.id}. Texto: "${autofilledText}"`); // Debugging
+
+             if (autofilledText === '') {
+                 // Si el campo está vacío (ej. autocompletado borró algo), resetear el select
+                 selectElement.value = '';
+                 console.log(`Select oculto (${selectElement.id}) reseteado.`); // Debugging
+                 clearUserDataFields(); // Limpiar campos si se borra el texto
+                 return;
+             }
+
+             // Buscar una opción que coincida exactamente con el texto autocompletado
+             // La búsqueda debe considerar tanto el nombre como la identificación
+             const matchedOption = originalOptions.find(option => {
+                 const optionText = option.textContent.trim();
+                 const identificacion = option.dataset.identificacion ? option.dataset.identificacion.trim() : '';
+                 // Comprobar si el texto autocompletado coincide con el nombre o la identificación
+                 return optionText === autofilledText || identificacion === autofilledText;
+             });
+
+
+             if (matchedOption) {
+                 console.log(`Coincidencia encontrada por autocompletado: Texto=${matchedOption.textContent}, Valor=${matchedOption.value}`); // Debugging
+                 // Seleccionar la opción en el select oculto
+                 selectOptionInSelectElement(selectElement, matchedOption.value);
+                 console.log(`Valor del select oculto (${selectElement.id}) después de autocompletar: ${selectElement.value}`); // Debugging
+
+                 // Cargar los datos del usuario si se encontró una coincidencia
+                 await loadUserData(matchedOption.value);
+
+             } else {
+                 // Si no hay una coincidencia exacta, limpiar el select oculto y los campos
+                 console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}. Limpiando select y campos.`); // Debugging
+                 selectElement.value = '';
+                 clearUserDataFields();
+             }
+        }
+
+        // --- Función auxiliar para seleccionar una opción en el select oculto ---
+        function selectOptionInSelectElement(selectElement, valueToSelect) {
+             let optionFound = false;
+             for (let i = 0; i < selectElement.options.length; i++) {
+                 if (selectElement.options[i].value === valueToSelect) {
+                     selectElement.options[i].selected = true;
+                     optionFound = true;
+                     break;
+                 }
+             }
+             if (!optionFound) {
+                  console.warn(`Valor ${valueToSelect} no encontrado en las opciones del select oculto (${selectElement.id}).`);
+             }
+        }
+
+
+        // --- Funciones para cargar Dropdowns desde Firestore ---
+
+        // Cargar usuarios para el combobox de Nombre
+        async function loadUsersDropdownOptions() {
+             try {
+                // Obtener usuarios que NO estén marcados como 'retirado'
+                usersCollection.where('estado', '!=', 'retirado').onSnapshot(async (snapshot) => {
+                    let currentUserOptions = []; // Para almacenar las opciones de usuario
+
+                    // Añadir la opción por defecto
+                     const defaultOption = document.createElement('option');
+                     defaultOption.value = "";
+                     defaultOption.textContent = "Seleccione un usuario";
+                     currentUserOptions.push(defaultOption);
+
+                    // Cargar nombres de empresas y asesores para mostrar en la lista y al cargar datos
+                    await loadEmpresasAndAsesoresMaps();
+
+                    snapshot.forEach((doc) => {
+                        const user = doc.data();
+                        // Crear una opción con el nombre del usuario y su ID como valor
+                        const option = document.createElement('option');
+                        option.value = doc.id; // Usar el ID del documento de Firestore como valor
+                        // Combinar nombre e identificación para mostrar en la lista
+                        option.textContent = user.nombre;
+                        option.dataset.identificacion = user.identificacion; // Guardar identificación para filtrado
+                        // Puedes añadir más data-atributos si necesitas otros datos para mostrar en la lista
+                        currentUserOptions.push(option);
+                    });
+
+                    // Actualizar la lista de opciones originales para el combobox de usuario
+                    originalUserOptions = currentUserOptions;
+
+                    // --- Actualizar las opciones del select nativo oculto ---
+                    userNameSelect.innerHTML = ''; // Limpiar opciones actuales
+                    originalUserOptions.forEach(option => {
+                         // Clonar la opción para añadirla al select nativo
+                         userNameSelect.appendChild(option.cloneNode(true));
+                    });
+                    // Asegurarse de que la opción por defecto esté seleccionada
+                    userNameSelect.value = "";
+
+
+                    // Configurar el combobox con las opciones cargadas
+                    setupCombobox(userNameFilterInput, userNameOptionsList, originalUserOptions, userNameSelect);
+
+                }, (error) => { // Agregar callback de error a onSnapshot
+                    console.error("Error en onSnapshot al cargar usuarios:", error); // Logear el objeto de error completo
+                    // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                });
+            } catch (error) {
+                console.error("Error al configurar el listener onSnapshot para usuarios:", error); // Logear el objeto de error completo
+                // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+            }
+        }
+
+        // Función para cargar los mapas de empresas y asesores (para mostrar nombres en lugar de IDs)
+        async function loadEmpresasAndAsesoresMaps() {
+            try {
+                const empresasSnapshot = await empresasCollection.get();
+                empresasMap = new Map();
+                empresasSnapshot.forEach(doc => {
+                    empresasMap.set(doc.id, doc.data().nombre);
+                });
+
+                const asesoresSnapshot = await asesoresCollection.get();
+                asesoresMap = new Map();
+                asesoresSnapshot.forEach(doc => {
+                    asesoresMap.set(doc.id, doc.data().nombre);
+                });
+                 console.log("Mapas de Empresas y Asesores cargados."); // Debugging
+            } catch (error) {
+                console.error("Error al cargar mapas de empresas y asesores:", error);
+            }
+        }
+
+
+        // --- Función para cargar datos de un usuario seleccionado ---
+        async function loadUserData(userId) {
+            try {
+                const userDoc = await usersCollection.doc(userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    console.log("Datos del usuario cargados:", userData); // Debugging
+
+                    // Llenar los campos del formulario con los datos del usuario
+                    tipoIdentificacionInput.value = userData.tipoIdentificacion || '';
+                    identificacionInput.value = userData.identificacion || '';
+                    // Usar los mapas para obtener los nombres de empresa y asesor
+                    empresaInput.value = empresasMap.get(userData.empresaId) || 'Desconocido';
+                    arlInput.value = userData.arl || '';
+                    riesgoInput.value = userData.riesgo || '';
+                    epsInput.value = userData.eps || '';
+                    ccfInput.value = userData.ccf || '';
+                    afpInput.value = userData.afp || '';
+                    // Asegurarse de que las fechas se muestren correctamente en el input type="date"
+                    fechaIngresoInput.value = userData.fecha ? new Date(userData.fecha).toISOString().split('T')[0] : '';
+                    fechaRegistroInput.value = userData.ingreso ? new Date(userData.ingreso).toISOString().split('T')[0] : '';
+
+                    asesorInput.value = asesoresMap.get(userData.asesorId) || 'Desconocido';
+                    valorAPagarInput.value = userData.valorAPagar || '';
+
+                    // Deshabilitar campos para que no se puedan editar
+                    tipoIdentificacionInput.disabled = true;
+                    identificacionInput.disabled = true;
+                    empresaInput.disabled = true;
+                    arlInput.disabled = true;
+                    riesgoInput.disabled = true;
+                    epsInput.disabled = true;
+                    ccfInput.disabled = true;
+                    afpInput.disabled = true;
+                    fechaIngresoInput.disabled = true;
+                    fechaRegistroInput.disabled = true;
+                    asesorInput.disabled = true;
+                    valorAPagarInput.disabled = true;
+
+
+                } else {
+                    console.warn("Usuario no encontrado en Firestore con ID:", userId);
+                    clearUserDataFields(); // Limpiar campos si el usuario no existe
+                }
+            } catch (error) {
+                console.error("Error al cargar datos del usuario:", error);
+                clearUserDataFields();
+                statusMessage.textContent = 'Error al cargar datos del usuario.';
+                statusMessage.className = 'error';
+                 setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
+            }
+        }
+
+        // Función para limpiar los campos de información del usuario
+        function clearUserDataFields() {
+            tipoIdentificacionInput.value = '';
+            identificacionInput.value = '';
+            empresaInput.value = '';
+            arlInput.value = '';
+            riesgoInput.value = '';
+            epsInput.value = '';
+            ccfInput.value = '';
+            afpInput.value = '';
+            fechaIngresoInput.value = '';
+            fechaRegistroInput.value = '';
+            asesorInput.value = '';
+            valorAPagarInput.value = '';
+            fechaRetiroInput.value = ''; // También limpiar la fecha de retiro
+
+            // Habilitar campos nuevamente (aunque en esta página se mantienen deshabilitados/readonly)
+            // Si en el futuro se permite editar, esta función sería útil
+            // tipoIdentificacionInput.disabled = false;
+            // identificacionInput.disabled = false;
+            // etc.
+
+        }
+
+
+        // --- Manejo del Formulario Principal (Marcar como Retirado) ---
+        retireUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevenir el envío por defecto del formulario
+
+            // Obtener el ID del usuario seleccionado del select oculto
+            const userIdToRetire = userNameSelect.value;
+            const fechaRetiro = fechaRetiroInput.value;
+
+            // Validar que se haya seleccionado un usuario y la fecha de retiro
+            if (!userIdToRetire) {
+                 statusMessage.textContent = 'Por favor, seleccione un usuario para retirar.';
+                 statusMessage.className = 'error';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
+                 return;
+            }
+
+            if (!fechaRetiro) {
+                 statusMessage.textContent = 'Por favor, ingrese la fecha de retiro.';
+                 statusMessage.className = 'error';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
+                 return;
+            }
+
+
+            statusMessage.textContent = 'Marcando usuario como retirado...';
+            statusMessage.className = ''; // Limpiar clases de estado anteriores
+
+            try {
+                // Actualizar el documento del usuario en Firestore
+                await usersCollection.doc(userIdToRetire).update({
+                    estado: 'retirado', // Añadir o actualizar el campo estado
+                    fechaRetiro: fechaRetiro, // Guardar la fecha de retiro
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp de actualización
+                });
+
+                // Mostrar mensaje de éxito
+                statusMessage.textContent = 'Usuario marcado como retirado con éxito!';
+                statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
+
+                // Limpiar el formulario y los campos de datos del usuario
+                retireUserForm.reset();
+                clearUserDataFields();
+                // Resetear el combobox de usuario
+                userNameFilterInput.value = '';
+                userNameSelect.value = '';
+
+
+                // Limpiar el mensaje después de unos segundos
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000); // 5 segundos
+
+            } catch (error) {
+                // Mostrar mensaje de error si algo falla durante la actualización
+                statusMessage.textContent = 'Error al marcar usuario como retirado: ' + error.message;
+                statusMessage.className = 'error'; // Aplicar clase de estilo para error
+                console.error("Error al marcar usuario como retirado:", error);
+                 // Limpiar el mensaje después de unos segundos
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000); // 5 segundos
+            }
+        });
+
+
+        // --- Inicialización ---
+        // Cargar la lista de usuarios al cargar la página
+        loadUsersDropdownOptions();
+
+
+    </script>
+
+</body>
+</html>
