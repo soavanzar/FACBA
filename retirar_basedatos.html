@@ -273,7 +273,7 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             /* Propiedades para el estado pequeño en la esquina (se aplicarán con la clase .small-corner) */
             /* top: 20px; */
-            /* left: 20px; */
+            /* right: 20px; */ /* CAMBIO AQUI */
             /* transform: none; */
             /* padding: 10px 15px; */
             /* font-size: 1rem; */
@@ -289,15 +289,16 @@
             visibility: hidden; /* Oculto por defecto */
             opacity: 0; /* Transparente por defecto */
             /* Transición para todas las propiedades que cambian */
-            transition: top 0.5s ease-in-out, left 0.5s ease-in-out, transform 0.5s ease-in-out,
+            transition: top 0.5s ease-in-out, left 0.5s ease-in-out, right 0.5s ease-in-out, transform 0.5s ease-in-out, /* Añadido right a la transición */
                         padding 0.5s ease-in-out, font-size 0.5s ease-in-out, box-shadow 0.5s ease-in-out,
                         visibility 0.4s ease-in-out, opacity 0.4s ease-in-out;
         }
 
-        /* Clase para el estado pequeño en la esquina superior izquierda */
+        /* Clase para el estado pequeño en la esquina superior derecha */
         #user-status-display.small-corner {
             top: 20px;
-            left: 20px;
+            right: 20px; /* CAMBIO AQUI */
+            left: auto; /* Asegura que 'left' no interfiera */
             transform: none; /* Elimina la transformación de centrado */
             padding: 10px 15px;
             font-size: 1rem;
