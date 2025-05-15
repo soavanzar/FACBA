@@ -348,7 +348,7 @@
                     <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
                      <ul id="empresa-options" class="combobox-options-list">
                         </ul>
-                     <select id="empresa" name="empresa"> <option value="">Seleccione</option>
+                     <select id="empresa" name="empresaId"> <option value="">Seleccione</option>
                          </select>
                 </div>
             </div>
@@ -359,18 +359,8 @@
                     <input type="text" id="arl-filter" placeholder="Buscar ARL...">
                      <ul id="arl-options" class="combobox-options-list">
                         </ul>
-                     <select id="arl" name="arl"> <option value="">Seleccione</option>
-                        <option value="Sura">Sura</option>
-                        <option value="Positiva">Positiva</option>
-                        <option value="Axa Colpatria">Axa Colpatria</option>
-                        <option value="Colmena">Colmena</option>
-                        <option value="Bolivar">Bolívar</option>
-                        <option value="La Equidad">La Equidad</option>
-                        <option value="Alfa">Alfa</option>
-                        <option value="Mapfre">Mapfre</option>
-                        <option value="Aurora">Aurora</option>
-                        <option value="Liberty">Liberty</option>
-                        </select>
+                     <select id="arl" name="arlId"> <option value="">Seleccione</option>
+                         </select>
                 </div>
             </div>
 
@@ -396,22 +386,7 @@
                     <input type="text" id="eps-filter" placeholder="Buscar EPS...">
                      <ul id="eps-options" class="combobox-options-list">
                         </ul>
-                     <select id="eps" name="eps"> <option value="">Seleccione</option>
-                        <option value="Aliansalud">Aliansalud</option>
-                        <option value="Compensar">Compensar</option>
-                        <option value="Cruz Blanca">Cruz Blanca</option>
-                        <option value="Comfenalco Valle">Comfenalco Valle</option>
-                        <option value="Sanitas">Sanitas</option>
-                        <option value="Famisanar">Famisanar</option>
-                        <option value="Nueva EPS">Nueva EPS</option>
-                        <option value="Salud Sura">Salud Sura</option>
-                        <option value="Salud Total">Salud Total</option>
-                        <option value="Mutual Ser EPS">Mutual Ser EPS</option>
-                        <option value="Capital Salud EPS-S">Capital Salud EPS-S</option>
-                        <option value="Capresoca EPS">Capresoca EPS</option>
-                        <option value="Savia Salud EPS">Savia Salud EPS</option>
-                        <option value="Salud Bolívar EPS">Salud Bolívar EPS</option>
-                        <option value="Comparta EPS-S">Comparta EPS-S</option>
+                     <select id="eps" name="epsId"> <option value="">Seleccione</option>
                         </select>
                 </div>
             </div>
@@ -422,13 +397,7 @@
                     <input type="text" id="ccf-filter" placeholder="Buscar CCF...">
                      <ul id="ccf-options" class="combobox-options-list">
                         </ul>
-                     <select id="ccf" name="ccf"> <option value="">Seleccione</option>
-                        <option value="Comfenalco Santander">Comfenalco Santander</option> <option value="Colsubsidio">Colsubsidio</option>
-                        <option value="Comfama">Comfama</option>
-                        <option value="Compensar">Compensar</option>
-                        <option value="Cafam">Cafam</option>
-                        <option value="Cajacopi Atlántico">Cajacopi Atlántico</option>
-                        <option value="Comfenalco Antioquia">Comfenalco Antioquia</option>
+                     <select id="ccf" name="ccfId"> <option value="">Seleccione</option>
                         </select>
                 </div>
             </div>
@@ -439,13 +408,7 @@
                     <input type="text" id="afp-filter" placeholder="Buscar AFP...">
                      <ul id="afp-options" class="combobox-options-list">
                         </ul>
-                     <select id="afp" name="afp"> <option value="">Seleccione</option>
-                        <option value="Proteccion">Protección</option>
-                        <option value="Porvenir">Porvenir</option>
-                        <option value="Colfondos">Colfondos</option>
-                        <option value="Skandia">Skandia (Old Mutual)</option>
-                        <option value="Colpensiones">Colpensiones</option>
-                        <option value="Fondo Nacional del Ahorro">Fondo Nacional del Ahorro</option>
+                     <select id="afp" name="afpId"> <option value="">Seleccione</option>
                         </select>
                 </div>
             </div>
@@ -465,7 +428,7 @@
                     <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
                      <ul id="asesor-options" class="combobox-options-list">
                         </ul>
-                     <select id="asesor" name="asesor"> <option value="">Seleccione</option>
+                     <select id="asesor" name="asesorId"> <option value="">Seleccione</option>
                          </select>
                 </div>
             </div>
@@ -535,6 +498,11 @@
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas');
         const asesoresCollection = db.collection('asesores');
+        const arlCollection = db.collection('arl'); // Nueva colección para ARL
+        const epsCollection = db.collection('eps'); // Nueva colección para EPS
+        const ccfCollection = db.collection('ccf'); // Nueva colección para CCF
+        const afpCollection = db.collection('afp'); // Nueva colección para AFP
+
 
         // Obtener elementos del DOM
         const userForm = document.getElementById('user-form');
@@ -584,15 +552,15 @@
         const asesorSelect = document.getElementById('asesor'); // Select nativo oculto
 
 
-        // Almacenar opciones originales para filtrado (ahora desde los select nativos ocultos)
+        // Almacenar opciones originales para filtrado (ahora desde los select nativos ocultos o Firestore)
         let originalTipoIdentificacionOptions = Array.from(tipoIdentificacionSelect.options);
-        let originalArlOptions = Array.from(arlSelect.options);
+        let originalArlOptions = []; // Ahora se cargará desde Firestore
         let originalRiesgoOptions = Array.from(riesgoSelect.options);
-        let originalEpsOptions = Array.from(epsSelect.options);
-        let originalCcfOptions = Array.from(ccfSelect.options);
-        let originalAfpOptions = Array.from(afpSelect.options);
-        let originalEmpresaOptions = []; // Para opciones de Firebase
-        let originalAsesorOptions = []; // Para opciones de Firebase
+        let originalEpsOptions = []; // Ahora se cargará desde Firestore
+        let originalCcfOptions = []; // Ahora se cargará desde Firestore
+        let originalAfpOptions = []; // Ahora se cargará desde Firestore
+        let originalEmpresaOptions = []; // Para opciones de Firestore
+        let originalAsesorOptions = []; // Para opciones de Firestore
 
 
         // --- Funciones para Modales ---
@@ -617,7 +585,7 @@
                 if (option.textContent.toLowerCase().includes(lowerCaseFilterText)) {
                     const li = document.createElement('li');
                     li.textContent = option.textContent;
-                    li.dataset.value = option.value; // Guardar el valor original
+                    li.dataset.value = option.value; // Guardar el valor original (ID de Firestore o valor estático)
                     optionsListElement.appendChild(li);
                 }
             });
@@ -653,7 +621,8 @@
             // Listener para mostrar la lista al enfocar (si hay texto)
              filterInput.addEventListener('focus', (e) => {
                  // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
-                 if (originalOptions.length > 0 || e.target.value.length > 0) {
+                 // También mostrar si el input está vacío para ver todas las opciones
+                 if (originalOptions.length > 0) {
                       populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
                       optionsListElement.classList.add('show');
                  }
@@ -706,8 +675,8 @@
                  return;
              }
 
-             // Buscar una opción que coincida exactamente con el texto autocompletado
-             const matchedOption = originalOptions.find(option => option.textContent.trim() === autofilledText);
+             // Buscar una opción que coincida exactamente con el texto autocompletado (case-insensitive)
+             const matchedOption = originalOptions.find(option => option.textContent.trim().toLowerCase() === autofilledText.toLowerCase());
 
              if (matchedOption) {
                  console.log(`Coincidencia encontrada por autocompletado: Texto=${matchedOption.textContent}, Valor=${matchedOption.value}`); // Debugging
@@ -716,25 +685,29 @@
                  console.log(`Valor del select oculto (${selectElement.id}) después de autocompletar: ${selectElement.value}`); // Debugging
              } else {
                  // Si no hay una coincidencia exacta, puedes decidir qué hacer.
-                 // Por ahora, no hacemos nada, lo que significa que el select oculto mantendrá su valor anterior o estará vacío.
-                 // Podrías opcionalmente limpiar el select oculto si el texto autocompletado no coincide con ninguna opción.
-                 console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}.`); // Debugging
-                 // Opcional: selectElement.value = '';
+                 // Limpiar el select oculto si el texto autocompletado no coincide con ninguna opción.
+                 console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}. Limpiando select oculto.`); // Debugging
+                 selectElement.value = '';
              }
         }
 
         // --- Función auxiliar para seleccionar una opción en el select oculto ---
         function selectOptionInSelectElement(selectElement, valueToSelect) {
              let optionFound = false;
+             // Convertir valueToSelect a string para comparación segura
+             const valueToSelectString = String(valueToSelect);
              for (let i = 0; i < selectElement.options.length; i++) {
-                 if (selectElement.options[i].value === valueToSelect) {
+                  // Convertir el valor de la opción a string para comparación segura
+                 if (String(selectElement.options[i].value) === valueToSelectString) {
                      selectElement.options[i].selected = true;
                      optionFound = true;
                      break;
                  }
              }
              if (!optionFound) {
-                  console.warn(`Valor ${valueToSelect} no encontrado en las opciones del select oculto (${selectElement.id}).`);
+                  console.warn(`Valor ${valueToSelectString} no encontrado en las opciones del select oculto (${selectElement.id}).`);
+                  // Opcional: Si el valor no se encuentra, seleccionar la opción por defecto si existe
+                  selectElement.value = "";
              }
         }
 
@@ -742,9 +715,11 @@
         // --- Funciones para cargar Dropdowns desde Firestore ---
         async function loadFirestoreDropdownOptions(collectionRef, filterInput, optionsListElement, selectElement) {
              try {
-                collectionRef.onSnapshot((snapshot) => {
+                // Usar onSnapshot para escuchar cambios en tiempo real
+                collectionRef.orderBy('nombre').onSnapshot((snapshot) => {
                     let currentOptions = []; // Para almacenar las opciones actuales de Firestore
-                    // Añadir la opción "Seleccione" al inicio de las opciones de Firestore
+
+                    // Añadir la opción "Seleccione" al inicio de las opciones
                      const defaultOption = document.createElement('option');
                      defaultOption.value = "";
                      defaultOption.textContent = "Seleccione";
@@ -752,15 +727,22 @@
 
                     snapshot.forEach((doc) => {
                         const item = doc.data();
-                        const option = document.createElement('option');
-                        option.value = doc.id; // Usar el ID del documento de Firestore como valor
-                        option.textContent = item.nombre; // Asumir que el documento tiene una propiedad 'nombre'
-                        currentOptions.push(option);
+                        if (item.nombre) { // Asegurarse de que el documento tenga un campo 'nombre'
+                            const option = document.createElement('option');
+                            option.value = doc.id; // Usar el ID del documento de Firestore como valor
+                            option.textContent = item.nombre; // Usar la propiedad 'nombre' como texto visible
+                            currentOptions.push(option);
+                        }
                     });
 
                     // Actualizar la lista de opciones originales para este combobox
                     if (selectElement === empresaSelect) originalEmpresaOptions = currentOptions;
-                    if (selectElement === asesorSelect) originalAsesorOptions = currentOptions;
+                    else if (selectElement === asesorSelect) originalAsesorOptions = currentOptions;
+                    else if (selectElement === arlSelect) originalArlOptions = currentOptions; // Actualizar ARL
+                    else if (selectElement === epsSelect) originalEpsOptions = currentOptions; // Actualizar EPS
+                    else if (selectElement === ccfSelect) originalCcfOptions = currentOptions; // Actualizar CCF
+                    else if (selectElement === afpSelect) originalAfpOptions = currentOptions; // Actualizar AFP
+
 
                     // --- Actualizar las opciones del select nativo oculto ---
                     selectElement.innerHTML = ''; // Limpiar opciones actuales
@@ -776,30 +758,31 @@
                     setupCombobox(filterInput, optionsListElement, currentOptions, selectElement);
 
                 }, (error) => { // Agregar callback de error a onSnapshot
-                    console.error("Error en onSnapshot al cargar dropdown:", error); // Logear el objeto de error completo
-                    // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                    console.error(`Error en onSnapshot al cargar dropdown de ${collectionRef.id}:`, error); // Logear el objeto de error completo
+                    showStatusMessage(`Error al cargar opciones de ${collectionRef.id}.`, 'error');
                 });
             } catch (error) {
-                console.error("Error al configurar el listener onSnapshot:", error); // Logear el objeto de error completo
-                // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                console.error(`Error al configurar el listener onSnapshot para ${collectionRef.id}:`, error); // Logear el objeto de error completo
+                showStatusMessage(`Error al configurar listener para ${collectionRef.id}.`, 'error');
             }
         }
 
 
         // --- Cargar opciones iniciales y configurar comboboxes ---
 
-        // Configurar comboboxes estáticos
+        // Configurar comboboxes estáticos (solo Tipo de Identificación y Riesgo)
         setupCombobox(tipoIdentificacionFilterInput, tipoIdentificacionOptionsList, originalTipoIdentificacionOptions, tipoIdentificacionSelect);
-        setupCombobox(arlFilterInput, arlOptionsList, originalArlOptions, arlSelect);
         setupCombobox(riesgoFilterInput, riesgoOptionsList, originalRiesgoOptions, riesgoSelect);
-        setupCombobox(epsFilterInput, epsOptionsList, originalEpsOptions, epsSelect);
-        setupCombobox(ccfFilterInput, ccfOptionsList, originalCcfOptions, ccfSelect);
-        setupCombobox(afpFilterInput, afpOptionsList, originalAfpOptions, afpSelect);
+
 
         // Cargar opciones de Firestore y configurar comboboxes
         // Pasar el selectElement para que loadFirestoreDropdownOptions pueda actualizarlo
         loadFirestoreDropdownOptions(empresasCollection, empresaFilterInput, empresaOptionsList, empresaSelect);
         loadFirestoreDropdownOptions(asesoresCollection, asesorFilterInput, asesorOptionsList, asesorSelect);
+        loadFirestoreDropdownOptions(arlCollection, arlFilterInput, arlOptionsList, arlSelect); // Cargar ARL
+        loadFirestoreDropdownOptions(epsCollection, epsFilterInput, epsOptionsList, epsSelect); // Cargar EPS
+        loadFirestoreDropdownOptions(ccfCollection, ccfFilterInput, ccfOptionsList, ccfSelect); // Cargar CCF
+        loadFirestoreDropdownOptions(afpCollection, afpFilterInput, afpOptionsList, afpSelect); // Cargar AFP
 
 
         // --- Manejo de Formularios y Botones ---
@@ -842,36 +825,54 @@
         // Guardar nueva Empresa en Firestore
         empresaModalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('nueva-empresa-nombre').value;
+            const nombre = document.getElementById('nueva-empresa-nombre').value.trim(); // Usar trim()
             if (nombre) {
                 try {
-                    await empresasCollection.add({ nombre: nombre });
+                    // Verificar si la empresa ya existe (case-insensitive)
+                    const existingEmpresas = await empresasCollection.where('nombre', '==', nombre).get();
+                    if (!existingEmpresas.empty) {
+                        alert(`La empresa "${nombre}" ya existe.`);
+                        return;
+                    }
+
+                    await empresasCollection.add({ nombre: nombre, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     console.log("Empresa guardada con éxito");
                     hideModal(addEmpresaModal);
                     empresaModalForm.reset();
                     // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
                 } catch (error) {
                     console.error("Error al guardar empresa:", error);
-                    // Mostrar mensaje de error en el modal si es necesario
+                    alert('Error al guardar empresa: ' + error.message); // Mostrar mensaje de error
                 }
+            } else {
+                 alert("Por favor, ingresa el nombre de la empresa.");
             }
         });
 
         // Guardar nuevo Asesor en Firestore
         asesorModalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('nuevo-asesor-nombre').value;
+            const nombre = document.getElementById('nuevo-asesor-nombre').value.trim(); // Usar trim()
             if (nombre) {
                 try {
-                    await asesoresCollection.add({ nombre: nombre });
+                     // Verificar si el asesor ya existe (case-insensitive)
+                    const existingAsesores = await asesoresCollection.where('nombre', '==', nombre).get();
+                    if (!existingAsesores.empty) {
+                        alert(`El asesor "${nombre}" ya existe.`);
+                        return;
+                    }
+
+                    await asesoresCollection.add({ nombre: nombre, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     console.log("Asesor guardado con éxito");
                     hideModal(addAsesorModal);
                     asesorModalForm.reset();
                     // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
                 } catch (error) {
                     console.error("Error al guardar asesor:", error);
-                     // Mostrar mensaje de error en el modal si es necesario
+                    alert('Error al guardar asesor: ' + error.message); // Mostrar mensaje de error
                 }
+            } else {
+                 alert("Por favor, ingresa el nombre del asesor.");
             }
         });
 
@@ -881,34 +882,34 @@
             e.preventDefault(); // Prevenir el envío por defecto del formulario
 
             // Obtener los valores del formulario
-            // Ahora obtenemos los valores seleccionados del select nativo oculto
-            const nombre = document.getElementById('nombre').value;
+            // Ahora obtenemos los valores seleccionados del select nativo oculto (que son los IDs de Firestore)
+            const nombre = document.getElementById('nombre').value.trim();
             const tipoIdentificacion = tipoIdentificacionSelect.value;
-            const identificacion = document.getElementById('identificacion').value;
-            const empresa = empresaSelect.value; // Esto será el ID del documento de la empresa en Firestore
-            const arl = arlSelect.value;
-            const riesgo = riesgoSelect.value;
-            const eps = epsSelect.value;
-            const ccf = ccfSelect.value;
-            const afp = afpSelect.value;
+            const identificacion = document.getElementById('identificacion').value.trim();
+            const empresaId = empresaSelect.value; // Esto será el ID del documento de la empresa en Firestore
+            const arlId = arlSelect.value; // Esto será el ID del documento de la ARL en Firestore
+            const riesgo = riesgoSelect.value; // Riesgo sigue siendo un valor estático
+            const epsId = epsSelect.value; // Esto será el ID del documento de la EPS en Firestore
+            const ccfId = ccfSelect.value; // Esto será el ID del documento de la CCF en Firestore
+            const afpId = afpSelect.value; // Esto será el ID del documento de la AFP en Firestore
             const fecha = document.getElementById('fecha').value;
             const ingreso = document.getElementById('ingreso').value;
-            const asesor = asesorSelect.value; // Esto será el ID del documento del asesor en Firestore
+            const asesorId = asesorSelect.value; // Esto será el ID del documento del asesor en Firestore
             const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
 
             console.log("Valores del formulario antes de validación:"); // Debugging
             console.log("Nombre:", nombre);
             console.log("Tipo Identificacion:", tipoIdentificacion);
             console.log("Identificacion:", identificacion);
-            console.log("Empresa (select value):", empresa); // Debugging específico para Empresa
-            console.log("ARL:", arl);
+            console.log("Empresa ID:", empresaId); // Debugging específico para Empresa ID
+            console.log("ARL ID:", arlId); // Debugging específico para ARL ID
             console.log("Riesgo:", riesgo);
-            console.log("EPS:", eps);
-            console.log("CCF:", ccf);
-            console.log("AFP:", afp);
+            console.log("EPS ID:", epsId); // Debugging específico para EPS ID
+            console.log("CCF ID:", ccfId); // Debugging específico para CCF ID
+            console.log("AFP ID:", afpId); // Debugging específico para AFP ID
             console.log("Fecha:", fecha);
             console.log("Ingreso:", ingreso);
-            console.log("Asesor (select value):", asesor); // Debugging específico para Asesor
+            console.log("Asesor ID:", asesorId); // Debugging específico para Asesor ID
             console.log("Valor a Pagar:", valorAPagar);
 
 
@@ -917,31 +918,26 @@
             if (!nombre) missingFields.push('Nombre');
             if (!tipoIdentificacion) missingFields.push('Tipo de Identificación');
             if (!identificacion) missingFields.push('Identificación');
-            if (!empresa) missingFields.push('Empresa');
-            if (!arl) missingFields.push('ARL');
+            if (!empresaId) missingFields.push('Empresa'); // Validar que se haya seleccionado un ID
+            // ARL, Riesgo, EPS, CCF, AFP, Fecha, Ingreso, Asesor, Valor a Pagar
+            if (!arlId) missingFields.push('ARL');
             if (!riesgo) missingFields.push('Riesgo');
-            if (!eps) missingFields.push('EPS');
-            if (!ccf) missingFields.push('CCF');
-            if (!afp) missingFields.push('AFP');
+            if (!epsId) missingFields.push('EPS');
+            if (!ccfId) missingFields.push('CCF');
+            if (!afpId) missingFields.push('AFP');
             if (!fecha) missingFields.push('Fecha');
             if (!ingreso) missingFields.push('Ingreso');
-            if (!asesor) missingFields.push('Asesor');
+            if (!asesorId) missingFields.push('Asesor'); // Validar que se haya seleccionado un ID
              if (!valorAPagar) missingFields.push('Valor a Pagar');
 
 
             if (missingFields.length > 0) {
-                 statusMessage.textContent = 'Por favor, complete los siguientes campos: ' + missingFields.join(', ');
-                 statusMessage.className = 'error';
-                  setTimeout(() => {
-                     statusMessage.textContent = '';
-                     statusMessage.className = '';
-                 }, 7000); // Aumentar tiempo visible para mensajes largos
+                 showStatusMessage('Por favor, complete los siguientes campos: ' + missingFields.join(', '), 'error');
                  return; // Detener el envío si faltan campos
             }
 
             // --- Validación de duplicados ---
-            statusMessage.textContent = 'Verificando duplicados...';
-            statusMessage.className = ''; // Limpiar clases de estado anteriores
+            showStatusMessage('Verificando duplicados...', 'info');
 
             try {
                 // Consultar Firestore para ver si ya existe un usuario con la misma identificación y tipo
@@ -952,12 +948,7 @@
 
                 if (!existingUsersSnapshot.empty) {
                     // Si el snapshot no está vacío, significa que ya existe un usuario con esa combinación
-                    statusMessage.textContent = 'Error: Ya existe un usuario con este número y tipo de identificación.';
-                    statusMessage.className = 'error';
-                     setTimeout(() => {
-                        statusMessage.textContent = '';
-                        statusMessage.className = '';
-                    }, 5000);
+                    showStatusMessage('Error: Ya existe un usuario con este número y tipo de identificación.', 'error');
                     return; // Detener el proceso de guardado
                 }
 
@@ -968,16 +959,17 @@
                     nombre: nombre,
                     tipoIdentificacion: tipoIdentificacion,
                     identificacion: identificacion,
-                    empresaId: empresa, // Guardar el ID de la empresa
-                    arl: arl,
+                    empresaId: empresaId, // Guardar el ID de la empresa
+                    arlId: arlId, // Guardar el ID de la ARL
                     riesgo: riesgo,
-                    eps: eps,
-                    ccf: ccf,
-                    afp: afp,
-                    fecha: fecha,
-                    ingreso: ingreso,
-                    asesorId: asesor, // Guardar el ID del asesor
-                    valorAPagar: valorAPagar, // Guardar el valor formateado
+                    epsId: epsId, // Guardar el ID de la EPS
+                    ccfId: ccfId, // Guardar el ID de la CCF
+                    afpId: afpId, // Guardar el ID de la AFP
+                    fecha: fecha, // Guardar como string YYYY-MM-DD
+                    ingreso: ingreso, // Guardar como string YYYY-MM-DD
+                    asesorId: asesorId, // Guardar el ID del asesor
+                    valorAPagar: parseFloat(valorAPagar.replace(/[^0-9.]/g, '')), // Convertir a número antes de guardar
+                    estado: 'activo', // Estado por defecto al ingresar
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp
                 };
 
@@ -985,8 +977,7 @@
                 await usersCollection.add(newUser);
 
                 // Mostrar mensaje de éxito
-                statusMessage.textContent = 'Usuario guardado con éxito!';
-                statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
+                showStatusMessage('Usuario guardado con éxito!', 'success');
                 userForm.reset(); // Limpiar el formulario
                 // Limpiar los inputs de filtro y restablecer los selects nativos
                 tipoIdentificacionFilterInput.value = '';
@@ -1005,44 +996,62 @@
                 afpSelect.value = ''; // Resetear el select oculto
                 asesorFilterInput.value = '';
                 asesorSelect.value = ''; // Resetear el select oculto
+                valorAPagarInput.value = ''; // Asegurar que el input de valor a pagar también se limpie
 
-
-                // Limpiar el mensaje después de unos segundos
-                setTimeout(() => {
-                    statusMessage.textContent = '';
-                    statusMessage.className = '';
-                }, 5000); // 5 segundos
 
             } catch (error) {
                 // Mostrar mensaje de error si algo falla durante la consulta o el guardado
-                statusMessage.textContent = 'Error al guardar usuario: ' + error.message;
-                statusMessage.className = 'error'; // Aplicar clase de estilo para error
+                showStatusMessage('Error al guardar usuario: ' + error.message, 'error');
                 console.error("Error al guardar usuario:", error);
-                 // Limpiar el mensaje después de unos segundos
-                setTimeout(() => {
-                    statusMessage.textContent = '';
-                    statusMessage.className = '';
-                }, 5000); // 5 segundos
             }
         });
+
+
+         // Función para mostrar mensajes de estado (en la parte inferior del formulario)
+         function showStatusMessage(message, type = 'info') {
+             statusMessage.textContent = message;
+             statusMessage.className = ''; // Reset classes
+             statusMessage.classList.add(type);
+             // Fade in
+             statusMessage.style.opacity = '1';
+             statusMessage.style.transform = 'translateY(0)';
+
+             // Fade out after 5 seconds
+             setTimeout(() => {
+                 statusMessage.style.opacity = '0';
+                 statusMessage.style.transform = 'translateY(10px)';
+                  // Clear text after transition
+                 setTimeout(() => {
+                      statusMessage.textContent = '';
+                 }, 400); // Match the transition duration
+             }, 5000);
+         }
 
 
         // --- Formato de Moneda para Valor a Pagar ---
         valorAPagarInput.addEventListener('input', (e) => {
             let value = e.target.value;
-            // Remover caracteres no numéricos (excepto la coma o punto si se usan como separador decimal)
-            value = value.replace(/[^0-9,.]/g, '');
+            // Remover caracteres no numéricos (excepto el punto como separador decimal)
+            value = value.replace(/[^0-9.]/g, '');
 
-            // Opcional: Manejar separadores decimales (usando punto como decimal)
-            // value = value.replace(/,/g, ''); // Si solo quieres permitir puntos
-            // if (value.includes('.')) {
-            //     const parts = value.split('.');
-            //     value = parts[0] + '.' + parts[1].slice(0, 2); // Limitar a 2 decimales
-            // }
+            // Permitir solo un punto decimal
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
 
-            // Formatear como moneda COP (ejemplo básico, no es una validación estricta)
-            // Esto es solo para visualización, considera guardar el valor numérico en Firebase
-            const numberValue = parseFloat(value.replace(/,/g, '').replace(/\./g, '')); // Convertir a número para formatear
+            // Opcional: Limitar a 2 decimales después del punto
+            if (value.includes('.')) {
+                 const decimalPart = value.split('.')[1];
+                 if (decimalPart && decimalPart.length > 2) {
+                      value = value.split('.')[0] + '.' + decimalPart.slice(0, 2);
+                 }
+            }
+
+
+            // Formatear como moneda COP (esto es solo para visualización en el input)
+            // Consideramos que el valor guardado en Firebase es numérico (float)
+            const numberValue = parseFloat(value);
             if (!isNaN(numberValue)) {
                  // Usar Intl.NumberFormat para formato de moneda
                  const formatter = new Intl.NumberFormat('es-CO', {
@@ -1051,17 +1060,18 @@
                      minimumFractionDigits: 0, // Ajusta si necesitas decimales
                      maximumFractionDigits: 2, // Ajusta si necesitas decimales
                  });
-                 // Remover el símbolo de moneda y el espacio si no los quieres en el input value
+                 // Formatear el número
                  let formattedValue = formatter.format(numberValue);
-                 // Eliminar el símbolo '$' y el espacio no deseado si los hay
+                 // Eliminar el símbolo '$' y el espacio no deseado si los hay para el input
                  formattedValue = formattedValue.replace('$', '').trim();
-                 // Reemplazar el separador decimal si es necesario (Intl usa coma en es-CO)
-                 formattedValue = formattedValue.replace(',', '.'); // Si prefieres punto como decimal
+                 // Reemplazar la coma decimal (usada por Intl en es-CO) por punto si prefieres punto en el input
+                 formattedValue = formattedValue.replace(',', '.');
 
                  e.target.value = formattedValue;
             } else {
-                 // Si no es un número válido después de limpiar, dejar vacío o mostrar error
-                 e.target.value = '';
+                 // Si no es un número válido después de limpiar, dejar el valor actual o vacío
+                 // Dejamos el valor actual para no borrar lo que el usuario está escribiendo si es parcial (ej: solo ".")
+                 // e.target.value = ''; // Descomentar si prefieres limpiar completamente
             }
         });
 
