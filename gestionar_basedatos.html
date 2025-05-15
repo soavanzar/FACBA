@@ -50,6 +50,37 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
+        .filter-buttons {
+            margin-bottom: 15px; /* Espacio entre los botones de filtro y la barra de búsqueda */
+            display: flex; /* Usa flexbox para alinear los botones */
+            gap: 10px; /* Espacio entre botones */
+            flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
+        }
+
+        .filter-button {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #d1d5db; /* Borde sutil */
+            background-color: #f9fafb; /* Fondo muy claro */
+            color: #374151; /* Texto gris oscuro */
+        }
+
+        .filter-button:hover {
+             background-color: #e5e7eb; /* Fondo gris al pasar el ratón */
+        }
+
+        .filter-button.active {
+            background-color: #4f46e5; /* Color azul/morado para el botón activo */
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2); /* Sombra para el botón activo */
+        }
+
+
         .search-bar {
             margin-bottom: 20px;
         }
@@ -320,6 +351,12 @@
 
         <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios</h1>
 
+        <div class="filter-buttons">
+            <button class="filter-button active" data-filter="todos">Todos</button>
+            <button class="filter-button" data-filter="activo">Activos</button>
+            <button class="filter-button" data-filter="retirado">Retirados</button>
+            </div>
+
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Buscar por nombre, identificación, empresa...">
         </div>
@@ -476,6 +513,9 @@
         const userTableBody = document.getElementById('user-table-body');
         const searchInput = document.getElementById('search-input');
         const statusMessage = document.getElementById('status-message');
+        const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
+        const filterButtons = document.querySelectorAll('.filter-button'); // Botones de filtro
+
 
         // Modal de Edición DOM elements
         const editUserModal = document.getElementById('edit-user-modal');
@@ -506,6 +546,10 @@
         // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
         let empresasMap = new Map();
         let asesoresMap = new Map();
+
+        // Variable para almacenar el filtro de estado actual
+        let currentStatusFilter = 'todos'; // 'todos', 'activo', 'retirado'
+
 
         // --- Funciones de Utilidad ---
 
@@ -544,17 +588,26 @@
 
         // Función para formatear números como moneda (COP)
         function formatCurrency(number) {
-             if (number === undefined || number === null) return '';
+             let numericValue = number;
+             if (typeof number === 'string') {
+                 const cleanedString = number.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+                 numericValue = parseFloat(cleanedString);
+             }
+
+             if (numericValue === undefined || numericValue === null || isNaN(numericValue)) {
+                 return '';
+             }
+
              return new Intl.NumberFormat('es-CO', {
                  style: 'currency',
                  currency: 'COP',
-                 minimumFractionDigits: 0, // No mostrar decimales por defecto
-                 maximumFractionDigits: 2, // Mostrar hasta 2 decimales si existen
-             }).format(number);
+                 minimumFractionDigits: 0,
+                 maximumFractionDigits: 2,
+             }).format(numericValue);
         }
 
 
-        // --- Carga de Datos Inicial ---
+        // --- Carga de Datos Inicial y Filtrado ---
 
         // Cargar mapas de empresas y asesores
         async function loadEmpresasAndAsesoresMaps() {
@@ -637,11 +690,12 @@
             return row;
         }
 
-        // Cargar y mostrar usuarios en la tabla (usando onSnapshot para actualizaciones en tiempo real)
+        // Cargar y mostrar usuarios en la tabla con filtro y búsqueda (usando onSnapshot)
         async function loadUsersTable() {
              // Cargar mapas antes de la primera carga de la tabla
              await loadEmpresasAndAsesoresMaps();
 
+             // Usar onSnapshot para escuchar cambios en tiempo real
              usersCollection.orderBy('nombre').onSnapshot(snapshot => {
                  userTableBody.innerHTML = ''; // Limpiar tabla actual
                  const filterText = searchInput.value.toLowerCase();
@@ -652,14 +706,19 @@
                      const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
                      const estado = user.estado || 'activo'; // Estado por defecto
 
-                     // Filtrar filas si hay texto en la búsqueda
-                     if (filterText === '' ||
+                     // Aplicar filtro de estado
+                     const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
+
+                     // Aplicar filtro de búsqueda
+                     const matchesSearch = filterText === '' ||
                          (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
                          (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                          (empresaNombre.toLowerCase().includes(filterText)) ||
                          (estado.toLowerCase().includes(filterText)) ||
-                         (asesorNombre.toLowerCase().includes(filterText)))
-                     {
+                         (asesorNombre.toLowerCase().includes(filterText));
+
+                     // Renderizar la fila si coincide con ambos filtros
+                     if (matchesStatusFilter && matchesSearch) {
                          const row = renderUserRow(doc);
                          userTableBody.appendChild(row);
                      }
@@ -667,11 +726,11 @@
 
                  if (userTableBody.children.length === 0) {
                      const noDataRow = document.createElement('tr');
-                     noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
+                     noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
                      userTableBody.appendChild(noDataRow);
                  }
 
-                 console.log(`Tabla de usuarios actualizada. ${snapshot.size} usuarios cargados.`); // Debugging
+                 console.log(`Tabla de usuarios actualizada. ${snapshot.size} usuarios cargados, ${userTableBody.children.length} mostrados.`); // Debugging
              }, error => {
                  console.error("Error al cargar usuarios con onSnapshot:", error);
                  showStatusMessage('Error al cargar usuarios.', 'error');
@@ -681,10 +740,28 @@
 
         // --- Funcionalidad de Búsqueda ---
         searchInput.addEventListener('input', () => {
-            // onSnapshot ya maneja el filtrado en el callback, solo necesitamos que se dispare
-            // al cambiar el input. La carga inicial de loadUsersTable ya configuró el listener.
-            // No necesitamos llamar a loadUsersTable() aquí directamente, ya que onSnapshot
-            // se encargará de actualizar la tabla con el filtro aplicado.
+            // Al cambiar el input de búsqueda, onSnapshot se disparará y aplicará el filtro
+            // No necesitamos llamar a loadUsersTable() aquí directamente.
+        });
+
+
+        // --- Funcionalidad de Filtro por Estado ---
+        filterButtonsContainer.addEventListener('click', (e) => {
+            const targetButton = e.target.closest('.filter-button');
+            if (!targetButton) return; // No es un botón de filtro
+
+            // Remover clase 'active' de todos los botones
+            filterButtons.forEach(button => button.classList.remove('active'));
+
+            // Añadir clase 'active' al botón clickeado
+            targetButton.classList.add('active');
+
+            // Actualizar el filtro de estado actual
+            currentStatusFilter = targetButton.dataset.filter;
+            console.log("Filtro de estado cambiado a:", currentStatusFilter);
+
+            // onSnapshot se disparará automáticamente al cambiar el filtro de estado
+            // y loadUsersTable() aplicará el nuevo filtro.
         });
 
 
@@ -742,7 +819,13 @@
                     editFechaIngresoInput.value = formatDate(userData.fecha);
                     editFechaRegistroInput.value = formatDate(userData.ingreso);
                     editAsesorSelect.value = userData.asesorId || ''; // Seleccionar por ID
-                    editValorAPagarInput.value = userData.valorAPagar || '';
+                    let valorAPagarNumeric = userData.valorAPagar;
+                     if (typeof userData.valorAPagar === 'string') {
+                         const cleanedString = userData.valorAPagar.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+                         valorAPagarNumeric = parseFloat(cleanedString);
+                     }
+                    editValorAPagarInput.value = valorAPagarNumeric || ''; // Poner el valor numérico o vacío
+
                     editEstadoSelect.value = userData.estado || 'activo'; // Estado por defecto
 
                     // Mostrar/ocultar campo fechaRetiro basado en el estado
@@ -824,18 +907,17 @@
                 fecha: editFechaIngresoInput.value, // Guardar como string YYYY-MM-DD
                 ingreso: editFechaRegistroInput.value, // Guardar como string YYYY-MM-DD
                 asesorId: editAsesorSelect.value, // Guardar solo el ID
-                valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número
+                valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // Añadir fechaRetiro solo si el estado es 'retirado'
+            // Añadir fechaRetiro solo si el estado es 'retirado' y el campo tiene valor
             if (updatedData.estado === 'retirado' && editFechaRetiroInput.value) {
                 updatedData.fechaRetiro = editFechaRetiroInput.value; // Guardar como string YYYY-MM-DD
             } else {
-                 // Si el estado no es retirado, asegurarse de que fechaRetiro no esté en los datos a actualizar
-                 // o establecerlo a null si ya existía
-                 updatedData.fechaRetiro = null;
+                 // Si el estado no es retirado o el campo está vacío, eliminar el campo fechaRetiro
+                 updatedData.fechaRetiro = firebase.firestore.FieldValue.delete();
             }
 
 
@@ -876,7 +958,7 @@
              if (newStatus === 'retirado') {
                   // Si se cambia a retirado, añadir la fecha actual si no existe una
                   // En este caso, al cambiar desde la tabla, siempre pondremos la fecha actual
-                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual
+                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual en formato YYYY-MM-DD
              } else {
                   // Si se cambia a activo, eliminar el campo fechaRetiro
                   updateData.fechaRetiro = firebase.firestore.FieldValue.delete();
