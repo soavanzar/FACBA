@@ -333,7 +333,7 @@
             font-weight: 600;
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            transition: opacity 0.4s ease-out, transform 0.4s ease-in-out;
         }
 
         #status-message.success {
@@ -469,6 +469,76 @@
 
          #settings-modal .modal-buttons {
              margin-top: 20px; /* Espacio encima de los botones de acción del modal */
+         }
+
+         /* Estilos para el modal genérico de agregar entidad */
+         #add-entity-modal .modal-content {
+             max-width: 400px; /* Ancho adecuado para el formulario simple */
+         }
+
+         /* Estilos para el nuevo modal de gestión de entidades */
+         #manage-entity-modal .modal-content {
+             max-width: 500px; /* Ancho adecuado para la lista */
+         }
+
+         #manage-entity-modal .entity-list {
+             list-style: none;
+             padding: 0;
+             margin: 0;
+         }
+
+         #manage-entity-modal .entity-item {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 10px 0;
+             border-bottom: 1px solid #e5e7eb;
+         }
+
+         #manage-entity-modal .entity-item:last-child {
+             border-bottom: none;
+         }
+
+         #manage-entity-modal .entity-name {
+             flex-grow: 1; /* Permite que el nombre ocupe el espacio disponible */
+             margin-right: 10px; /* Espacio entre el nombre y el botón */
+             font-size: 1rem;
+             color: #374151;
+         }
+
+         #manage-entity-modal .delete-entity-button {
+             background-color: #f87171; /* Rojo */
+             color: white;
+             padding: 5px 10px;
+             border-radius: 4px;
+             font-size: 0.8rem;
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out;
+             border: none;
+         }
+
+         #manage-entity-modal .delete-entity-button:hover {
+             background-color: #ef4444; /* Rojo más oscuro */
+         }
+
+         #manage-entity-modal .add-new-button-container {
+             margin-top: 20px;
+             text-align: center;
+         }
+
+         #manage-entity-modal .add-new-button {
+             background-color: #10b981; /* Verde */
+             color: white;
+             padding: 10px 15px;
+             border-radius: 8px;
+             font-weight: 600;
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out;
+             border: none;
+         }
+
+         #manage-entity-modal .add-new-button:hover {
+             background-color: #059669; /* Verde más oscuro */
          }
 
 
@@ -650,15 +720,49 @@
         <div class="modal-content">
              <span class="modal-close-button" id="close-settings-modal">&times;</span>
              <h2>Opciones de Configuración</h2>
-             <button class="menu-option-button" id="add-eps-button">Agregar Nueva EPS</button>
-             <button class="menu-option-button" id="add-ccf-button">Agregar Nueva CCF</button>
-             <button class="menu-option-button" id="add-afp-button">Agregar Nueva AFP</button>
-             <button class="menu-option-button" id="add-asesor-button">Agregar Nuevo Asesor</button>
-             <button class="menu-option-button" id="add-empresa-button">Agregar Nueva Empresa</button>
+             <button class="menu-option-button" data-entity-type="eps">Gestionar EPS</button>
+             <button class="menu-option-button" data-entity-type="ccf">Gestionar CCF</button>
+             <button class="menu-option-button" data-entity-type="afp">Gestionar AFP</button>
+             <button class="menu-option-button" data-entity-type="asesor">Gestionar Asesores</button>
+             <button class="menu-option-button" data-entity-type="empresa">Gestionar Empresas</button>
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
              </div>
         </div>
+    </div>
+
+    <div id="add-entity-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-add-entity-modal">&times;</span>
+            <h2 id="add-entity-modal-title">Agregar Nueva Entidad</h2>
+            <form id="add-entity-form">
+                <input type="hidden" id="add-entity-type"> <div class="modal-form-group">
+                    <label for="entity-name" class="block text-gray-700 text-sm font-semibold mb-2">Nombre:</label>
+                    <input type="text" id="entity-name" name="name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-primary_blue">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-add-entity">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="manage-entity-modal" class="modal-overlay">
+         <div class="modal-content">
+             <span class="modal-close-button" id="close-manage-entity-modal">&times;</span>
+             <h2 id="manage-entity-modal-title">Gestionar Entidades</h2>
+             <input type="hidden" id="manage-entity-type"> <ul class="entity-list" id="entity-list">
+                 </ul>
+
+             <div class="add-new-button-container">
+                 <button class="add-new-button" id="open-add-from-manage-button">Agregar Nuevo</button>
+             </div>
+
+             <div class="modal-buttons">
+                 <button type="button" class="cancel-button" id="close-manage-entity-modal-button">Cerrar</button>
+             </div>
+         </div>
     </div>
 
 
@@ -683,7 +787,11 @@
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas');
         const asesoresCollection = db.collection('asesores');
-        // Podrías necesitar colecciones para EPS, CCF, AFP si las gestionas por separado
+        // Referencias a nuevas colecciones para EPS, CCF, AFP
+        const epsCollection = db.collection('eps');
+        const ccfCollection = db.collection('ccf');
+        const afpCollection = db.collection('afp');
+
 
         // Obtener elementos del DOM
         const userTableBody = document.getElementById('user-table-body');
@@ -730,17 +838,31 @@
         const filterAsesorGroup = document.getElementById('filter-asesor-group');
         const filterAsesorSelect = document.getElementById('filter-asesor-select');
 
-        // Nuevo Modal de Configuración/Menú DOM elements
+        // Modal de Configuración/Menú DOM elements
         const settingsModal = document.getElementById('settings-modal');
         const closeSettingsModalButton = document.getElementById('close-settings-modal');
         const closeSettingsModalButtonInModal = document.getElementById('close-settings-modal-button'); // Botón "Cerrar" dentro del modal
 
         // Botones de opción dentro del modal de configuración
-        const addEpsButton = document.getElementById('add-eps-button');
-        const addCcfButton = document.getElementById('add-ccf-button');
-        const addAfpButton = document.getElementById('add-afp-button');
-        const addAsesorButton = document.getElementById('add-asesor-button');
-        const addEmpresaButton = document.getElementById('add-empresa-button');
+        const menuOptionButtons = document.querySelectorAll('#settings-modal .menu-option-button');
+
+
+        // Modal Genérico para Agregar Entidades DOM elements
+        const addEntityModal = document.getElementById('add-entity-modal');
+        const closeAddEntityModalButton = document.getElementById('close-add-entity-modal');
+        const cancelAddEntityButton = document.getElementById('cancel-add-entity');
+        const addEntityModalTitle = document.getElementById('add-entity-modal-title');
+        const addEntityForm = document.getElementById('add-entity-form');
+        const addEntityTypeInput = document.getElementById('add-entity-type');
+        const entityNameInput = document.getElementById('entity-name');
+
+        // Nuevo Modal Genérico para Gestionar Entidades DOM elements
+        const manageEntityModal = document.getElementById('manage-entity-modal');
+        const closeManageEntityModalButton = document.getElementById('close-manage-entity-modal');
+        const closeManageEntityModalButtonInModal = document.getElementById('close-manage-entity-modal-button');
+        const manageEntityModalTitle = document.getElementById('manage-entity-modal-title');
+        const entityList = document.getElementById('entity-list');
+        const openAddFromManageButton = document.getElementById('open-add-from-manage-button');
 
 
         // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
@@ -769,7 +891,7 @@
             }, 5000); // Ocultar después de 5 segundos
         }
 
-        // Función para formatear fechas (Firestore Timestamp a YYYY-MM-DD)
+        // Función para formatear fechas (Firestore Timestamp aYYYY-MM-DD)
         function formatDate(timestamp) {
             if (!timestamp) return '';
             let date;
@@ -814,8 +936,8 @@
 
         // --- Carga de Datos Inicial y Filtrado ---
 
-        // Cargar mapas de empresas y asesores
-        async function loadEmpresasAndAsesoresMaps() {
+        // Cargar mapas de empresas y asesores (y potencialmente otros para EPS, CCF, AFP si se usan IDs)
+        async function loadLookupMaps() {
             try {
                 const empresasSnapshot = await empresasCollection.get();
                 empresasMap = new Map();
@@ -829,13 +951,14 @@
                     asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
                 });
                  console.log("Mapas de Empresas y Asesores cargados."); // Debugging
+                 // TODO: Si EPS, CCF, AFP se convierten en colecciones con IDs, cargar sus mapas aquí también
             } catch (error) {
-                console.error("Error al cargar mapas de empresas y asesores:", error);
-                showStatusMessage('Error al cargar datos de empresas y asesores.', 'error');
+                console.error("Error al cargar mapas:", error);
+                showStatusMessage('Error al cargar datos de referencia (empresas, asesores).', 'error');
             }
         }
 
-        // Poblar selectores de empresa y asesor en los modales
+        // Poblar selectores de empresa y asesor en los modales (edición y filtro)
         async function populateSelects(empresaSelectElement, asesorSelectElement) {
              try {
                  // Empresas
@@ -948,7 +1071,7 @@
         async function loadUsersTable() {
              // Cargar mapas antes de la primera carga de la tabla si aún no están cargados
              if (empresasMap.size === 0 || asesoresMap.size === 0) {
-                 await loadEmpresasAndAsesoresMaps();
+                 await loadLookupMaps();
              }
 
              // Usar onSnapshot para escuchar cambios en tiempo real
@@ -1070,7 +1193,7 @@
         });
 
 
-        // --- Funcionalidad de Edición, Eliminación y Cambio de Estado ---
+        // --- Funcionalidad de Edición, Eliminación y Cambio de Estado de Usuarios ---
 
         // Listener para los botones de acción en la tabla (usando delegación de eventos)
         userTableBody.addEventListener('click', async (e) => {
@@ -1209,8 +1332,8 @@
                 eps: editEpsInput.value,
                 ccf: editCcfInput.value,
                 afp: editAfpInput.value,
-                fecha: editFechaIngresoInput.value, // Guardar como string YYYY-MM-DD
-                ingreso: editFechaRegistroInput.value, // Guardar como string YYYY-MM-DD
+                fecha: editFechaIngresoInput.value, // Guardar como stringYYYY-MM-DD
+                ingreso: editFechaRegistroInput.value, // Guardar como stringYYYY-MM-DD
                 asesorId: editAsesorSelect.value, // Guardar solo el ID
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
                 estado: editEstadoSelect.value,
@@ -1219,7 +1342,7 @@
 
             // Añadir fechaRetiro solo si el estado es 'retirado' y el campo tiene valor
             if (updatedData.estado === 'retirado' && editFechaRetiroInput.value) {
-                updatedData.fechaRetiro = editFechaRetiroInput.value; // Guardar como string YYYY-MM-DD
+                updatedData.fechaRetiro = editFechaRetiroInput.value; // Guardar como stringYYYY-MM-DD
             } else {
                  // Si el estado no es retirado o el campo está vacío, eliminar el campo fechaRetiro
                  updatedData.fechaRetiro = firebase.firestore.FieldValue.delete();
@@ -1263,7 +1386,7 @@
              if (newStatus === 'retirado') {
                   // Si se cambia a retirado, añadir la fecha actual si no existe una
                   // En este caso, al cambiar desde la tabla, siempre pondremos la fecha actual
-                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual en formato YYYY-MM-DD
+                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual en formatoYYYY-MM-DD
              } else {
                   // Si se cambia a activo, eliminar el campo fechaRetiro
                   updateData.fechaRetiro = firebase.firestore.FieldValue.delete();
@@ -1303,37 +1426,277 @@
             }
         });
 
-        // Listeners para los botones de opción en el modal de configuración
-        // Por ahora, solo mostrarán un mensaje en la consola o un alert.
-        // Aquí es donde integrarías la lógica para abrir otros modales o redirigir.
-        addEpsButton.addEventListener('click', () => {
-             console.log("Clic en Agregar Nueva EPS");
-             alert("Funcionalidad para Agregar Nueva EPS pendiente de implementar.");
-             hideSettingsModal(); // Cerrar modal después de la acción (simulada)
+        // --- Manejo del Modal Genérico para Agregar Entidades ---
+
+        // Mostrar el modal genérico de agregar entidad
+        function showAddEntityModal(title, entityType) {
+            addEntityModalTitle.textContent = title;
+            addEntityTypeInput.value = entityType; // Guardar el tipo de entidad
+            entityNameInput.value = ''; // Limpiar el campo de nombre
+            addEntityModal.classList.add('show');
+        }
+
+        // Ocultar el modal genérico de agregar entidad
+        function hideAddEntityModal() {
+            addEntityModal.classList.remove('show');
+            addEntityForm.reset(); // Resetear el formulario
+        }
+
+        // Listeners para cerrar el modal genérico de agregar entidad
+        closeAddEntityModalButton.addEventListener('click', hideAddEntityModal);
+        cancelAddEntityButton.addEventListener('click', hideAddEntityModal);
+        addEntityModal.addEventListener('click', (e) => {
+            if (e.target === addEntityModal) {
+                hideAddEntityModal();
+            }
         });
 
-        addCcfButton.addEventListener('click', () => {
-             console.log("Clic en Agregar Nueva CCF");
-             alert("Funcionalidad para Agregar Nueva CCF pendiente de implementar.");
-             hideSettingsModal();
+        // Listener para el envío del formulario del modal genérico de agregar entidad
+        addEntityForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevenir envío por defecto
+
+            const entityType = addEntityTypeInput.value;
+            const entityName = entityNameInput.value.trim();
+
+            if (!entityName) {
+                alert("Por favor, ingresa el nombre.");
+                return;
+            }
+
+            let collectionRef;
+            let successMessage = '';
+            let entityData = {
+                 nombre: entityName,
+                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Determinar la colección y el mensaje de éxito basado en el tipo de entidad
+            switch (entityType) {
+                case 'eps':
+                    collectionRef = epsCollection;
+                    successMessage = 'Nueva EPS agregada con éxito!';
+                    break;
+                case 'ccf':
+                    collectionRef = ccfCollection;
+                    successMessage = 'Nueva CCF agregada con éxito!';
+                    break;
+                case 'afp':
+                    collectionRef = afpCollection;
+                    successMessage = 'Nueva AFP agregada con éxito!';
+                    break;
+                case 'asesor':
+                    collectionRef = asesoresCollection;
+                    successMessage = 'Nuevo Asesor agregado con éxito!';
+                    break;
+                case 'empresa':
+                    collectionRef = empresasCollection;
+                    successMessage = 'Nueva Empresa agregada con éxito!';
+                    break;
+                default:
+                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
+                    return;
+            }
+
+            showStatusMessage(`Agregando ${entityName}...`, 'info');
+
+            try {
+                await collectionRef.add(entityData);
+                showStatusMessage(successMessage, 'success');
+                hideAddEntityModal(); // Cerrar modal después de guardar
+
+                // Después de agregar una nueva entidad (especialmente empresa o asesor),
+                // recargar los mapas y poblar los selectores en los otros modales.
+                if (entityType === 'empresa' || entityType === 'asesor') {
+                     await loadLookupMaps(); // Recargar los mapas globales
+                     // Repoblar los selectores en el modal de edición y filtro
+                     await populateSelects(editEmpresaSelect, editAsesorSelect);
+                     await populateSelects(filterEmpresaSelect, filterAsesorSelect);
+                }
+
+                // Si el modal de gestión de esta entidad está abierto, recargarlo
+                if (manageEntityModal.classList.contains('show') && manageEntityTypeInput.value === entityType) {
+                     loadEntitiesForManagement(entityType);
+                }
+
+
+            } catch (error) {
+                console.error(`Error al agregar ${entityType}:`, error);
+                showStatusMessage(`Error al agregar ${entityType}: ` + error.message, 'error');
+            }
         });
 
-        addAfpButton.addEventListener('click', () => {
-             console.log("Clic en Agregar Nueva AFP");
-             alert("Funcionalidad para Agregar Nueva AFP pendiente de implementar.");
-             hideSettingsModal();
+        // --- Manejo del Nuevo Modal Genérico para Gestionar Entidades ---
+
+        // Mostrar el modal de gestión de entidades
+        function showManageEntityModal(title, entityType) {
+             manageEntityModalTitle.textContent = title;
+             manageEntityTypeInput.value = entityType; // Guardar el tipo de entidad
+             entityList.innerHTML = ''; // Limpiar la lista actual
+             manageEntityModal.classList.add('show');
+             loadEntitiesForManagement(entityType); // Cargar las entidades al abrir el modal
+        }
+
+        // Ocultar el modal de gestión de entidades
+        function hideManageEntityModal() {
+             manageEntityModal.classList.remove('show');
+             entityList.innerHTML = ''; // Limpiar la lista al cerrar
+        }
+
+        // Listeners para cerrar el modal de gestión
+        closeManageEntityModalButton.addEventListener('click', hideManageEntityModal);
+        closeManageEntityModalButtonInModal.addEventListener('click', hideManageEntityModal);
+        manageEntityModal.addEventListener('click', (e) => {
+             if (e.target === manageEntityModal) {
+                 hideManageEntityModal();
+             }
         });
 
-        addAsesorButton.addEventListener('click', () => {
-             console.log("Clic en Agregar Nuevo Asesor");
-             alert("Funcionalidad para Agregar Nuevo Asesor pendiente de implementar.");
-             hideSettingsModal();
+        // Listener para abrir el modal de agregar desde el modal de gestión
+        openAddFromManageButton.addEventListener('click', () => {
+             const entityType = manageEntityTypeInput.value;
+             let modalTitle = '';
+             switch (entityType) {
+                 case 'eps': modalTitle = 'Agregar Nueva EPS'; break;
+                 case 'ccf': modalTitle = 'Agregar Nueva CCF'; break;
+                 case 'afp': modalTitle = 'Agregar Nueva AFP'; break;
+                 case 'asesor': modalTitle = 'Agregar Nuevo Asesor'; break;
+                 case 'empresa': modalTitle = 'Agregar Nueva Empresa'; break;
+                 default: modalTitle = 'Agregar Nueva Entidad';
+             }
+             hideManageEntityModal(); // Ocultar el modal de gestión
+             showAddEntityModal(modalTitle, entityType); // Mostrar el modal de agregar
         });
 
-        addEmpresaButton.addEventListener('click', () => {
-             console.log("Clic en Agregar Nueva Empresa");
-             alert("Funcionalidad para Agregar Nueva Empresa pendiente de implementar.");
-             hideSettingsModal();
+
+        // Función para cargar y mostrar entidades en el modal de gestión
+        async function loadEntitiesForManagement(entityType) {
+            entityList.innerHTML = '<li>Cargando...</li>'; // Mensaje de carga
+            let collectionRef;
+            let entityTypeName = '';
+
+            switch (entityType) {
+                case 'eps': collectionRef = epsCollection; entityTypeName = 'EPS'; break;
+                case 'ccf': collectionRef = ccfCollection; entityTypeName = 'CCF'; break;
+                case 'afp': collectionRef = afpCollection; entityTypeName = 'AFP'; break;
+                case 'asesor': collectionRef = asesoresCollection; entityTypeName = 'Asesor'; break;
+                case 'empresa': collectionRef = empresasCollection; entityTypeName = 'Empresa'; break;
+                default:
+                    entityList.innerHTML = '<li>Error: Tipo de entidad desconocido.</li>';
+                    return;
+            }
+
+            manageEntityModalTitle.textContent = `Gestionar ${entityTypeName}s`; // Actualizar título del modal
+
+            try {
+                const snapshot = await collectionRef.orderBy('nombre').get();
+                entityList.innerHTML = ''; // Limpiar lista
+
+                if (snapshot.empty) {
+                    entityList.innerHTML = `<li>No hay ${entityTypeName}s registrados.</li>`;
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const entity = doc.data();
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('entity-item');
+                    listItem.dataset.id = doc.id;
+                    listItem.dataset.type = entityType;
+
+                    listItem.innerHTML = `
+                        <span class="entity-name">${entity.nombre || 'Sin Nombre'}</span>
+                        <button class="delete-entity-button" data-id="${doc.id}" data-type="${entityType}">Eliminar</button>
+                    `;
+                    entityList.appendChild(listItem);
+                });
+
+            } catch (error) {
+                console.error(`Error al cargar ${entityTypeName}s:`, error);
+                entityList.innerHTML = `<li>Error al cargar ${entityTypeName}s.</li>`;
+                showStatusMessage(`Error al cargar ${entityTypeName}s.`, 'error');
+            }
+        }
+
+        // Listener para los botones de eliminar en el modal de gestión (usando delegación)
+        entityList.addEventListener('click', async (e) => {
+            const targetButton = e.target.closest('.delete-entity-button');
+            if (!targetButton) return; // No es un botón de eliminar
+
+            const entityId = targetButton.dataset.id;
+            const entityType = targetButton.dataset.type;
+            const entityName = targetButton.parentElement.querySelector('.entity-name').textContent; // Obtener el nombre para la confirmación
+
+            if (confirm(`¿Estás seguro de que deseas eliminar "${entityName}"? Esta acción es irreversible.`)) {
+                deleteEntity(entityType, entityId, entityName);
+            }
+        });
+
+        // Función para eliminar una entidad
+        async function deleteEntity(entityType, entityId, entityName) {
+             showStatusMessage(`Eliminando ${entityTypeName}...`, 'info'); // Usar entityTypeName del scope de loadEntitiesForManagement o re-determinarlo
+
+             let collectionRef;
+             let entityTypeName = ''; // Re-determinar el nombre para el mensaje
+
+             switch (entityType) {
+                 case 'eps': collectionRef = epsCollection; entityTypeName = 'EPS'; break;
+                 case 'ccf': collectionRef = ccfCollection; entityTypeName = 'CCF'; break;
+                 case 'afp': collectionRef = afpCollection; entityTypeName = 'AFP'; break;
+                 case 'asesor': collectionRef = asesoresCollection; entityTypeName = 'Asesor'; break;
+                 case 'empresa': collectionRef = empresasCollection; entityTypeName = 'Empresa'; break;
+                 default:
+                     showStatusMessage('Error: Tipo de entidad desconocido para eliminar.', 'error');
+                     return;
+             }
+
+             try {
+                 await collectionRef.doc(entityId).delete();
+                 showStatusMessage(`${entityTypeName} "${entityName}" eliminado con éxito!`, 'success');
+
+                 // Recargar la lista en el modal de gestión
+                 loadEntitiesForManagement(entityType);
+
+                 // Si se elimina una empresa o asesor, recargar los mapas y selectores
+                 if (entityType === 'empresa' || entityType === 'asesor') {
+                      await loadLookupMaps(); // Recargar los mapas globales
+                      // Repoblar los selectores en el modal de edición y filtro
+                      await populateSelects(editEmpresaSelect, editAsesorSelect);
+                      await populateSelects(filterEmpresaSelect, filterAsesorSelect);
+                      // Re-renderizar la tabla de usuarios por si algún usuario estaba asociado a la entidad eliminada
+                      renderFilteredUsers();
+                 }
+
+
+             } catch (error) {
+                 console.error(`Error al eliminar ${entityTypeName}:`, error);
+                 showStatusMessage(`Error al eliminar ${entityTypeName} "${entityName}": ` + error.message, 'error');
+                 // Considerar si se debe manejar el caso de que la entidad esté referenciada por usuarios
+                 // En una aplicación real, probablemente querrías evitar la eliminación si hay referencias
+             }
+        }
+
+
+        // Listener para los botones de opción en el modal de configuración (actualizados para abrir el modal de gestión)
+        menuOptionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const entityType = e.target.dataset.entityType;
+                let modalTitle = '';
+                let entityTypeName = ''; // Para el título del modal de gestión
+
+                switch (entityType) {
+                    case 'eps': entityTypeName = 'EPS'; break;
+                    case 'ccf': entityTypeName = 'CCF'; break;
+                    case 'afp': entityTypeName = 'AFP'; break;
+                    case 'asesor': entityTypeName = 'Asesor'; break;
+                    case 'empresa': entityTypeName = 'Empresa'; break;
+                    default: entityTypeName = 'Entidad';
+                }
+
+                modalTitle = `Gestionar ${entityTypeName}s`; // Título para el modal de gestión
+
+                hideSettingsModal(); // Ocultar el modal de configuración
+                showManageEntityModal(modalTitle, entityType); // Mostrar el modal de gestión
+            });
         });
 
 
