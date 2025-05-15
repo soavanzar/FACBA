@@ -120,7 +120,7 @@
         /* Estilo para el área de contenido principal */
         main {
             flex-grow: 1; /* Permite que el contenido principal ocupe el espacio restante */
-            background-color: #eef2ff; /* Fondo azul/morado muy claro */
+            background-color: var(--tw-colors-main_bg); /* Fondo azul/morado muy claro */
             padding: 20px; /* Espaciado interno */
         }
 
@@ -128,16 +128,16 @@
         main .main-content-container {
             max-width: 900px; /* Ancho máximo del contenido */
             margin: 0 auto; /* Centra el contenido */
-            background-color: #ffffff; /* Fondo blanco para el contenido (como una tarjeta grande) */
+            background-color: var(--tw-colors-sidebar_bg); /* Fondo blanco para el contenido (como una tarjeta grande) */
             padding: 30px; /* Espaciado interno */
             border-radius: 12px; /* Bordes redondeados */
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            box-shadow: var(--tw-boxShadow-card); /* Sombra suave */
         }
 
          main .main-content-container h1 {
              font-size: 2rem; /* Tamaño de fuente del título del contenido */
              font-weight: 700; /* Peso de fuente bold */
-             color: #4f46e5; /* Color específico para el título FACBA */
+             color: var(--tw-colors-facba_title_color); /* Color específico para el título FACBA */
              margin-bottom: 20px; /* Espacio debajo del título */
          }
 
@@ -176,17 +176,17 @@
         <nav class="flex-grow">
             <ul>
                 <li>
-                    <a href="#">
+                    <a href="https://soavanzar.github.io/FACBA/ingresar_basedatos.html" class="block p-3 rounded-md transition duration-200 ease-in-out">
                         INGRESAR USUARIO
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="https://soavanzar.github.io/FACBA/retirar_basedatos.html" class="block p-3 rounded-md transition duration-200 ease-in-out">
                         RETIRAR USUARIO
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="https://soavanzar.github.io/FACBA/gestionar_basedatos.html" class="block p-3 rounded-md transition duration-200 ease-in-out">
                         GESTIONAR USUARIO
                     </a>
                 </li>
