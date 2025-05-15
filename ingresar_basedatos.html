@@ -95,7 +95,7 @@
              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra */
              max-height: 150px; /* Altura máxima antes de scroll */
              overflow-y: auto; /* Scroll vertical si hay muchas opciones */
-             z-index: 10; /* *** CORRECCIÓN: Mayor z-index para que se muestre encima *** */
+             z-index: 10; /* Mayor z-index para que se muestre encima */
              list-style: none; /* Sin puntos de lista */
              padding: 0; /* Sin padding */
              margin: 0; /* Sin margen */
@@ -153,24 +153,35 @@
         }
 
 
-        button {
+        /* Estilos mejorados para el botón de guardar */
+        button[type="submit"] {
             display: block; /* Botón en su propia línea */
-            width: 100%; /* Ocupa todo el ancho del contenedor (si no está en input-with-button) */
-            padding: 12px 20px; /* Espaciado interno */
+            width: 100%; /* Ocupa todo el ancho del contenedor */
+            padding: 14px 24px; /* Espaciado interno ligeramente mayor */
             background-color: #5e5ce6; /* Color morado */
             color: #ffffff; /* Texto blanco */
-            font-weight: 600; /* Peso de fuente semibold */
+            font-weight: 700; /* Peso de fuente bold */
             border: none; /* Sin borde */
             border-radius: 8px; /* Bordes redondeados */
             cursor: pointer; /* Cursor de mano */
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave con transform */
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+            letter-spacing: 0.05em; /* Espaciado entre letras sutil */
+            text-transform: uppercase; /* Texto en mayúsculas */
         }
 
-        button:hover {
+        button[type="submit"]:hover {
             background-color: #0a84ff; /* Color azul al pasar el ratón */
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Sombra aún más pronunciada */
+            transform: translateY(-2px); /* Mover ligeramente hacia arriba */
         }
+
+        button[type="submit"]:active {
+             background-color: #007aff; /* Azul un poco más oscuro al hacer clic */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra reducida al hacer clic */
+             transform: translateY(0); /* Volver a la posición original */
+        }
+
 
         /* Estilo para mensajes de estado (opcional) */
         #status-message {
