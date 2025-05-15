@@ -1,1 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar Datos - FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos CSS personalizados adicionales */
+        body {
+            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
+            margin: 0; /* Elimina el margen por defecto del body */
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+            display: flex; /* Usa flexbox para centrar el contenido */
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+            padding: 20px; /* Espaciado interno */
+        }
 
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            max-width: 600px; /* Ancho máximo del formulario */
+            width: 100%; /* Ocupa todo el ancho disponible hasta el max-width */
+        }
+
+        .form-group {
+            margin-bottom: 20px; /* Espacio entre grupos de formulario */
+        }
+
+        .form-group label {
+            display: block; /* Etiqueta en su propia línea */
+            margin-bottom: 8px; /* Espacio debajo de la etiqueta */
+            font-weight: 500; /* Peso de fuente medio */
+            color: #1c1c1e; /* Color de texto oscuro */
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: 100%; /* Ocupa todo el ancho del contenedor */
+            padding: 12px; /* Espaciado interno */
+            border: 1px solid #d1d5db; /* Borde gris sutil */
+            border-radius: 8px; /* Bordes redondeados */
+            font-size: 1rem; /* Tamaño de fuente */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="email"]:focus,
+        .form-group input[type="password"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group select:focus {
+            outline: none; /* Elimina el contorno por defecto */
+            border-color: #4f46e5; /* Borde azul/morado al enfocar */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
+        }
+
+        .form-group .input-with-button {
+            display: flex; /* Usa flexbox para alinear input y botón */
+            align-items: center; /* Centra verticalmente */
+        }
+
+        .form-group .input-with-button input,
+        .form-group .input-with-button select {
+            flex-grow: 1; /* Permite que el input/select ocupe el espacio restante */
+            margin-right: 10px; /* Espacio entre el input/select y el botón */
+        }
+
+        .form-group .input-with-button button {
+            width: auto; /* Ancho automático basado en contenido */
+            padding: 12px 15px; /* Espaciado interno del botón */
+            flex-shrink: 0; /* Evita que el botón se encoja */
+        }
+
+
+        button {
+            display: block; /* Botón en su propia línea */
+            width: 100%; /* Ocupa todo el ancho del contenedor (si no está en input-with-button) */
+            padding: 12px 20px; /* Espaciado interno */
+            background-color: #5e5ce6; /* Color morado */
+            color: #ffffff; /* Texto blanco */
+            font-weight: 600; /* Peso de fuente semibold */
+            border: none; /* Sin borde */
+            border-radius: 8px; /* Bordes redondeados */
+            cursor: pointer; /* Cursor de mano */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
+        }
+
+        button:hover {
+            background-color: #0a84ff; /* Color azul al pasar el ratón */
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+        }
+
+        /* Estilo para mensajes de estado (opcional) */
+        #status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Estilos para el modal */
+        .modal {
+            position: fixed; /* Posición fija */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente oscuro */
+            display: flex; /* Usa flexbox para centrar el contenido */
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            z-index: 100; /* Asegura que esté por encima de otros elementos */
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0; /* Transparente por defecto */
+            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Transición suave */
+        }
+
+        .modal.show {
+            visibility: visible; /* Visible cuando tiene la clase 'show' */
+            opacity: 1; /* Opaco cuando tiene la clase 'show' */
+        }
+
+        .modal-content {
+            background-color: #ffffff; /* Fondo blanco para el contenido del modal */
+            padding: 30px; /* Espaciado interno */
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); /* Sombra */
+            max-width: 400px; /* Ancho máximo del modal */
+            width: 90%; /* Ocupa el 90% del ancho disponible hasta el max-width */
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem; /* Tamaño de fuente del título del modal */
+            font-weight: 600; /* Peso de fuente semibold */
+            text-align: center; /* Centra el texto */
+            margin-bottom: 20px; /* Espacio debajo del título */
+            color: #1c1c1e; /* Color de texto oscuro */
+        }
+
+        .modal-content .form-group {
+             margin-bottom: 15px; /* Espacio entre grupos de formulario en el modal */
+        }
+
+        .modal-content button {
+            margin-top: 15px; /* Espacio encima del botón */
+            padding: 10px 20px; /* Espaciado interno del botón */
+        }
+
+        .modal-content .button-group {
+            display: flex;
+            justify-content: flex-end; /* Alinea botones a la derecha */
+            gap: 10px; /* Espacio entre botones */
+            margin-top: 20px; /* Espacio encima del grupo de botones */
+        }
+
+        .modal-content .button-group button {
+            width: auto; /* Ancho automático */
+            padding: 10px 15px; /* Espaciado interno */
+            box-shadow: none; /* Sin sombra en los botones del modal */
+        }
+
+         .modal-content .button-group button.cancel-button {
+             background-color: #6b7280; /* Color gris para cancelar */
+         }
+
+         .modal-content .button-group button.cancel-button:hover {
+             background-color: #4b5563; /* Gris más oscuro al pasar el ratón */
+         }
+
+         /* Estilo para el campo de filtro (opcional, si se implementa) */
+         .filter-input {
+             width: 100%;
+             padding: 8px;
+             margin-bottom: 10px;
+             border: 1px solid #d1d5db;
+             border-radius: 4px;
+         }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="text-2xl font-bold text-center mb-6">Ingresar Nuevo Usuario</h1>
+
+        <form id="user-form">
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo-identificacion">Tipo de Identificación:</label>
+                <select id="tipo-identificacion" required>
+                    <option value="">Seleccione</option>
+                    <option value="CC">Cédula de Ciudadanía (CC)</option>
+                    <option value="TI">Tarjeta de Identidad (TI)</option>
+                    <option value="CE">Cédula de Extranjería (CE)</option>
+                    <option value="NIT">Número de Identificación Tributaria (NIT)</option>
+                    <option value="PP">Pasaporte (PP)</option>
+                    <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="identificacion">Identificación:</label>
+                <input type="number" id="identificacion" required pattern="[0-9]*" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+                <label for="empresa">Empresa:</label>
+                <div class="input-with-button">
+                    <select id="empresa" required>
+                         <option value="">Seleccione</option>
+                         </select>
+                    <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="arl">ARL:</label>
+                <select id="arl" required>
+                    <option value="">Seleccione</option>
+                    <option value="Sura">Sura</option>
+                    <option value="Positiva">Positiva</option>
+                    <option value="Axa Colpatria">Axa Colpatria</option>
+                    <option value="Colmena">Colmena</option>
+                    <option value="Bolivar">Bolívar</option>
+                    <option value="La Equidad">La Equidad</option>
+                    <option value="Alfa">Alfa</option>
+                    <option value="Mapfre">Mapfre</option>
+                    <option value="Aurora">Aurora</option>
+                    <option value="Liberty">Liberty</option>
+                    </select>
+            </div>
+
+             <div class="form-group">
+                <label for="riesgo">Riesgo:</label>
+                <select id="riesgo" required>
+                    <option value="">Seleccione</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="eps">EPS:</label>
+                <select id="eps" required>
+                    <option value="">Seleccione</option>
+                    <option value="Aliansalud">Aliansalud</option>
+                    <option value="Compensar">Compensar</option>
+                    <option value="Cruz Blanca">Cruz Blanca</option>
+                    <option value="Comfenalco Valle">Comfenalco Valle</option>
+                    <option value="Sanitas">Sanitas</option>
+                    <option value="Famisanar">Famisanar</option>
+                    <option value="Nueva EPS">Nueva EPS</option>
+                    <option value="Salud Sura">Salud Sura</option>
+                    <option value="Salud Total">Salud Total</option>
+                    <option value="Mutual Ser EPS">Mutual Ser EPS</option>
+                    <option value="Capital Salud EPS-S">Capital Salud EPS-S</option>
+                    <option value="Capresoca EPS">Capresoca EPS</option>
+                    <option value="Savia Salud EPS">Savia Salud EPS</option>
+                    <option value="Salud Bolívar EPS">Salud Bolívar EPS</option>
+                    <option value="Comparta EPS-S">Comparta EPS-S</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ccf">CCF:</label>
+                <select id="ccf" required>
+                    <option value="">Seleccione</option>
+                    <option value="Colsubsidio">Colsubsidio</option>
+                    <option value="Comfama">Comfama</option>
+                    <option value="Compensar">Compensar</option>
+                    <option value="Cafam">Cafam</option>
+                    <option value="Cajacopi Atlántico">Cajacopi Atlántico</option>
+                    <option value="Comfenalco Antioquia">Comfenalco Antioquia</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="afp">AFP:</label>
+                <select id="afp" required>
+                    <option value="">Seleccione</option>
+                    <option value="Proteccion">Protección</option>
+                    <option value="Porvenir">Porvenir</option>
+                    <option value="Colfondos">Colfondos</option>
+                    <option value="Skandia">Skandia (Old Mutual)</option>
+                    <option value="Colpensiones">Colpensiones</option>
+                    <option value="Fondo Nacional del Ahorro">Fondo Nacional del Ahorro</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha">Fecha:</label>
+                <input type="date" id="fecha" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ingreso">Ingreso:</label>
+                <input type="date" id="ingreso" required>
+            </div>
+
+            <div class="form-group">
+                <label for="asesor">Asesor:</label>
+                 <div class="input-with-button">
+                    <select id="asesor" required>
+                         <option value="">Seleccione</option>
+                         </select>
+                    <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="valor-a-pagar">Valor a Pagar (COP):</label>
+                <input type="text" id="valor-a-pagar" inputmode="numeric" pattern="[0-9,.]*">
+            </div>
+
+
+            <button type="submit">Guardar Usuario</button>
+        </form>
+
+        <div id="status-message"></div>
+    </div>
+
+    <div id="add-empresa-modal" class="modal">
+        <div class="modal-content">
+            <h2>Agregar Nueva Empresa</h2>
+            <form id="empresa-modal-form">
+                <div class="form-group">
+                    <label for="nueva-empresa-nombre">Nombre de la Empresa:</label>
+                    <input type="text" id="nueva-empresa-nombre" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="cancel-button" id="cancel-add-empresa">Cancelar</button>
+                    <button type="submit">Guardar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-asesor-modal" class="modal">
+        <div class="modal-content">
+            <h2>Agregar Nuevo Asesor</h2>
+            <form id="asesor-modal-form">
+                <div class="form-group">
+                    <label for="nuevo-asesor-nombre">Nombre del Asesor:</label>
+                    <input type="text" id="nuevo-asesor-nombre" required>
+                </div>
+                 <div class="button-group">
+                    <button type="button" class="cancel-button" id="cancel-add-asesor">Cancelar</button>
+                    <button type="submit">Guardar Asesor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        import { getDatabase, ref, push, onValue } from "firebase/database"; // Importar onValue para leer datos
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app); // Inicializar Realtime Database
+
+        // Referencias a las ubicaciones en la base de datos
+        const usersRef = ref(database, 'usuarios');
+        const empresasRef = ref(database, 'empresas');
+        const asesoresRef = ref(database, 'asesores');
+
+        // Obtener elementos del DOM
+        const userForm = document.getElementById('user-form');
+        const statusMessage = document.getElementById('status-message');
+        const empresaSelect = document.getElementById('empresa');
+        const asesorSelect = document.getElementById('asesor');
+        const addEmpresaBtn = document.getElementById('add-empresa-btn');
+        const addAsesorBtn = document.getElementById('add-asesor-btn');
+        const addEmpresaModal = document.getElementById('add-empresa-modal');
+        const addAsesorModal = document.getElementById('add-asesor-modal');
+        const empresaModalForm = document.getElementById('empresa-modal-form');
+        const asesorModalForm = document.getElementById('asesor-modal-form');
+        const cancelAddEmpresaBtn = document.getElementById('cancel-add-empresa');
+        const cancelAddAsesorBtn = document.getElementById('cancel-add-asesor');
+        const valorAPagarInput = document.getElementById('valor-a-pagar');
+
+        // --- Funciones para Modales ---
+        function showModal(modalElement) {
+            modalElement.classList.add('show');
+        }
+
+        function hideModal(modalElement) {
+            modalElement.classList.remove('show');
+        }
+
+        // --- Funciones para cargar Dropdowns desde Firebase ---
+        function loadDropdownOptions(selectElement, dataSnapshot) {
+            // Limpiar opciones actuales excepto la primera (Seleccione)
+            selectElement.innerHTML = '<option value="">Seleccione</option>';
+            if (dataSnapshot.exists()) {
+                const items = dataSnapshot.val();
+                for (const key in items) {
+                    const item = items[key];
+                    const option = document.createElement('option');
+                    option.value = key; // Usar la clave de Firebase como valor
+                    option.textContent = item.nombre; // Asumir que el objeto tiene una propiedad 'nombre'
+                    selectElement.appendChild(option);
+                }
+            }
+        }
+
+        // Escuchar cambios en las empresas y cargar el dropdown
+        onValue(empresasRef, (snapshot) => {
+            loadDropdownOptions(empresaSelect, snapshot);
+        });
+
+        // Escuchar cambios en los asesores y cargar el dropdown
+        onValue(asesoresRef, (snapshot) => {
+             loadDropdownOptions(asesorSelect, snapshot);
+        });
+
+        // --- Manejo de Formularios y Botones ---
+
+        // Mostrar modal de agregar Empresa
+        addEmpresaBtn.addEventListener('click', () => {
+            showModal(addEmpresaModal);
+        });
+
+        // Mostrar modal de agregar Asesor
+        addAsesorBtn.addEventListener('click', () => {
+            showModal(addAsesorModal);
+        });
+
+        // Cerrar modal de agregar Empresa
+        cancelAddEmpresaBtn.addEventListener('click', () => {
+            hideModal(addEmpresaModal);
+            empresaModalForm.reset(); // Limpiar formulario del modal
+        });
+
+        // Cerrar modal de agregar Asesor
+        cancelAddAsesorBtn.addEventListener('click', () => {
+            hideModal(addAsesorModal);
+            asesorModalForm.reset(); // Limpiar formulario del modal
+        });
+
+         // Cerrar modales al hacer clic fuera del contenido (opcional)
+         window.addEventListener('click', (event) => {
+             if (event.target === addEmpresaModal) {
+                 hideModal(addEmpresaModal);
+                 empresaModalForm.reset();
+             }
+             if (event.target === addAsesorModal) {
+                 hideModal(addAsesorModal);
+                 asesorModalForm.reset();
+             }
+         });
+
+
+        // Guardar nueva Empresa en Firebase
+        empresaModalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nueva-empresa-nombre').value;
+            if (nombre) {
+                push(empresasRef, { nombre: nombre })
+                    .then(() => {
+                        console.log("Empresa guardada con éxito");
+                        hideModal(addEmpresaModal);
+                        empresaModalForm.reset();
+                        // No necesitamos recargar el dropdown aquí, onValue lo hará automáticamente
+                    })
+                    .catch((error) => {
+                        console.error("Error al guardar empresa:", error);
+                        // Mostrar mensaje de error en el modal si es necesario
+                    });
+            }
+        });
+
+        // Guardar nuevo Asesor en Firebase
+        asesorModalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nuevo-asesor-nombre').value;
+            if (nombre) {
+                push(asesoresRef, { nombre: nombre })
+                    .then(() => {
+                        console.log("Asesor guardado con éxito");
+                        hideModal(addAsesorModal);
+                        asesorModalForm.reset();
+                         // No necesitamos recargar el dropdown aquí, onValue lo hará automáticamente
+                    })
+                    .catch((error) => {
+                        console.error("Error al guardar asesor:", error);
+                         // Mostrar mensaje de error en el modal si es necesario
+                    });
+            }
+        });
+
+
+        // --- Manejo del Formulario Principal (Guardar Usuario) ---
+        userForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevenir el envío por defecto del formulario
+
+            // Obtener los valores del formulario
+            const nombre = document.getElementById('nombre').value;
+            const tipoIdentificacion = document.getElementById('tipo-identificacion').value;
+            const identificacion = document.getElementById('identificacion').value;
+            const empresa = document.getElementById('empresa').value; // Esto será la clave de Firebase de la empresa
+            const arl = document.getElementById('arl').value;
+            const riesgo = document.getElementById('riesgo').value;
+            const eps = document.getElementById('eps').value;
+            const ccf = document.getElementById('ccf').value;
+            const afp = document.getElementById('afp').value;
+            const fecha = document.getElementById('fecha').value;
+            const ingreso = document.getElementById('ingreso').value;
+            const asesor = document.getElementById('asesor').value; // Esto será la clave de Firebase del asesor
+            const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
+
+            // Crear un objeto con los datos del usuario
+            const newUser = {
+                nombre: nombre,
+                tipoIdentificacion: tipoIdentificacion,
+                identificacion: identificacion,
+                empresa: empresa, // Guardar la clave de la empresa
+                arl: arl,
+                riesgo: riesgo,
+                eps: eps,
+                ccf: ccf,
+                afp: afp,
+                fecha: fecha,
+                ingreso: ingreso,
+                asesor: asesor, // Guardar la clave del asesor
+                valorAPagar: valorAPagar // Guardar el valor formateado
+            };
+
+            // Guardar el nuevo usuario en Firebase Realtime Database
+            push(usersRef, newUser)
+                .then(() => {
+                    // Mostrar mensaje de éxito
+                    statusMessage.textContent = 'Usuario guardado con éxito!';
+                    statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
+                    userForm.reset(); // Limpiar el formulario
+                    // Limpiar el mensaje después de unos segundos
+                    setTimeout(() => {
+                        statusMessage.textContent = '';
+                        statusMessage.className = '';
+                    }, 5000); // 5 segundos
+                })
+                .catch((error) => {
+                    // Mostrar mensaje de error
+                    statusMessage.textContent = 'Error al guardar usuario: ' + error.message;
+                    statusMessage.className = 'error'; // Aplicar clase de estilo para error
+                    console.error("Error al guardar usuario:", error);
+                     // Limpiar el mensaje después de unos segundos
+                    setTimeout(() => {
+                        statusMessage.textContent = '';
+                        statusMessage.className = '';
+                    }, 5000); // 5 segundos
+                });
+        });
+
+        // --- Funcionalidad de Filtro para Dropdowns (Ejemplo básico para RIESGO) ---
+        // Para implementar un filtro en un select nativo, necesitarías un input de texto
+        // encima del select y JavaScript para ocultar/mostrar opciones o recrear el select.
+        // Aquí un ejemplo conceptual para RIESGO (requiere un input de filtro HTML adicional):
+        /*
+        const riesgoFilterInput = document.getElementById('riesgo-filter'); // Asume que existe este input
+        const riesgoSelect = document.getElementById('riesgo');
+        const riesgoOptions = Array.from(riesgoSelect.options); // Copia de las opciones originales
+
+        riesgoFilterInput.addEventListener('input', (e) => {
+            const filterText = e.target.value.toLowerCase();
+            riesgoSelect.innerHTML = ''; // Limpiar select
+
+            riesgoOptions.forEach(option => {
+                if (option.textContent.toLowerCase().includes(filterText)) {
+                    riesgoSelect.appendChild(option.cloneNode(true)); // Añadir opciones que coinciden
+                }
+            });
+             // Asegurar que la opción "Seleccione" siempre esté presente si no hay filtro o coincide
+             if (filterText === '' || 'seleccione'.includes(filterText)) {
+                 const defaultOption = document.createElement('option');
+                 defaultOption.value = "";
+                 defaultOption.textContent = "Seleccione";
+                 if (!riesgoSelect.querySelector('option[value=""]')) { // Evitar duplicados
+                     riesgoSelect.prepend(defaultOption);
+                 }
+             }
+        });
+        */
+
+        // --- Formato de Moneda para Valor a Pagar ---
+        valorAPagarInput.addEventListener('input', (e) => {
+            let value = e.target.value;
+            // Remover caracteres no numéricos (excepto la coma o punto si se usan como separador decimal)
+            value = value.replace(/[^0-9,.]/g, '');
+
+            // Opcional: Manejar separadores decimales (usando punto como decimal)
+            // value = value.replace(/,/g, ''); // Si solo quieres permitir puntos
+            // if (value.includes('.')) {
+            //     const parts = value.split('.');
+            //     value = parts[0] + '.' + parts[1].slice(0, 2); // Limitar a 2 decimales
+            // }
+
+            // Formatear como moneda COP (ejemplo básico, no es una validación estricta)
+            // Esto es solo para visualización, considera guardar el valor numérico en Firebase
+            const numberValue = parseFloat(value.replace(/,/g, '').replace(/\./g, '')); // Convertir a número para formatear
+            if (!isNaN(numberValue)) {
+                 // Usar Intl.NumberFormat para formato de moneda
+                 const formatter = new Intl.NumberFormat('es-CO', {
+                     style: 'currency',
+                     currency: 'COP',
+                     minimumFractionDigits: 0, // Ajusta si necesitas decimales
+                     maximumFractionDigits: 2, // Ajusta si necesitas decimales
+                 });
+                 // Remover el símbolo de moneda y el espacio si no los quieres en el input value
+                 let formattedValue = formatter.format(numberValue);
+                 // Eliminar el símbolo '$' y el espacio no deseado si los hay
+                 formattedValue = formattedValue.replace('$', '').trim();
+                 // Reemplazar el separador decimal si es necesario (Intl usa coma en es-CO)
+                 formattedValue = formattedValue.replace(',', '.'); // Si prefieres punto como decimal
+
+                 e.target.value = formattedValue;
+            } else {
+                 // Si no es un número válido después de limpiar, dejar vacío o mostrar error
+                 e.target.value = '';
+            }
+        });
+
+
+    </script>
+
+</body>
+</html>
