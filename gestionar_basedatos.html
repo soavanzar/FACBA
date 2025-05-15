@@ -363,7 +363,7 @@
             transform: translateY(0);
         }
 
-        /* --- Estilos Responsivos para la Tabla --- */
+        /* --- Estilos Responsivos para la Tabla (Vista de Tarjeta en Móviles) --- */
 
         /* Aplicar estilos solo en pantallas pequeñas (menos de 768px, breakpoint 'md' de Tailwind) */
         @media (max-width: 767px) {
@@ -377,22 +377,25 @@
             }
 
             .user-table tr {
-                margin-bottom: 15px; /* Espacio entre filas apiladas */
-                border: 1px solid #e5e7eb; /* Borde alrededor de cada "tarjeta" de fila */
-                border-radius: 8px; /* Bordes redondeados */
+                margin-bottom: 20px; /* Más espacio entre filas apiladas (tarjetas) */
+                border: 1px solid #d1d5db; /* Borde alrededor de cada "tarjeta" de fila */
+                border-radius: 10px; /* Bordes más redondeados */
                 background-color: #ffffff; /* Fondo blanco para cada fila */
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave */
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra suave */
+                padding: 15px; /* Espaciado interno dentro de la tarjeta */
             }
 
             .user-table td {
                 text-align: right; /* Alinear contenido de celda a la derecha */
-                padding-left: 50%; /* Dejar espacio a la izquierda para la etiqueta */
+                padding: 8px 15px; /* Espaciado interno para las celdas */
                 position: relative; /* Para posicionar la etiqueta */
-                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
+                border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
             }
 
              .user-table td:last-child {
                  border-bottom: none; /* No borde inferior en la última celda */
+                 padding-bottom: 0; /* Eliminar padding inferior en la última celda */
+                 margin-top: 15px; /* Espacio encima de los botones de acción */
              }
 
 
@@ -418,6 +421,12 @@
 
              .user-table td:last-child::before {
                  content: ''; /* No mostrar etiqueta para la celda de acciones */
+             }
+
+             /* Asegurar que los botones de acción estén bien espaciados en la vista de tarjeta */
+             .user-table .action-buttons {
+                 justify-content: center; /* Centrar los botones */
+                 gap: 10px; /* Espacio entre botones */
              }
         }
 
