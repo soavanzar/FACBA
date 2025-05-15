@@ -467,15 +467,38 @@
             const lowerCaseFilterText = filterText.toLowerCase();
 
             originalOptions.forEach(option => {
-                // Filtrar por nombre o identificación
+                 // --- Corrección: Manejar la opción por defecto explícitamente ---
+                 if (option.value === "") {
+                     // Si es la opción por defecto, solo añadir si el filtro está vacío o coincide exactamente
+                     if (filterText === "" || option.textContent.toLowerCase().includes(lowerCaseFilterText)) {
+                         const li = document.createElement('li');
+                         li.textContent = option.textContent;
+                         li.dataset.value = option.value;
+                         optionsListElement.appendChild(li);
+                     }
+                     return; // Saltar el resto de la lógica para la opción por defecto
+                 }
+
+
+                // Filtrar por nombre o identificación para usuarios reales
                 const optionText = option.textContent.toLowerCase();
                 const optionValue = option.value; // En este caso, option.value es el ID del usuario
-                const identificacion = option.dataset.identificacion ? option.dataset.identificacion.toLowerCase() : ''; // Obtener identificación si existe
+
+                // --- Corrección: Verificar si dataset y dataset.identificacion existen antes de acceder ---
+                const identificacion = (option.dataset && option.dataset.identificacion) ? String(option.dataset.identificacion).toLowerCase() : '';
+
+
+                // Construir el texto a mostrar en la lista: Nombre (Identificación si existe)
+                let displaytextContent = option.textContent;
+                if (option.dataset && option.dataset.identificacion) { // Verificar nuevamente para mostrar
+                     displaytextContent += ` (${option.dataset.identificacion})`;
+                }
+
 
                 if (optionText.includes(lowerCaseFilterText) || identificacion.includes(lowerCaseFilterText)) {
                     const li = document.createElement('li');
-                    // Mostrar nombre e identificación en la lista
-                    li.textContent = `${option.textContent} (${option.dataset.identificacion})`;
+                    // Usar el texto construido
+                    li.textContent = displaytextContent;
                     li.dataset.value = option.value; // Guardar el ID del usuario
                     optionsListElement.appendChild(li);
                 }
@@ -513,7 +536,7 @@
              filterInput.addEventListener('focus', (e) => {
                  // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
                  if (originalOptions.length > 0 || e.target.value.length > 0) {
-                      populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
+                      populateAndFilterFloatingList(filterInput, originalOptions, e.target.value); // Usar originalOptions directamente
                       optionsListElement.classList.add('show');
                  }
              });
@@ -535,6 +558,17 @@
 
                     console.log(`Opción de usuario seleccionada (click): Texto=${selectedUserText}, ID=${selectedUserId}`); // Debugging
 
+                    // --- Manejar la selección de la opción por defecto ---
+                    if (selectedUserId === "") {
+                         userNameFilterInput.value = "Seleccione un usuario"; // Establecer el texto por defecto
+                         selectElement.value = ""; // Asegurarse de que el select oculto esté vacío
+                         clearUserDataFields(); // Limpiar los campos de datos del usuario
+                         optionsListElement.classList.remove('show'); // Ocultar la lista
+                         console.log("Opción por defecto seleccionada. Campos limpiados."); // Debugging
+                         return; // Salir de la función
+                    }
+
+
                     // Actualizar el input de filtro con el texto seleccionado
                     userNameFilterInput.value = selectedUserText; // Usar el input específico para el nombre de usuario
 
@@ -547,12 +581,8 @@
                     optionsListElement.classList.remove('show');
 
                     // --- Cargar datos del usuario seleccionado ---
-                    if (selectedUserId) {
-                        await loadUserData(selectedUserId);
-                    } else {
-                        // Si se selecciona la opción "Seleccione un usuario", limpiar campos
-                        clearUserDataFields();
-                    }
+                    await loadUserData(selectedUserId);
+
 
                      // Opcional: Disparar un evento 'change' en el select nativo si es necesario
                      // const event = new Event('change');
@@ -575,12 +605,19 @@
              }
 
              // Buscar una opción que coincida exactamente con el texto autocompletado
-             // La búsqueda debe considerar tanto el nombre como la identificación
+             // La búsqueda debe considerar el texto que mostramos en la lista (Nombre + Identificación)
              const matchedOption = originalOptions.find(option => {
-                 const optionText = option.textContent.trim();
-                 const identificacion = option.dataset.identificacion ? option.dataset.identificacion.trim() : '';
-                 // Comprobar si el texto autocompletado coincide con el nombre o la identificación
-                 return optionText === autofilledText || identificacion === autofilledText;
+                 // --- Corrección: Manejar la opción por defecto en la búsqueda de autocompletado ---
+                 if (option.value === "") {
+                     return option.textContent.trim() === autofilledText;
+                 }
+
+                 let displaytextContent = option.textContent;
+                 // --- Corrección: Verificar si dataset y dataset.identificacion existen antes de acceder ---
+                 if (option.dataset && option.dataset.identificacion) {
+                      displaytextContent += ` (${option.dataset.identificacion})`;
+                 }
+                 return displaytextContent.trim() === autofilledText;
              });
 
 
@@ -590,8 +627,13 @@
                  selectOptionInSelectElement(selectElement, matchedOption.value);
                  console.log(`Valor del select oculto (${selectElement.id}) después de autocompletar: ${selectElement.value}`); // Debugging
 
-                 // Cargar los datos del usuario si se encontró una coincidencia
-                 await loadUserData(matchedOption.value);
+                 // Cargar los datos del usuario si se encontró una coincidencia (solo si no es la opción por defecto)
+                 if (matchedOption.value !== "") {
+                    await loadUserData(matchedOption.value);
+                 } else {
+                     clearUserDataFields(); // Limpiar campos si la coincidencia es la opción por defecto
+                 }
+
 
              } else {
                  // Si no hay una coincidencia exacta, limpiar el select oculto y los campos
@@ -640,10 +682,10 @@
                         // Crear una opción con el nombre del usuario y su ID como valor
                         const option = document.createElement('option');
                         option.value = doc.id; // Usar el ID del documento de Firestore como valor
-                        // Combinar nombre e identificación para mostrar en la lista
-                        option.textContent = user.nombre;
-                        option.dataset.identificacion = user.identificacion; // Guardar identificación para filtrado
-                        // Puedes añadir más data-atributos si necesitas otros datos para mostrar en la lista
+                        option.textContent = user.nombre || 'Nombre Desconocido'; // Usar nombre o un placeholder
+                        if (user.identificacion) {
+                             option.dataset.identificacion = user.identificacion; // Guardar identificación si existe
+                        }
                         currentUserOptions.push(option);
                     });
 
@@ -666,10 +708,22 @@
                 }, (error) => { // Agregar callback de error a onSnapshot
                     console.error("Error en onSnapshot al cargar usuarios:", error); // Logear el objeto de error completo
                     // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                    statusMessage.textContent = 'Error al cargar la lista de usuarios.';
+                    statusMessage.className = 'error';
+                     setTimeout(() => {
+                         statusMessage.textContent = '';
+                         statusMessage.className = '';
+                     }, 5000);
                 });
             } catch (error) {
                 console.error("Error al configurar el listener onSnapshot para usuarios:", error); // Logear el objeto de error completo
                 // Opcional: Mostrar un mensaje de error al usuario en la interfaz
+                 statusMessage.textContent = 'Error de configuración al cargar usuarios.';
+                 statusMessage.className = 'error';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
             }
         }
 
@@ -690,6 +744,7 @@
                  console.log("Mapas de Empresas y Asesores cargados."); // Debugging
             } catch (error) {
                 console.error("Error al cargar mapas de empresas y asesores:", error);
+                 // Opcional: Mostrar un mensaje de error si la carga de mapas falla
             }
         }
 
@@ -737,6 +792,12 @@
                 } else {
                     console.warn("Usuario no encontrado en Firestore con ID:", userId);
                     clearUserDataFields(); // Limpiar campos si el usuario no existe
+                     statusMessage.textContent = 'Error: Usuario seleccionado no encontrado.';
+                     statusMessage.className = 'error';
+                      setTimeout(() => {
+                         statusMessage.textContent = '';
+                         statusMessage.className = '';
+                     }, 5000);
                 }
             } catch (error) {
                 console.error("Error al cargar datos del usuario:", error);
@@ -843,7 +904,7 @@
                 setTimeout(() => {
                     statusMessage.textContent = '';
                     statusMessage.className = '';
-                }, 5000); // 5 segundos
+                 }, 5000);
             }
         });
 
