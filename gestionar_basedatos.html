@@ -21,6 +21,7 @@
             margin: 0;
             padding: 20px;
             min-height: 100vh;
+            position: relative; /* Necesario para posicionar el botón de configuración */
         }
 
         .container {
@@ -30,6 +31,7 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
             max-width: 1200px; /* Ancho máximo para la tabla */
             margin: 20px auto; /* Centra el contenedor y añade margen */
+            position: relative; /* Necesario para el contexto del botón de atrás */
         }
 
         .back-button {
@@ -49,6 +51,24 @@
             background-color: #9ca3af; /* Gris más oscuro */
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
+
+        /* Estilo para el botón de configuración */
+        .settings-button {
+            position: absolute; /* Posicionamiento absoluto */
+            top: 20px; /* Ajusta según sea necesario */
+            right: 30px; /* Ajusta según sea necesario */
+            font-size: 2.5rem; /* Tamaño del icono (ajustado para ser más grande) */
+            color: #4b5563; /* Color gris oscuro */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        .settings-button:hover {
+            color: #1f2937; /* Gris más oscuro al pasar el ratón */
+            transform: rotate(15deg); /* Pequeña rotación al pasar el ratón */
+        }
+
 
         .filter-buttons {
             margin-bottom: 15px; /* Espacio entre los botones de filtro y la barra de búsqueda */
@@ -183,7 +203,7 @@
             background-color: #8b5cf6; /* Morado más oscuro */
         }
 
-        /* Estilos para el modal de edición */
+        /* Estilos para los modales */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -340,6 +360,118 @@
             transform: translateY(0);
         }
 
+        /* --- Estilos Responsivos para la Tabla --- */
+
+        /* Aplicar estilos solo en pantallas pequeñas (menos de 768px, breakpoint 'md' de Tailwind) */
+        @media (max-width: 767px) {
+            .user-table thead {
+                display: none; /* Ocultar encabezados de tabla */
+            }
+
+            .user-table, .user-table tbody, .user-table tr, .user-table td {
+                display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
+                width: 100%; /* Ocupar todo el ancho */
+            }
+
+            .user-table tr {
+                margin-bottom: 15px; /* Espacio entre filas apiladas */
+                border: 1px solid #e5e7eb; /* Borde alrededor de cada "tarjeta" de fila */
+                border-radius: 8px; /* Bordes redondeados */
+                background-color: #ffffff; /* Fondo blanco para cada fila */
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave */
+            }
+
+            .user-table td {
+                text-align: right; /* Alinear contenido de celda a la derecha */
+                padding-left: 50%; /* Dejar espacio a la izquierda para la etiqueta */
+                position: relative; /* Para posicionar la etiqueta */
+                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
+            }
+
+             .user-table td:last-child {
+                 border-bottom: none; /* No borde inferior en la última celda */
+             }
+
+
+            .user-table td::before {
+                content: attr(data-label); /* Mostrar el contenido del atributo data-label */
+                position: absolute;
+                left: 15px; /* Posición a la izquierda */
+                width: calc(50% - 30px); /* Ancho de la etiqueta */
+                padding-right: 10px; /* Espacio entre etiqueta y contenido */
+                white-space: nowrap; /* Evitar que la etiqueta se rompa en varias líneas */
+                font-weight: 600; /* Peso de fuente semibold para la etiqueta */
+                color: #4b5563; /* Color gris oscuro para la etiqueta */
+                text-align: left; /* Alinear etiqueta a la izquierda */
+                overflow: hidden; /* Ocultar texto si es demasiado largo */
+                text-overflow: ellipsis; /* Mostrar puntos suspensivos si se trunca */
+            }
+
+            /* Ajuste específico para la celda de acciones */
+            .user-table td:last-child {
+                 text-align: center; /* Centrar los botones de acción */
+                 padding-left: 15px; /* Ajustar padding para que no haya espacio extra a la izquierda */
+            }
+
+             .user-table td:last-child::before {
+                 content: ''; /* No mostrar etiqueta para la celda de acciones */
+             }
+        }
+
+         /* Asegurar que los modales se vean bien en pantallas pequeñas */
+         @media (max-width: 600px) {
+             .modal-content {
+                 padding: 20px; /* Reducir padding en pantallas muy pequeñas */
+             }
+
+             .modal-content h2 {
+                 font-size: 1.5rem; /* Reducir tamaño del título del modal */
+             }
+
+             .modal-buttons {
+                 flex-direction: column; /* Apilar botones en pantallas muy pequeñas */
+                 gap: 8px; /* Reducir espacio entre botones apilados */
+             }
+
+             .modal-buttons button {
+                 width: 100%; /* Hacer que los botones apilados ocupen todo el ancho */
+             }
+         }
+
+         /* Estilos para el modal de configuración/menú */
+         #settings-modal .modal-content {
+             max-width: 350px; /* Ancho más pequeño para el modal de menú */
+         }
+
+         #settings-modal .menu-option-button {
+             display: block; /* Cada opción como un bloque */
+             width: 100%; /* Ocupa todo el ancho */
+             padding: 12px 15px; /* Espaciado interno */
+             margin-bottom: 10px; /* Espacio entre opciones */
+             background-color: #eef2ff; /* Fondo azul/morado muy claro */
+             color: #1f2937; /* Texto oscuro */
+             font-weight: 500; /* Peso de fuente medio */
+             border: none;
+             border-radius: 6px;
+             text-align: left; /* Alinear texto a la izquierda */
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+         }
+
+         #settings-modal .menu-option-button:hover {
+             background-color: #dadaff; /* Fondo un poco más oscuro al pasar el ratón */
+             transform: translateX(5px); /* Mover ligeramente a la derecha */
+         }
+
+         #settings-modal .menu-option-button:last-child {
+             margin-bottom: 0; /* Sin margen inferior en el último botón */
+         }
+
+         #settings-modal .modal-buttons {
+             margin-top: 20px; /* Espacio encima de los botones de acción del modal */
+         }
+
+
     </style>
 </head>
 <body>
@@ -351,11 +483,16 @@
 
         <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios</h1>
 
+        <i class="fas fa-cog settings-button" id="settings-button" title="Configuración"></i>
+
+
         <div class="filter-buttons">
             <button class="filter-button active" data-filter="todos">Todos</button>
             <button class="filter-button" data-filter="activo">Activos</button>
             <button class="filter-button" data-filter="retirado">Retirados</button>
-            </div>
+            <button class="filter-button" data-filter="empresa">Filtrar por Empresa</button>
+            <button class="filter-button" data-filter="asesor">Filtrar por Asesor</button>
+        </div>
 
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Buscar por nombre, identificación, empresa...">
@@ -486,6 +623,44 @@
         </div>
     </div>
 
+    <div id="filter-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-filter-modal">&times;</span>
+            <h2 id="filter-modal-title">Filtrar</h2>
+            <div class="modal-form-group" id="filter-empresa-group" style="display: none;">
+                <label for="filter-empresa-select">Seleccionar Empresa:</label>
+                <select id="filter-empresa-select">
+                    <option value="">Todas las Empresas</option>
+                    </select>
+            </div>
+            <div class="modal-form-group" id="filter-asesor-group" style="display: none;">
+                <label for="filter-asesor-select">Seleccionar Asesor:</label>
+                <select id="filter-asesor-select">
+                    <option value="">Todos los Asesores</option>
+                    </select>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="cancel-filter">Cancelar</button>
+                <button type="button" class="save-changes-button" id="apply-filter">Aplicar Filtro</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+             <span class="modal-close-button" id="close-settings-modal">&times;</span>
+             <h2>Opciones de Configuración</h2>
+             <button class="menu-option-button" id="add-eps-button">Agregar Nueva EPS</button>
+             <button class="menu-option-button" id="add-ccf-button">Agregar Nueva CCF</button>
+             <button class="menu-option-button" id="add-afp-button">Agregar Nueva AFP</button>
+             <button class="menu-option-button" id="add-asesor-button">Agregar Nuevo Asesor</button>
+             <button class="menu-option-button" id="add-empresa-button">Agregar Nueva Empresa</button>
+             <div class="modal-buttons">
+                 <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
+             </div>
+        </div>
+    </div>
+
 
     <script>
         // Your web app's Firebase configuration
@@ -508,6 +683,7 @@
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas');
         const asesoresCollection = db.collection('asesores');
+        // Podrías necesitar colecciones para EPS, CCF, AFP si las gestionas por separado
 
         // Obtener elementos del DOM
         const userTableBody = document.getElementById('user-table-body');
@@ -515,6 +691,7 @@
         const statusMessage = document.getElementById('status-message');
         const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
         const filterButtons = document.querySelectorAll('.filter-button'); // Botones de filtro
+        const settingsButton = document.getElementById('settings-button'); // Botón de configuración
 
 
         // Modal de Edición DOM elements
@@ -542,13 +719,41 @@
         const editFechaRetiroGroup = document.getElementById('edit-fecha-retiro-group');
         const editFechaRetiroInput = document.getElementById('edit-fecha-retiro');
 
+        // Modal de Filtro DOM elements
+        const filterModal = document.getElementById('filter-modal');
+        const closeFilterModalButton = document.getElementById('close-filter-modal');
+        const cancelFilterButton = document.getElementById('cancel-filter');
+        const applyFilterButton = document.getElementById('apply-filter');
+        const filterModalTitle = document.getElementById('filter-modal-title');
+        const filterEmpresaGroup = document.getElementById('filter-empresa-group');
+        const filterEmpresaSelect = document.getElementById('filter-empresa-select');
+        const filterAsesorGroup = document.getElementById('filter-asesor-group');
+        const filterAsesorSelect = document.getElementById('filter-asesor-select');
+
+        // Nuevo Modal de Configuración/Menú DOM elements
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsModalButton = document.getElementById('close-settings-modal');
+        const closeSettingsModalButtonInModal = document.getElementById('close-settings-modal-button'); // Botón "Cerrar" dentro del modal
+
+        // Botones de opción dentro del modal de configuración
+        const addEpsButton = document.getElementById('add-eps-button');
+        const addCcfButton = document.getElementById('add-ccf-button');
+        const addAfpButton = document.getElementById('add-afp-button');
+        const addAsesorButton = document.getElementById('add-asesor-button');
+        const addEmpresaButton = document.getElementById('add-empresa-button');
+
 
         // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
         let empresasMap = new Map();
         let asesoresMap = new Map();
 
-        // Variable para almacenar el filtro de estado actual
+        // Variable para almacenar todos los documentos de usuario fetched por onSnapshot
+        let allUserDocs = [];
+
+        // Variables para almacenar los filtros actuales
         let currentStatusFilter = 'todos'; // 'todos', 'activo', 'retirado'
+        let currentEmpresaFilterId = ''; // ID de empresa seleccionado para filtrar
+        let currentAsesorFilterId = ''; // ID de asesor seleccionado para filtrar
 
 
         // --- Funciones de Utilidad ---
@@ -630,32 +835,32 @@
             }
         }
 
-        // Poblar selectores de empresa y asesor en el modal de edición
-        async function populateModalSelects() {
+        // Poblar selectores de empresa y asesor en los modales
+        async function populateSelects(empresaSelectElement, asesorSelectElement) {
              try {
                  // Empresas
                  const empresasSnapshot = await empresasCollection.get();
-                 editEmpresaSelect.innerHTML = '<option value="">Selecciona una empresa</option>'; // Limpiar y añadir opción por defecto
+                 empresaSelectElement.innerHTML = '<option value="">Selecciona una empresa</option>'; // Limpiar y añadir opción por defecto
                  empresasSnapshot.forEach(doc => {
                      const option = document.createElement('option');
                      option.value = doc.id;
                      option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                     editEmpresaSelect.appendChild(option);
+                     empresaSelectElement.appendChild(option);
                  });
 
                  // Asesores
                  const asesoresSnapshot = await asesoresCollection.get();
-                 editAsesorSelect.innerHTML = '<option value="">Selecciona un asesor</option>'; // Limpiar y añadir opción por defecto
+                 asesorSelectElement.innerHTML = '<option value="">Selecciona un asesor</option>'; // Limpiar y añadir opción por defecto
                  asesoresSnapshot.forEach(doc => {
                      const option = document.createElement('option');
                      option.value = doc.id;
                      option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                     editAsesorSelect.appendChild(option);
+                     asesorSelectElement.appendChild(option);
                  });
-                  console.log("Selectores de modal poblados."); // Debugging
+                  console.log("Selectores poblados."); // Debugging
              } catch (error) {
-                 console.error("Error al poblar selectores de modal:", error);
-                 showStatusMessage('Error al cargar opciones de empresa/asesor para edición.', 'error');
+                 console.error("Error al poblar selectores:", error);
+                 showStatusMessage('Error al cargar opciones de empresa/asesor.', 'error');
              }
         }
 
@@ -670,16 +875,17 @@
             const estado = user.estado || 'activo'; // Estado por defecto si no está definido
             const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
 
+            // Añadir data-label para la responsividad de la tabla
             row.innerHTML = `
-                <td>${user.nombre || 'Sin Nombre'}</td>
-                <td>${user.identificacion || 'Sin Identificación'}</td>
-                <td>${empresasMap.get(user.empresaId) || 'Desconocida'}</td>
-                <td>${estado}</td>
-                <td>${formatDate(user.fecha)}</td>
-                <td>${formatDate(user.ingreso)}</td>
-                <td>${asesoresMap.get(user.asesorId) || 'Desconocido'}</td>
-                <td>${formatCurrency(user.valorAPagar)}</td>
-                <td class="action-buttons">
+                <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
+                <td data-label="Identificación">${user.identificacion || 'Sin Identificación'}</td>
+                <td data-label="Empresa">${empresasMap.get(user.empresaId) || 'Desconocida'}</td>
+                <td data-label="Estado">${estado}</td>
+                <td data-label="Fecha Ingreso">${formatDate(user.fecha)}</td>
+                <td data-label="Fecha Registro">${formatDate(user.ingreso)}</td>
+                <td data-label="Asesor">${asesoresMap.get(user.asesorId) || 'Desconocido'}</td>
+                <td data-label="Valor a Pagar">${formatCurrency(user.valorAPagar)}</td>
+                <td class="action-buttons" data-label="Acciones">
                     <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
                     <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
                     <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
@@ -690,47 +896,70 @@
             return row;
         }
 
-        // Cargar y mostrar usuarios en la tabla con filtro y búsqueda (usando onSnapshot)
+        // Función para renderizar la tabla con los usuarios filtrados
+        function renderFilteredUsers() {
+            userTableBody.innerHTML = ''; // Limpiar tabla actual
+            const filterText = searchInput.value.toLowerCase();
+
+            let filteredDocs = allUserDocs.filter(userDoc => {
+                const user = userDoc.data();
+                const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+                const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+                const estado = user.estado || 'activo'; // Estado por defecto
+
+                // Aplicar filtro de estado
+                const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
+
+                // Aplicar filtro de empresa
+                const matchesEmpresaFilter = currentEmpresaFilterId === '' || user.empresaId === currentEmpresaFilterId;
+
+                // Aplicar filtro de asesor
+                const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
+
+                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor)
+                const matchesSearch = filterText === '' ||
+                    (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
+                    (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
+                    (empresaNombre.toLowerCase().includes(filterText)) ||
+                    (estado.toLowerCase().includes(filterText)) ||
+                    (asesorNombre.toLowerCase().includes(filterText));
+
+                // Retornar true si coincide con TODOS los filtros
+                return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesSearch;
+            });
+
+            // Renderizar las filas filtradas
+            if (filteredDocs.length > 0) {
+                filteredDocs.forEach(doc => {
+                    const row = renderUserRow(doc);
+                    userTableBody.appendChild(row);
+                });
+            } else {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
+                userTableBody.appendChild(noDataRow);
+            }
+
+             console.log(`Tabla de usuarios renderizada. ${filteredDocs.length} usuarios mostrados.`); // Debugging
+        }
+
+
+        // Cargar usuarios inicialmente y configurar el listener de onSnapshot
         async function loadUsersTable() {
-             // Cargar mapas antes de la primera carga de la tabla
-             await loadEmpresasAndAsesoresMaps();
+             // Cargar mapas antes de la primera carga de la tabla si aún no están cargados
+             if (empresasMap.size === 0 || asesoresMap.size === 0) {
+                 await loadEmpresasAndAsesoresMaps();
+             }
 
              // Usar onSnapshot para escuchar cambios en tiempo real
              usersCollection.orderBy('nombre').onSnapshot(snapshot => {
-                 userTableBody.innerHTML = ''; // Limpiar tabla actual
-                 const filterText = searchInput.value.toLowerCase();
+                 // Almacenar todos los documentos en la variable global
+                 allUserDocs = snapshot.docs;
+                 console.log(`onSnapshot triggered. ${allUserDocs.length} total users fetched.`); // Debugging
 
-                 snapshot.forEach(doc => {
-                     const user = doc.data();
-                     const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
-                     const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
-                     const estado = user.estado || 'activo'; // Estado por defecto
+                 // Renderizar la tabla con los filtros actuales
+                 renderFilteredUsers();
 
-                     // Aplicar filtro de estado
-                     const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
-
-                     // Aplicar filtro de búsqueda
-                     const matchesSearch = filterText === '' ||
-                         (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
-                         (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
-                         (empresaNombre.toLowerCase().includes(filterText)) ||
-                         (estado.toLowerCase().includes(filterText)) ||
-                         (asesorNombre.toLowerCase().includes(filterText));
-
-                     // Renderizar la fila si coincide con ambos filtros
-                     if (matchesStatusFilter && matchesSearch) {
-                         const row = renderUserRow(doc);
-                         userTableBody.appendChild(row);
-                     }
-                 });
-
-                 if (userTableBody.children.length === 0) {
-                     const noDataRow = document.createElement('tr');
-                     noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
-                     userTableBody.appendChild(noDataRow);
-                 }
-
-                 console.log(`Tabla de usuarios actualizada. ${snapshot.size} usuarios cargados, ${userTableBody.children.length} mostrados.`); // Debugging
              }, error => {
                  console.error("Error al cargar usuarios con onSnapshot:", error);
                  showStatusMessage('Error al cargar usuarios.', 'error');
@@ -740,28 +969,104 @@
 
         // --- Funcionalidad de Búsqueda ---
         searchInput.addEventListener('input', () => {
-            // Al cambiar el input de búsqueda, onSnapshot se disparará y aplicará el filtro
-            // No necesitamos llamar a loadUsersTable() aquí directamente.
+            // Al cambiar el input de búsqueda, re-renderizar la tabla con el nuevo filtro
+            renderFilteredUsers();
         });
 
 
-        // --- Funcionalidad de Filtro por Estado ---
-        filterButtonsContainer.addEventListener('click', (e) => {
+        // --- Funcionalidad de Filtro por Estado, Empresa, Asesor ---
+        filterButtonsContainer.addEventListener('click', async (e) => {
             const targetButton = e.target.closest('.filter-button');
             if (!targetButton) return; // No es un botón de filtro
 
-            // Remover clase 'active' de todos los botones
-            filterButtons.forEach(button => button.classList.remove('active'));
+            const filterType = targetButton.dataset.filter;
 
-            // Añadir clase 'active' al botón clickeado
-            targetButton.classList.add('active');
+            // Remover clase 'active' de todos los botones de estado (Todos, Activos, Retirados)
+            document.querySelectorAll('.filter-button[data-filter="todos"], .filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
+             // Remover clase 'active' de los botones de filtro de modal
+             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"]').forEach(button => button.classList.remove('active'));
 
-            // Actualizar el filtro de estado actual
-            currentStatusFilter = targetButton.dataset.filter;
-            console.log("Filtro de estado cambiado a:", currentStatusFilter);
 
-            // onSnapshot se disparará automáticamente al cambiar el filtro de estado
-            // y loadUsersTable() aplicará el nuevo filtro.
+            if (filterType === 'todos' || filterType === 'activo' || filterType === 'retirado') {
+                // Filtro por estado
+                targetButton.classList.add('active');
+                currentStatusFilter = filterType;
+                currentEmpresaFilterId = ''; // Resetear filtro de empresa
+                currentAsesorFilterId = ''; // Resetear filtro de asesor
+                console.log("Filtro de estado cambiado a:", currentStatusFilter);
+                renderFilteredUsers(); // Re-renderizar la tabla con el nuevo filtro
+
+            } else if (filterType === 'empresa') {
+                // Filtro por empresa (mostrar modal)
+                 targetButton.classList.add('active');
+                 filterModalTitle.textContent = 'Filtrar por Empresa';
+                 filterEmpresaGroup.style.display = 'block';
+                 filterAsesorGroup.style.display = 'none';
+                 await populateSelects(filterEmpresaSelect, filterAsesorSelect); // Poblar selectores
+                 filterEmpresaSelect.value = currentEmpresaFilterId; // Seleccionar filtro actual si existe
+                 showFilterModal();
+            } else if (filterType === 'asesor') {
+                 // Filtro por asesor (mostrar modal)
+                 targetButton.classList.add('active');
+                 filterModalTitle.textContent = 'Filtrar por Asesor';
+                 filterAsesorGroup.style.display = 'block';
+                 filterEmpresaGroup.style.display = 'none';
+                 await populateSelects(filterEmpresaSelect, filterAsesorSelect); // Poblar selectores
+                 filterAsesorSelect.value = currentAsesorFilterId; // Seleccionar filtro actual si existe
+                 showFilterModal();
+            }
+
+        });
+
+        // --- Manejo del Modal de Filtro ---
+        function showFilterModal() {
+            filterModal.classList.add('show');
+        }
+
+        function hideFilterModal() {
+            filterModal.classList.remove('show');
+            // Resetear la visualización de los grupos al cerrar el modal
+            filterEmpresaGroup.style.display = 'none';
+            filterAsesorGroup.style.display = 'none';
+             // Asegurarse de que el botón de filtro de modal activo se desactive si se cierra sin aplicar
+             document.querySelectorAll('.filter-button[data-filter="empresa"], .filter-button[data-filter="asesor"]').forEach(button => button.classList.remove('active'));
+        }
+
+        closeFilterModalButton.addEventListener('click', hideFilterModal);
+        cancelFilterButton.addEventListener('click', hideFilterModal);
+
+        filterModal.addEventListener('click', (e) => {
+            if (e.target === filterModal) {
+                hideFilterModal();
+            }
+        });
+
+        applyFilterButton.addEventListener('click', () => {
+             // Aplicar el filtro seleccionado del modal
+             if (filterEmpresaGroup.style.display !== 'none') {
+                  currentEmpresaFilterId = filterEmpresaSelect.value;
+                  currentAsesorFilterId = ''; // Resetear el otro filtro
+                  // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de empresa/asesor
+                  currentStatusFilter = 'todos';
+                  document.querySelector('.filter-button[data-filter="todos"]').classList.add('active');
+                  document.querySelectorAll('.filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
+
+
+                  console.log("Filtro de Empresa aplicado:", currentEmpresaFilterId);
+             } else if (filterAsesorGroup.style.display !== 'none') {
+                  currentAsesorFilterId = filterAsesorSelect.value;
+                  currentEmpresaFilterId = ''; // Resetear el otro filtro
+                  // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de empresa/asesor
+                   currentStatusFilter = 'todos';
+                   document.querySelector('.filter-button[data-filter="todos"]').classList.add('active');
+                   document.querySelectorAll('.filter-button[data-filter="activo"], .filter-button[data-filter="retirado"]').forEach(button => button.classList.remove('active'));
+
+
+                  console.log("Filtro de Asesor aplicado:", currentAsesorFilterId);
+             }
+
+             hideFilterModal();
+             renderFilteredUsers(); // Re-renderizar la tabla con los nuevos filtros
         });
 
 
@@ -777,7 +1082,7 @@
             if (targetButton.classList.contains('edit-button')) {
                 // Acción de Editar
                 console.log("Botón Editar clickeado para usuario:", userId);
-                await populateModalSelects(); // Asegurarse de que los selectores estén poblados
+                await populateSelects(editEmpresaSelect, editAsesorSelect); // Asegurarse de que los selectores estén poblados
                 await loadUserDataForEdit(userId);
                 showEditModal();
 
@@ -849,7 +1154,7 @@
             }
         }
 
-        // Listener para el cambio en el selector de estado en el modal
+        // Listener para el cambio en el selector de estado en el modal de edición
         editEstadoSelect.addEventListener('change', (e) => {
             if (e.target.value === 'retirado') {
                 editFechaRetiroGroup.style.display = 'block';
@@ -876,13 +1181,13 @@
              editFechaRetiroGroup.style.display = 'none'; // Ocultar campo fecha retiro al cerrar
         }
 
-        // Listener para cerrar modal con la X
+        // Listener para cerrar modal de edición con la X
         closeEditModalButton.addEventListener('click', hideEditModal);
 
-        // Listener para cerrar modal con el botón Cancelar
+        // Listener para cerrar modal de edición con el botón Cancelar
         cancelEditButton.addEventListener('click', hideEditModal);
 
-        // Listener para cerrar modal haciendo clic fuera del contenido
+        // Listener para cerrar modal de edición haciendo clic fuera del contenido
         editUserModal.addEventListener('click', (e) => {
             if (e.target === editUserModal) {
                 hideEditModal();
@@ -973,6 +1278,63 @@
                  showStatusMessage('Error al cambiar estado: ' + error.message, 'error');
              }
         }
+
+        // --- Manejo del Modal de Configuración/Menú ---
+
+        // Mostrar el modal de configuración
+        function showSettingsModal() {
+            settingsModal.classList.add('show');
+        }
+
+        // Ocultar el modal de configuración
+        function hideSettingsModal() {
+            settingsModal.classList.remove('show');
+        }
+
+        // Listener para abrir el modal de configuración al hacer clic en el icono de engranaje
+        settingsButton.addEventListener('click', showSettingsModal);
+
+        // Listeners para cerrar el modal de configuración
+        closeSettingsModalButton.addEventListener('click', hideSettingsModal);
+        closeSettingsModalButtonInModal.addEventListener('click', hideSettingsModal);
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                hideSettingsModal();
+            }
+        });
+
+        // Listeners para los botones de opción en el modal de configuración
+        // Por ahora, solo mostrarán un mensaje en la consola o un alert.
+        // Aquí es donde integrarías la lógica para abrir otros modales o redirigir.
+        addEpsButton.addEventListener('click', () => {
+             console.log("Clic en Agregar Nueva EPS");
+             alert("Funcionalidad para Agregar Nueva EPS pendiente de implementar.");
+             hideSettingsModal(); // Cerrar modal después de la acción (simulada)
+        });
+
+        addCcfButton.addEventListener('click', () => {
+             console.log("Clic en Agregar Nueva CCF");
+             alert("Funcionalidad para Agregar Nueva CCF pendiente de implementar.");
+             hideSettingsModal();
+        });
+
+        addAfpButton.addEventListener('click', () => {
+             console.log("Clic en Agregar Nueva AFP");
+             alert("Funcionalidad para Agregar Nueva AFP pendiente de implementar.");
+             hideSettingsModal();
+        });
+
+        addAsesorButton.addEventListener('click', () => {
+             console.log("Clic en Agregar Nuevo Asesor");
+             alert("Funcionalidad para Agregar Nuevo Asesor pendiente de implementar.");
+             hideSettingsModal();
+        });
+
+        addEmpresaButton.addEventListener('click', () => {
+             console.log("Clic en Agregar Nueva Empresa");
+             alert("Funcionalidad para Agregar Nueva Empresa pendiente de implementar.");
+             hideSettingsModal();
+        });
 
 
         // --- Inicialización ---
