@@ -25,6 +25,7 @@
             align-items: center; /* Centra verticalmente */
             min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
             padding: 20px; /* Espaciado interno */
+            position: relative; /* Necesario para posicionar el mensaje de estado */
         }
 
         .container {
@@ -34,6 +35,7 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
             max-width: 600px; /* Ancho máximo del formulario */
             width: 100%; /* Ocupa todo el ancho disponible hasta el max-width */
+            z-index: 1; /* Asegura que el formulario esté por encima del mensaje de estado */
         }
 
         .form-group {
@@ -163,21 +165,40 @@
         }
 
 
-        /* Estilos mejorados para el botón de guardar */
-        button[type="submit"] {
-            display: block; /* Botón en su propia línea */
-            width: 100%; /* Ocupa todo el ancho del contenedor */
-            padding: 14px 24px; /* Espaciado interno ligeramente mayor */
-            background-color: #e53e3e; /* Color rojo para retirar */
-            color: #ffffff; /* Texto blanco */
+        /* Estilos mejorados para los botones */
+        .form-actions {
+            display: flex;
+            justify-content: space-between; /* Espacio entre los botones */
+            gap: 15px; /* Espacio entre botones */
+            margin-top: 20px;
+            /* Inicialmente oculto */
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .form-actions.show {
+             visibility: visible;
+             opacity: 1;
+        }
+
+
+        .form-actions button {
+            flex-grow: 1; /* Permite que los botones crezcan para llenar el espacio */
+            padding: 14px 24px; /* Espaciado interno */
             font-weight: 700; /* Peso de fuente bold */
             border: none; /* Sin borde */
             border-radius: 8px; /* Bordes redondeados */
             cursor: pointer; /* Cursor de mano */
-            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave con transform */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Sombra pronunciada */
             letter-spacing: 0.05em; /* Espaciado entre letras sutil */
             text-transform: uppercase; /* Texto en mayúsculas */
+        }
+
+        button[type="submit"] {
+            background-color: #e53e3e; /* Color rojo para retirar */
+            color: #ffffff; /* Texto blanco */
         }
 
         button[type="submit"]:hover {
@@ -190,7 +211,24 @@
              background-color: #9b2c2c; /* Rojo un poco más oscuro al hacer clic */
              box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra reducida al hacer clic */
              transform: translateY(0); /* Volver a la posición original */
+         }
+
+        #edit-user-button {
+            background-color: #4f46e5; /* Color azul/morado para editar */
+            color: #ffffff; /* Texto blanco */
         }
+
+        #edit-user-button:hover {
+            background-color: #4338ca; /* Azul/morado más oscuro al pasar el ratón */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra aún más pronunciada */
+            transform: translateY(-2px); /* Mover ligeramente hacia arriba */
+        }
+
+         #edit-user-button:active {
+             background-color: #3730a3; /* Azul/morado un poco más oscuro al hacer clic */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra reducida al hacer clic */
+             transform: translateY(0); /* Volver a la posición original */
+         }
 
 
         /* Estilo para mensajes de estado (animado) */
@@ -221,6 +259,67 @@
             border: 1px solid #f5c6cb; /* Borde rojo */
             opacity: 1; /* Visible */
             transform: translateY(0); /* Posición normal */
+        }
+
+        /* Estilo para el mensaje de estado del usuario (centrado y moderno) */
+        #user-status-display {
+            position: fixed; /* Posición fija en la ventana */
+            /* Propiedades para el estado inicial (centrado y grande) */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 25px 40px;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            /* Propiedades para el estado pequeño en la esquina (se aplicarán con la clase .small-corner) */
+            /* top: 20px; */
+            /* left: 20px; */
+            /* transform: none; */
+            /* padding: 10px 15px; */
+            /* font-size: 1rem; */
+            /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+
+            background-color: rgba(255, 255, 255, 0.95); /* Fondo blanco semi-transparente */
+            border-radius: 12px; /* Bordes redondeados */
+            font-weight: 700; /* Peso de fuente bold */
+            text-align: center; /* Centra el texto */
+            color: #1c1c1e; /* Color de texto oscuro */
+            z-index: 2; /* Asegura que esté por encima del formulario pero debajo de los modales */
+            pointer-events: none; /* Permite hacer clic a través del mensaje */
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0; /* Transparente por defecto */
+            /* Transición para todas las propiedades que cambian */
+            transition: top 0.5s ease-in-out, left 0.5s ease-in-out, transform 0.5s ease-in-out,
+                        padding 0.5s ease-in-out, font-size 0.5s ease-in-out, box-shadow 0.5s ease-in-out,
+                        visibility 0.4s ease-in-out, opacity 0.4s ease-in-out;
+        }
+
+        /* Clase para el estado pequeño en la esquina superior izquierda */
+        #user-status-display.small-corner {
+            top: 20px;
+            left: 20px;
+            transform: none; /* Elimina la transformación de centrado */
+            padding: 10px 15px;
+            font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+
+        #user-status-display.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #user-status-display.active-status {
+            color: #10b981; /* Verde para estado "activo" */
+        }
+
+        #user-status-display.retirado-status {
+            color: #e53e3e; /* Rojo para estado "retirado" */
+        }
+
+        #user-status-display.unknown-status {
+             color: #f59e0b; /* Naranja para estado "desconocido" */
         }
 
 
@@ -303,7 +402,7 @@
             font-weight: 600; /* Peso de fuente semibold */
             text-decoration: none; /* Sin subrayado */
             border-radius: 8px; /* Bordes redondeados */
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out; /* Transición suave */
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
         }
 
@@ -400,11 +499,17 @@
             </div>
 
 
-            <button type="submit">Marcar como Retirado</button>
+            <div class="form-actions" id="form-action-buttons">
+                 <button type="button" id="edit-user-button">Editar Usuario</button>
+                 <button type="submit">Marcar como Retirado</button>
+            </div>
         </form>
 
         <div id="status-message"></div>
     </div>
+
+    <div id="user-status-display"></div>
+
 
     <script>
         // Your web app's Firebase configuration
@@ -431,13 +536,16 @@
         // Obtener elementos del DOM
         const retireUserForm = document.getElementById('retire-user-form');
         const statusMessage = document.getElementById('status-message');
+        const formActionButtons = document.getElementById('form-action-buttons'); // Contenedor de botones de acción
+        const userStatusDisplay = document.getElementById('user-status-display'); // Elemento para mostrar el estado del usuario
+
 
         // Combobox para seleccionar usuario
         const userNameFilterInput = document.getElementById('user-name-filter');
         const userNameOptionsList = document.getElementById('user-name-options');
         const userNameSelect = document.getElementById('user-name-select'); // Select oculto para el ID del usuario
 
-        // Campos de información del usuario (solo lectura)
+        // Campos de información del usuario (solo lectura por defecto)
         const tipoIdentificacionInput = document.getElementById('tipo-identificacion');
         const identificacionInput = document.getElementById('identificacion');
         const empresaInput = document.getElementById('empresa');
@@ -452,10 +560,31 @@
         const valorAPagarInput = document.getElementById('valor-a-pagar');
         const fechaRetiroInput = document.getElementById('fecha-retiro'); // Nuevo campo de fecha de retiro
 
+        // Botones de acción
+        const editUserButton = document.getElementById('edit-user-button');
+        const retireButton = retireUserForm.querySelector('button[type="submit"]'); // Botón de retirar
+
         // Almacenar opciones originales para filtrado (usuarios de Firestore)
         let originalUserOptions = [];
         let empresasMap = new Map(); // Para mapear IDs de empresa a nombres
         let asesoresMap = new Map(); // Para mapear IDs de asesor a nombres
+
+        // Array de campos que se pueden editar
+        const editableFields = [
+            tipoIdentificacionInput,
+            identificacionInput,
+            empresaInput,
+            arlInput,
+            riesgoInput,
+            epsInput,
+            ccfInput,
+            afpInput,
+            fechaIngresoInput,
+            fechaRegistroInput,
+            asesorInput,
+            valorAPagarInput
+            // fechaRetiroInput no se incluye aquí porque siempre debe ser editable para establecer la fecha de retiro
+        ];
 
 
         // --- Funciones para manejar la lista flotante (Combobox simulado) ---
@@ -467,7 +596,7 @@
             const lowerCaseFilterText = filterText.toLowerCase();
 
             originalOptions.forEach(option => {
-                 // --- Corrección: Manejar la opción por defecto explícitamente ---
+                 // --- Manejar la opción por defecto explícitamente ---
                  if (option.value === "") {
                      // Si es la opción por defecto, solo añadir si el filtro está vacío o coincide exactamente
                      if (filterText === "" || option.textContent.toLowerCase().includes(lowerCaseFilterText)) {
@@ -482,16 +611,18 @@
 
                 // Filtrar por nombre o identificación para usuarios reales
                 const optionText = option.textContent.toLowerCase();
-                const optionValue = option.value; // En este caso, option.value es el ID del usuario
 
-                // --- Corrección: Verificar si dataset y dataset.identificacion existen antes de acceder ---
-                const identificacion = (option.dataset && option.dataset.identificacion) ? String(option.dataset.identificacion).toLowerCase() : '';
+                // --- Acceso seguro a la identificación del dataset y asegurar que es string antes de toLowerCase ---
+                const rawIdentificacionValue = (option.dataset && option.dataset.identificacion !== undefined && option.dataset.identificacion !== null)
+                                          ? option.dataset.identificacion
+                                          : '';
+                const identificacion = String(rawIdentificacionValue).toLowerCase();
 
 
                 // Construir el texto a mostrar en la lista: Nombre (Identificación si existe)
                 let displaytextContent = option.textContent;
-                if (option.dataset && option.dataset.identificacion) { // Verificar nuevamente para mostrar
-                     displaytextContent += ` (${option.dataset.identificacion})`;
+                if (rawIdentificacionValue !== '') { // Check if we got an identification string
+                     displaytextContent += ` (${rawIdentificacionValue})`; // Use the raw string here for display
                 }
 
 
@@ -543,7 +674,7 @@
 
 
             // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
-            // Este listener original se mantiene, pero el blur ahora también llama a handleAutofill
+            // Este listener original se mantiene, pero el blur ahora también llama a handleAutocompletado
             // filterInput.addEventListener('blur', () => {
             //     setTimeout(() => {
             //         optionsListElement.classList.remove('show');
@@ -564,6 +695,8 @@
                          selectElement.value = ""; // Asegurarse de que el select oculto esté vacío
                          clearUserDataFields(); // Limpiar los campos de datos del usuario
                          optionsListElement.classList.remove('show'); // Ocultar la lista
+                         hideFormActionButtons(); // Ocultar botones de acción
+                         hideUserStatusDisplay(); // Ocultar mensaje de estado
                          console.log("Opción por defecto seleccionada. Campos limpiados."); // Debugging
                          return; // Salir de la función
                     }
@@ -601,19 +734,21 @@
                  selectElement.value = '';
                  console.log(`Select oculto (${selectElement.id}) reseteado.`); // Debugging
                  clearUserDataFields(); // Limpiar campos si se borra el texto
+                 hideFormActionButtons(); // Ocultar botones de acción
+                 hideUserStatusDisplay(); // Ocultar mensaje de estado
                  return;
              }
 
              // Buscar una opción que coincida exactamente con el texto autocompletado
              // La búsqueda debe considerar el texto que mostramos en la lista (Nombre + Identificación)
              const matchedOption = originalOptions.find(option => {
-                 // --- Corrección: Manejar la opción por defecto en la búsqueda de autocompletado ---
+                 // --- Manejar la opción por defecto en la búsqueda de autocompletado ---
                  if (option.value === "") {
                      return option.textContent.trim() === autofilledText;
                  }
 
                  let displaytextContent = option.textContent;
-                 // --- Corrección: Verificar si dataset y dataset.identificacion existen antes de acceder ---
+                 // --- Verificar si dataset y dataset.identificacion existen antes de acceder ---
                  if (option.dataset && option.dataset.identificacion) {
                       displaytextContent += ` (${option.dataset.identificacion})`;
                  }
@@ -632,6 +767,8 @@
                     await loadUserData(matchedOption.value);
                  } else {
                      clearUserDataFields(); // Limpiar campos si la coincidencia es la opción por defecto
+                     hideFormActionButtons(); // Ocultar botones de acción
+                     hideUserStatusDisplay(); // Ocultar mensaje de estado
                  }
 
 
@@ -640,6 +777,8 @@
                  console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}. Limpiando select y campos.`); // Debugging
                  selectElement.value = '';
                  clearUserDataFields();
+                 hideFormActionButtons(); // Ocultar botones de acción
+                 hideUserStatusDisplay(); // Ocultar mensaje de estado
              }
         }
 
@@ -664,8 +803,8 @@
         // Cargar usuarios para el combobox de Nombre
         async function loadUsersDropdownOptions() {
              try {
-                // Obtener usuarios que NO estén marcados como 'retirado'
-                usersCollection.where('estado', '!=', 'retirado').onSnapshot(async (snapshot) => {
+                // Obtener TODOS los usuarios (se eliminó el filtro de estado)
+                usersCollection.onSnapshot(async (snapshot) => {
                     let currentUserOptions = []; // Para almacenar las opciones de usuario
 
                     // Añadir la opción por defecto
@@ -774,24 +913,22 @@
                     asesorInput.value = asesoresMap.get(userData.asesorId) || 'Desconocido';
                     valorAPagarInput.value = userData.valorAPagar || '';
 
-                    // Deshabilitar campos para que no se puedan editar
-                    tipoIdentificacionInput.disabled = true;
-                    identificacionInput.disabled = true;
-                    empresaInput.disabled = true;
-                    arlInput.disabled = true;
-                    riesgoInput.disabled = true;
-                    epsInput.disabled = true;
-                    ccfInput.disabled = true;
-                    afpInput.disabled = true;
-                    fechaIngresoInput.disabled = true;
-                    fechaRegistroInput.disabled = true;
-                    asesorInput.disabled = true;
-                    valorAPagarInput.disabled = true;
+                    // Deshabilitar campos por defecto al cargar un usuario
+                    disableUserDataFields();
+                    showFormActionButtons(); // Mostrar botones de acción
+                    displayUserStatus(userData.estado); // Mostrar estado del usuario
+
+                    // --- Nuevo: Mover el estado a la esquina después de 3 segundos ---
+                    setTimeout(() => {
+                        userStatusDisplay.classList.add('small-corner');
+                    }, 3000); // 3000 milisegundos = 3 segundos
 
 
                 } else {
                     console.warn("Usuario no encontrado en Firestore con ID:", userId);
                     clearUserDataFields(); // Limpiar campos si el usuario no existe
+                    hideFormActionButtons(); // Ocultar botones de acción
+                    hideUserStatusDisplay(); // Ocultar mensaje de estado
                      statusMessage.textContent = 'Error: Usuario seleccionado no encontrado.';
                      statusMessage.className = 'error';
                       setTimeout(() => {
@@ -802,6 +939,8 @@
             } catch (error) {
                 console.error("Error al cargar datos del usuario:", error);
                 clearUserDataFields();
+                hideFormActionButtons(); // Ocultar botones de acción
+                hideUserStatusDisplay(); // Ocultar mensaje de estado
                 statusMessage.textContent = 'Error al cargar datos del usuario.';
                 statusMessage.className = 'error';
                  setTimeout(() => {
@@ -827,26 +966,98 @@
             valorAPagarInput.value = '';
             fechaRetiroInput.value = ''; // También limpiar la fecha de retiro
 
-            // Habilitar campos nuevamente (aunque en esta página se mantienen deshabilitados/readonly)
-            // Si en el futuro se permite editar, esta función sería útil
-            // tipoIdentificacionInput.disabled = false;
-            // identificacionInput.disabled = false;
-            // etc.
+            // Deshabilitar campos después de limpiar
+            disableUserDataFields();
+        }
 
+        // Función para deshabilitar los campos de datos del usuario
+        function disableUserDataFields() {
+             editableFields.forEach(field => {
+                 field.setAttribute('readonly', true);
+                 field.setAttribute('disabled', true);
+             });
+             // El campo de fecha de retiro siempre es editable
+             fechaRetiroInput.removeAttribute('readonly');
+             fechaRetiroInput.removeAttribute('disabled');
+
+             // Mostrar el botón de Editar y ocultar el de Retirar (si se implementa Guardar Cambios)
+             // Por ahora, ambos botones están en el mismo contenedor que se muestra/oculta
+             // editUserButton.style.display = 'block';
+             // retireButton.style.display = 'none';
+        }
+
+        // Función para habilitar los campos de datos del usuario para edición
+        function enableUserDataFields() {
+             editableFields.forEach(field => {
+                 field.removeAttribute('readonly');
+                 field.removeAttribute('disabled');
+             });
+             // El campo de fecha de retiro ya está habilitado
+
+             // Ocultar el botón de Editar y mostrar el de Retirar (o un botón de Guardar Cambios si se implementa esa funcionalidad)
+             // editUserButton.style.display = 'none';
+             // retireButton.style.display = 'block'; // Mostrar el botón de Retirar (o cambiar a Guardar Cambar)
+
+             // Opcional: Cambiar el texto del botón de Retirar a "Guardar Cambios" si se implementa la edición
+             // retireButton.textContent = 'Guardar Cambios';
+             // retireButton.style.backgroundColor = '#10b981'; // Color verde para guardar
+             // retireButton.style.borderColor = '#047857';
+        }
+
+        // Función para mostrar los botones de acción
+        function showFormActionButtons() {
+            formActionButtons.classList.add('show');
+        }
+
+        // Función para ocultar los botones de acción
+        function hideFormActionButtons() {
+            formActionButtons.classList.remove('show');
+        }
+
+        // Función para mostrar el estado del usuario
+        function displayUserStatus(status) {
+             let statusText = 'Estado Desconocido';
+             let statusClass = 'unknown-status';
+
+             // --- MODIFICACION AQUI: Interpretar estado no definido como 'activo' ---
+             if (status === 'activo' || status === undefined || status === null || status === '') {
+                 statusText = 'Estado: Activo';
+                 statusClass = 'active-status';
+             } else if (status === 'retirado') {
+                 statusText = 'Estado: Retirado';
+                 statusClass = 'retirado-status';
+             } else {
+                 // Para cualquier otro valor de estado
+                 statusText = `Estado: ${status}`; // Mostrar el estado tal cual si no es activo ni retirado
+                 statusClass = 'unknown-status'; // Usar la clase de desconocido por defecto
+             }
+
+
+             userStatusDisplay.textContent = statusText;
+             userStatusDisplay.className = ''; // Reset classes
+             userStatusDisplay.classList.add('show', statusClass); // Add show and status class
+             // --- Asegurar que la clase small-corner se remueva al mostrar el estado inicial ---
+             userStatusDisplay.classList.remove('small-corner');
+        }
+
+        // Función para ocultar el mensaje de estado del usuario
+        function hideUserStatusDisplay() {
+             userStatusDisplay.classList.remove('show', 'active-status', 'retirado-status', 'unknown-status', 'small-corner');
+             userStatusDisplay.textContent = ''; // Clear text
         }
 
 
-        // --- Manejo del Formulario Principal (Marcar como Retirado) ---
+        // --- Manejo del Formulario Principal (Marcar como Retirado o Guardar Cambios) ---
         retireUserForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Prevenir el envío por defecto del formulario
 
             // Obtener el ID del usuario seleccionado del select oculto
-            const userIdToRetire = userNameSelect.value;
+            const userId = userNameSelect.value;
             const fechaRetiro = fechaRetiroInput.value;
 
-            // Validar que se haya seleccionado un usuario y la fecha de retiro
-            if (!userIdToRetire) {
-                 statusMessage.textContent = 'Por favor, seleccione un usuario para retirar.';
+            // Validar que se haya seleccionado un usuario
+            if (!userId) {
+                 statusMessage.textContent = 'Por favor, seleccione un usuario.';
                  statusMessage.className = 'error';
                   setTimeout(() => {
                      statusMessage.textContent = '';
@@ -855,6 +1066,11 @@
                  return;
             }
 
+            // Determinar si se está retirando o guardando cambios (basado en qué botón está visible/activo)
+            // En este código, el submit SIEMPRE ejecutará la lógica de RETIRO.
+            // Si se implementa la edición, se necesitaría un botón de "Guardar Cambios" separado o lógica condicional aquí.
+
+            // Lógica para MARCAR COMO RETIRADO
             if (!fechaRetiro) {
                  statusMessage.textContent = 'Por favor, ingrese la fecha de retiro.';
                  statusMessage.className = 'error';
@@ -865,13 +1081,12 @@
                  return;
             }
 
-
             statusMessage.textContent = 'Marcando usuario como retirado...';
             statusMessage.className = ''; // Limpiar clases de estado anteriores
 
             try {
                 // Actualizar el documento del usuario en Firestore
-                await usersCollection.doc(userIdToRetire).update({
+                await usersCollection.doc(userId).update({
                     estado: 'retirado', // Añadir o actualizar el campo estado
                     fechaRetiro: fechaRetiro, // Guardar la fecha de retiro
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp de actualización
@@ -883,17 +1098,16 @@
 
                 // Limpiar el formulario y los campos de datos del usuario
                 retireUserForm.reset();
-                clearUserDataFields();
-                // Resetear el combobox de usuario
-                userNameFilterInput.value = '';
-                userNameSelect.value = '';
+                clearUserDataFields(); // Esto también deshabilitará los campos
+                hideFormActionButtons(); // Ocultar botones de acción
+                hideUserStatusDisplay(); // Ocultar mensaje de estado
 
 
                 // Limpiar el mensaje después de unos segundos
                 setTimeout(() => {
                     statusMessage.textContent = '';
                     statusMessage.className = '';
-                }, 5000); // 5 segundos
+                 }, 5000); // 5 segundos
 
             } catch (error) {
                 // Mostrar mensaje de error si algo falla durante la actualización
@@ -909,9 +1123,37 @@
         });
 
 
+        // --- Listener para el nuevo botón de Editar Usuario ---
+        editUserButton.addEventListener('click', () => {
+             // Verificar si hay un usuario seleccionado antes de habilitar la edición
+             if (userNameSelect.value) {
+                 enableUserDataFields(); // Habilitar los campos para edición
+                 statusMessage.textContent = 'Campos habilitados para edición.';
+                 statusMessage.className = '';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 3000);
+             } else {
+                 statusMessage.textContent = 'Por favor, seleccione un usuario para editar.';
+                 statusMessage.className = 'error';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
+             }
+        });
+
+
         // --- Inicialización ---
         // Cargar la lista de usuarios al cargar la página
         loadUsersDropdownOptions();
+        // Deshabilitar campos al cargar la página inicialmente
+        disableUserDataFields();
+        // Ocultar botones de acción al cargar la página
+        hideFormActionButtons();
+        // Ocultar mensaje de estado al cargar la página
+        hideUserStatusDisplay();
 
 
     </script>
