@@ -316,7 +316,7 @@
         <form id="user-form">
             <div class="form-group">
                 <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" required>
+                <input type="text" id="nombre" required name="nombre">
             </div>
 
             <div class="form-group">
@@ -325,7 +325,7 @@
                     <input type="text" id="tipo-identificacion-filter" placeholder="Buscar tipo...">
                     <ul id="tipo-identificacion-options" class="combobox-options-list">
                         </ul>
-                    <select id="tipo-identificacion" required name="tipoIdentificacion"> <option value="">Seleccione</option>
+                    <select id="tipo-identificacion" name="tipoIdentificacion"> <option value="">Seleccione</option>
                         <option value="CC">Cédula de Ciudadanía (CC)</option>
                         <option value="TI">Tarjeta de Identidad (TI)</option>
                         <option value="CE">Cédula de Extranjería (CE)</option>
@@ -338,7 +338,7 @@
 
             <div class="form-group">
                 <label for="identificacion">Identificación:</label>
-                <input type="number" id="identificacion" required pattern="[0-9]*" inputmode="numeric">
+                <input type="number" id="identificacion" required pattern="[0-9]*" inputmode="numeric" name="identificacion">
             </div>
 
             <div class="form-group">
@@ -348,7 +348,7 @@
                     <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
                      <ul id="empresa-options" class="combobox-options-list">
                         </ul>
-                     <select id="empresa" required name="empresa"> <option value="">Seleccione</option>
+                     <select id="empresa" name="empresa"> <option value="">Seleccione</option>
                          </select>
                 </div>
             </div>
@@ -359,7 +359,7 @@
                     <input type="text" id="arl-filter" placeholder="Buscar ARL...">
                      <ul id="arl-options" class="combobox-options-list">
                         </ul>
-                     <select id="arl" required name="arl"> <option value="">Seleccione</option>
+                     <select id="arl" name="arl"> <option value="">Seleccione</option>
                         <option value="Sura">Sura</option>
                         <option value="Positiva">Positiva</option>
                         <option value="Axa Colpatria">Axa Colpatria</option>
@@ -380,7 +380,7 @@
                     <input type="text" id="riesgo-filter" placeholder="Buscar riesgo...">
                      <ul id="riesgo-options" class="combobox-options-list">
                         </ul>
-                     <select id="riesgo" required name="riesgo"> <option value="">Seleccione</option>
+                     <select id="riesgo" name="riesgo"> <option value="">Seleccione</option>
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -396,7 +396,7 @@
                     <input type="text" id="eps-filter" placeholder="Buscar EPS...">
                      <ul id="eps-options" class="combobox-options-list">
                         </ul>
-                     <select id="eps" required name="eps"> <option value="">Seleccione</option>
+                     <select id="eps" name="eps"> <option value="">Seleccione</option>
                         <option value="Aliansalud">Aliansalud</option>
                         <option value="Compensar">Compensar</option>
                         <option value="Cruz Blanca">Cruz Blanca</option>
@@ -422,7 +422,7 @@
                     <input type="text" id="ccf-filter" placeholder="Buscar CCF...">
                      <ul id="ccf-options" class="combobox-options-list">
                         </ul>
-                     <select id="ccf" required name="ccf"> <option value="">Seleccione</option>
+                     <select id="ccf" name="ccf"> <option value="">Seleccione</option>
                         <option value="Comfenalco Santander">Comfenalco Santander</option> <option value="Colsubsidio">Colsubsidio</option>
                         <option value="Comfama">Comfama</option>
                         <option value="Compensar">Compensar</option>
@@ -439,7 +439,7 @@
                     <input type="text" id="afp-filter" placeholder="Buscar AFP...">
                      <ul id="afp-options" class="combobox-options-list">
                         </ul>
-                     <select id="afp" required name="afp"> <option value="">Seleccione</option>
+                     <select id="afp" name="afp"> <option value="">Seleccione</option>
                         <option value="Proteccion">Protección</option>
                         <option value="Porvenir">Porvenir</option>
                         <option value="Colfondos">Colfondos</option>
@@ -465,7 +465,7 @@
                     <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
                      <ul id="asesor-options" class="combobox-options-list">
                         </ul>
-                     <select id="asesor" required name="asesor"> <option value="">Seleccione</option>
+                     <select id="asesor" name="asesor"> <option value="">Seleccione</option>
                          </select>
                 </div>
             </div>
@@ -660,11 +660,31 @@
                     const selectedValue = e.target.dataset.value;
                     const selectedText = e.target.textContent;
 
+                    console.log(`Opción seleccionada: Texto=${selectedText}, Valor=${selectedValue}`); // Debugging
+
                     // Actualizar el input de filtro con el texto seleccionado
                     filterInput.value = selectedText;
 
-                    // Actualizar el valor del select nativo oculto
-                    selectElement.value = selectedValue;
+                    // --- Corrección: Iterar sobre las opciones del select oculto y seleccionar la que coincida ---
+                    let optionFound = false;
+                    for (let i = 0; i < selectElement.options.length; i++) {
+                        if (selectElement.options[i].value === selectedValue) {
+                            selectElement.options[i].selected = true;
+                            optionFound = true;
+                            break; // Salir del bucle una vez encontrada la opción
+                        }
+                    }
+
+                    // Si la opción no se encontró (esto no debería pasar si originalOptions está sincronizado con el select)
+                    // Puedes añadir manejo de errores o un console.warn aquí si lo deseas.
+                    if (!optionFound) {
+                         console.warn(`Valor ${selectedValue} no encontrado en las opciones del select oculto (${selectElement.id}).`);
+                         // Opcional: Limpiar el valor si no se encuentra
+                         // selectElement.value = '';
+                    }
+
+                    console.log(`Valor del select oculto (${selectElement.id}) después de seleccionar: ${selectElement.value}`); // Debugging
+
 
                     // Ocultar la lista
                     optionsListElement.classList.remove('show');
@@ -699,6 +719,16 @@
                     if (selectElement === empresaSelect) originalEmpresaOptions = currentOptions;
                     if (selectElement === asesorSelect) originalAsesorOptions = currentOptions;
 
+                    // --- Actualizar las opciones del select nativo oculto ---
+                    selectElement.innerHTML = ''; // Limpiar opciones actuales
+                    currentOptions.forEach(option => {
+                         // Clonar la opción para añadirla al select nativo
+                         selectElement.appendChild(option.cloneNode(true));
+                    });
+                    // Asegurarse de que la opción "Seleccione" esté seleccionada por defecto
+                    selectElement.value = "";
+
+
                     // Configurar el combobox con las opciones cargadas
                     setupCombobox(filterInput, optionsListElement, currentOptions, selectElement);
 
@@ -724,6 +754,7 @@
         setupCombobox(afpFilterInput, afpOptionsList, originalAfpOptions, afpSelect);
 
         // Cargar opciones de Firestore y configurar comboboxes
+        // Pasar el selectElement para que loadFirestoreDropdownOptions pueda actualizarlo
         loadFirestoreDropdownOptions(empresasCollection, empresaFilterInput, empresaOptionsList, empresaSelect);
         loadFirestoreDropdownOptions(asesoresCollection, asesorFilterInput, asesorOptionsList, asesorSelect);
 
@@ -822,14 +853,46 @@
             const asesor = asesorSelect.value; // Esto será el ID del documento del asesor en Firestore
             const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
 
-            // Validar que los campos obligatorios no estén vacíos
-            if (!nombre || !tipoIdentificacion || !identificacion || !empresa || !arl || !riesgo || !eps || !ccf || !afp || !fecha || !ingreso || !asesor || !valorAPagar) {
-                 statusMessage.textContent = 'Por favor, complete todos los campos.';
+            console.log("Valores del formulario antes de validación:"); // Debugging
+            console.log("Nombre:", nombre);
+            console.log("Tipo Identificacion:", tipoIdentificacion);
+            console.log("Identificacion:", identificacion);
+            console.log("Empresa (select value):", empresa); // Debugging específico para Empresa
+            console.log("ARL:", arl);
+            console.log("Riesgo:", riesgo);
+            console.log("EPS:", eps);
+            console.log("CCF:", ccf);
+            console.log("AFP:", afp);
+            console.log("Fecha:", fecha);
+            console.log("Ingreso:", ingreso);
+            console.log("Asesor (select value):", asesor); // Debugging específico para Asesor
+            console.log("Valor a Pagar:", valorAPagar);
+
+
+            // --- Validación detallada de campos obligatorios ---
+            const missingFields = [];
+            if (!nombre) missingFields.push('Nombre');
+            if (!tipoIdentificacion) missingFields.push('Tipo de Identificación');
+            if (!identificacion) missingFields.push('Identificación');
+            if (!empresa) missingFields.push('Empresa');
+            if (!arl) missingFields.push('ARL');
+            if (!riesgo) missingFields.push('Riesgo');
+            if (!eps) missingFields.push('EPS');
+            if (!ccf) missingFields.push('CCF');
+            if (!afp) missingFields.push('AFP');
+            if (!fecha) missingFields.push('Fecha');
+            if (!ingreso) missingFields.push('Ingreso');
+            if (!asesor) missingFields.push('Asesor');
+             if (!valorAPagar) missingFields.push('Valor a Pagar');
+
+
+            if (missingFields.length > 0) {
+                 statusMessage.textContent = 'Por favor, complete los siguientes campos: ' + missingFields.join(', ');
                  statusMessage.className = 'error';
                   setTimeout(() => {
                      statusMessage.textContent = '';
                      statusMessage.className = '';
-                 }, 5000);
+                 }, 7000); // Aumentar tiempo visible para mensajes largos
                  return; // Detener el envío si faltan campos
             }
 
@@ -884,21 +947,21 @@
                 userForm.reset(); // Limpiar el formulario
                 // Limpiar los inputs de filtro y restablecer los selects nativos
                 tipoIdentificacionFilterInput.value = '';
-                tipoIdentificacionSelect.value = '';
+                tipoIdentificacionSelect.value = ''; // Resetear el select oculto
                 empresaFilterInput.value = '';
-                empresaSelect.value = '';
+                empresaSelect.value = ''; // Resetear el select oculto
                 arlFilterInput.value = '';
-                arlSelect.value = '';
+                arlSelect.value = ''; // Resetear el select oculto
                 riesgoFilterInput.value = '';
-                riesgoSelect.value = '';
+                riesgoSelect.value = ''; // Resetear el select oculto
                 epsFilterInput.value = '';
-                epsSelect.value = '';
+                epsSelect.value = ''; // Resetear el select oculto
                 ccfFilterInput.value = '';
-                ccfSelect.value = '';
+                ccfSelect.value = ''; // Resetear el select oculto
                 afpFilterInput.value = '';
-                afpSelect.value = '';
+                afpSelect.value = ''; // Resetear el select oculto
                 asesorFilterInput.value = '';
-                asesorSelect.value = '';
+                asesorSelect.value = ''; // Resetear el select oculto
 
 
                 // Limpiar el mensaje después de unos segundos
