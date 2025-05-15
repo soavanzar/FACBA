@@ -10,7 +10,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 
     <style>
@@ -407,12 +407,12 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const analytics = firebase.analytics();
-        const database = firebase.database(); // Inicializar Realtime Database
+        const db = firebase.firestore(); // Inicializar Firestore
 
-        // Referencias a las ubicaciones en la base de datos
-        const usersRef = database.ref('usuarios');
-        const empresasRef = database.ref('empresas');
-        const asesoresRef = database.ref('asesores');
+        // Referencias a las colecciones en Firestore
+        const usersCollection = db.collection('usuarios');
+        const empresasCollection = db.collection('empresas');
+        const asesoresCollection = db.collection('asesores');
 
         // Obtener elementos del DOM
         const userForm = document.getElementById('user-form');
@@ -438,31 +438,34 @@
             modalElement.classList.remove('show');
         }
 
-        // --- Funciones para cargar Dropdowns desde Firebase ---
-        function loadDropdownOptions(selectElement, dataSnapshot) {
+        // --- Funciones para cargar Dropdowns desde Firestore ---
+        async function loadDropdownOptions(selectElement, collectionRef) {
             // Limpiar opciones actuales excepto la primera (Seleccione)
             selectElement.innerHTML = '<option value="">Seleccione</option>';
-            if (dataSnapshot.exists()) {
-                const items = dataSnapshot.val();
-                for (const key in items) {
-                    const item = items[key];
-                    const option = document.createElement('option');
-                    option.value = key; // Usar la clave de Firebase como valor
-                    option.textContent = item.nombre; // Asumir que el objeto tiene una propiedad 'nombre'
-                    selectElement.appendChild(option);
-                }
+            try {
+                // Escuchar cambios en tiempo real (usando onSnapshot)
+                onSnapshot(collectionRef, (snapshot) => {
+                    selectElement.innerHTML = '<option value="">Seleccione</option>'; // Limpiar de nuevo en cada cambio
+                    snapshot.forEach((doc) => {
+                        const item = doc.data();
+                        const option = document.createElement('option');
+                        option.value = doc.id; // Usar el ID del documento de Firestore como valor
+                        option.textContent = item.nombre; // Asumir que el documento tiene una propiedad 'nombre'
+                        selectElement.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error("Error al cargar opciones del dropdown:", error);
+                // Opcional: Mostrar un mensaje de error al usuario
             }
         }
 
-        // Escuchar cambios en las empresas y cargar el dropdown
-        empresasRef.on('value', (snapshot) => {
-            loadDropdownOptions(empresaSelect, snapshot);
-        });
+        // Cargar opciones iniciales y escuchar cambios en las empresas
+        loadDropdownOptions(empresaSelect, empresasCollection);
 
-        // Escuchar cambios en los asesores y cargar el dropdown
-        asesoresRef.on('value', (snapshot) => {
-             loadDropdownOptions(asesorSelect, snapshot);
-        });
+        // Cargar opciones iniciales y escuchar cambios en los asesores
+        loadDropdownOptions(asesorSelect, asesoresCollection);
+
 
         // --- Manejo de Formularios y Botones ---
 
@@ -501,54 +504,52 @@
          });
 
 
-        // Guardar nueva Empresa en Firebase
-        empresaModalForm.addEventListener('submit', (e) => {
+        // Guardar nueva Empresa en Firestore
+        empresaModalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nombre = document.getElementById('nueva-empresa-nombre').value;
             if (nombre) {
-                empresasRef.push({ nombre: nombre })
-                    .then(() => {
-                        console.log("Empresa guardada con éxito");
-                        hideModal(addEmpresaModal);
-                        empresaModalForm.reset();
-                        // No necesitamos recargar el dropdown aquí, onValue lo hará automáticamente
-                    })
-                    .catch((error) => {
-                        console.error("Error al guardar empresa:", error);
-                        // Mostrar mensaje de error en el modal si es necesario
-                    });
+                try {
+                    await addDoc(empresasCollection, { nombre: nombre });
+                    console.log("Empresa guardada con éxito");
+                    hideModal(addEmpresaModal);
+                    empresaModalForm.reset();
+                    // onSnapshot en loadDropdownOptions se encargará de actualizar el dropdown
+                } catch (error) {
+                    console.error("Error al guardar empresa:", error);
+                    // Mostrar mensaje de error en el modal si es necesario
+                }
             }
         });
 
-        // Guardar nuevo Asesor en Firebase
-        asesorModalForm.addEventListener('submit', (e) => {
+        // Guardar nuevo Asesor en Firestore
+        asesorModalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nombre = document.getElementById('nuevo-asesor-nombre').value;
             if (nombre) {
-                asesoresRef.push({ nombre: nombre })
-                    .then(() => {
-                        console.log("Asesor guardado con éxito");
-                        hideModal(addAsesorModal);
-                        asesorModalForm.reset();
-                         // No necesitamos recargar el dropdown aquí, onValue lo hará automáticamente
-                    })
-                    .catch((error) => {
-                        console.error("Error al guardar asesor:", error);
-                         // Mostrar mensaje de error en el modal si es necesario
-                    });
+                try {
+                    await addDoc(asesoresCollection, { nombre: nombre });
+                    console.log("Asesor guardado con éxito");
+                    hideModal(addAsesorModal);
+                    asesorModalForm.reset();
+                    // onSnapshot en loadDropdownOptions se encargará de actualizar el dropdown
+                } catch (error) {
+                    console.error("Error al guardar asesor:", error);
+                     // Mostrar mensaje de error en el modal si es necesario
+                }
             }
         });
 
 
         // --- Manejo del Formulario Principal (Guardar Usuario) ---
-        userForm.addEventListener('submit', (e) => {
+        userForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Prevenir el envío por defecto del formulario
 
             // Obtener los valores del formulario
             const nombre = document.getElementById('nombre').value;
             const tipoIdentificacion = document.getElementById('tipo-identificacion').value;
             const identificacion = document.getElementById('identificacion').value;
-            const empresa = document.getElementById('empresa').value; // Esto será la clave de Firebase de la empresa
+            const empresa = document.getElementById('empresa').value; // Esto será el ID del documento de la empresa en Firestore
             const arl = document.getElementById('arl').value;
             const riesgo = document.getElementById('riesgo').value;
             const eps = document.getElementById('eps').value;
@@ -556,15 +557,27 @@
             const afp = document.getElementById('afp').value;
             const fecha = document.getElementById('fecha').value;
             const ingreso = document.getElementById('ingreso').value;
-            const asesor = document.getElementById('asesor').value; // Esto será la clave de Firebase del asesor
+            const asesor = document.getElementById('asesor').value; // Esto será el ID del documento del asesor en Firestore
             const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
+
+            // Validar que los campos obligatorios no estén vacíos
+            if (!nombre || !tipoIdentificacion || !identificacion || !empresa || !arl || !riesgo || !eps || !ccf || !afp || !fecha || !ingreso || !asesor || !valorAPagar) {
+                 statusMessage.textContent = 'Por favor, complete todos los campos.';
+                 statusMessage.className = 'error';
+                  setTimeout(() => {
+                     statusMessage.textContent = '';
+                     statusMessage.className = '';
+                 }, 5000);
+                 return; // Detener el envío si faltan campos
+            }
+
 
             // Crear un objeto con los datos del usuario
             const newUser = {
                 nombre: nombre,
                 tipoIdentificacion: tipoIdentificacion,
                 identificacion: identificacion,
-                empresa: empresa, // Guardar la clave de la empresa
+                empresaId: empresa, // Guardar el ID de la empresa
                 arl: arl,
                 riesgo: riesgo,
                 eps: eps,
@@ -572,65 +585,42 @@
                 afp: afp,
                 fecha: fecha,
                 ingreso: ingreso,
-                asesor: asesor, // Guardar la clave del asesor
-                valorAPagar: valorAPagar // Guardar el valor formateado
+                asesorId: asesor, // Guardar el ID del asesor
+                valorAPagar: valorAPagar, // Guardar el valor formateado
+                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp
             };
 
-            // Guardar el nuevo usuario en Firebase Realtime Database
-            usersRef.push(newUser)
-                .then(() => {
-                    // Mostrar mensaje de éxito
-                    statusMessage.textContent = 'Usuario guardado con éxito!';
-                    statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
-                    userForm.reset(); // Limpiar el formulario
-                    // Limpiar el mensaje después de unos segundos
-                    setTimeout(() => {
-                        statusMessage.textContent = '';
-                        statusMessage.className = '';
-                    }, 5000); // 5 segundos
-                })
-                .catch((error) => {
-                    // Mostrar mensaje de error
-                    statusMessage.textContent = 'Error al guardar usuario: ' + error.message;
-                    statusMessage.className = 'error'; // Aplicar clase de estilo para error
-                    console.error("Error al guardar usuario:", error);
-                     // Limpiar el mensaje después de unos segundos
-                    setTimeout(() => {
-                        statusMessage.textContent = '';
-                        statusMessage.className = '';
-                    }, 5000); // 5 segundos
-                });
+            // Guardar el nuevo usuario en Firestore
+            try {
+                await addDoc(usersCollection, newUser);
+                // Mostrar mensaje de éxito
+                statusMessage.textContent = 'Usuario guardado con éxito!';
+                statusMessage.className = 'success'; // Aplicar clase de estilo para éxito
+                userForm.reset(); // Limpiar el formulario
+                // Limpiar el mensaje después de unos segundos
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000); // 5 segundos
+            } catch (error) {
+                // Mostrar mensaje de error
+                statusMessage.textContent = 'Error al guardar usuario: ' + error.message;
+                statusMessage.className = 'error'; // Aplicar clase de estilo para error
+                console.error("Error al guardar usuario:", error);
+                 // Limpiar el mensaje después de unos segundos
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000); // 5 segundos
+            }
         });
 
-        // --- Funcionalidad de Filtro para Dropdowns (Ejemplo básico para RIESGO) ---
+        // --- Funcionalidad de Filtro para Dropdowns (Ejemplo básico para SELECTs grandes) ---
         // Para implementar un filtro en un select nativo, necesitarías un input de texto
         // encima del select y JavaScript para ocultar/mostrar opciones o recrear el select.
-        // Aquí un ejemplo conceptual para RIESGO (requiere un input de filtro HTML adicional):
-        /*
-        const riesgoFilterInput = document.getElementById('riesgo-filter'); // Asume que existe este input
-        const riesgoSelect = document.getElementById('riesgo');
-        const riesgoOptions = Array.from(riesgoSelect.options); // Copia de las opciones originales
-
-        riesgoFilterInput.addEventListener('input', (e) => {
-            const filterText = e.target.value.toLowerCase();
-            riesgoSelect.innerHTML = ''; // Limpiar select
-
-            riesgoOptions.forEach(option => {
-                if (option.textContent.toLowerCase().includes(filterText)) {
-                    riesgoSelect.appendChild(option.cloneNode(true)); // Añadir opciones que coinciden
-                }
-            });
-             // Asegurar que la opción "Seleccione" siempre esté presente si no hay filtro o coincide
-             if (filterText === '' || 'seleccione'.includes(filterText)) {
-                 const defaultOption = document.createElement('option');
-                 defaultOption.value = "";
-                 defaultOption.textContent = "Seleccione";
-                 if (!riesgoSelect.querySelector('option[value=""]')) { // Evitar duplicados
-                     riesgoSelect.prepend(defaultOption);
-                 }
-             }
-        });
-        */
+        // Esto puede volverse complejo rápidamente. Considera usar una librería de select
+        // con funcionalidad de búsqueda si el número de opciones es muy grande.
+        // El código actual carga todas las opciones de ARL, EPS, CCF, AFP directamente.
 
         // --- Formato de Moneda para Valor a Pagar ---
         valorAPagarInput.addEventListener('input', (e) => {
