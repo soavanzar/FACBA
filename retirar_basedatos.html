@@ -533,6 +533,11 @@
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas'); // Necesario para obtener nombres de empresa
         const asesoresCollection = db.collection('asesores'); // Necesario para obtener nombres de asesor
+        const arlCollection = db.collection('arl'); // Nueva colección para ARL
+        const epsCollection = db.collection('eps'); // Nueva colección para EPS
+        const ccfCollection = db.collection('ccf'); // Nueva colección para CCF
+        const afpCollection = db.collection('afp'); // Nueva colección para AFP
+
 
         // Obtener elementos del DOM
         const retireUserForm = document.getElementById('retire-user-form');
@@ -569,20 +574,21 @@
         let originalUserOptions = [];
         let empresasMap = new Map(); // Para mapear IDs de empresa a nombres
         let asesoresMap = new Map(); // Para mapear IDs de asesor a nombres
+        let arlMap = new Map(); // Para mapear IDs de ARL a nombres
+        let epsMap = new Map(); // Para mapear IDs de EPS a nombres
+        let ccfMap = new Map(); // Para mapear IDs de CCF a nombres
+        let afpMap = new Map(); // Para mapear IDs de AFP a nombres
+
 
         // Array de campos que se pueden editar
         const editableFields = [
             tipoIdentificacionInput,
             identificacionInput,
-            empresaInput,
-            arlInput,
-            riesgoInput,
-            epsInput,
-            ccfInput,
-            afpInput,
+            // Note: Empresa, ARL, Riesgo, EPS, CCF, AFP, Asesor are now text inputs,
+            // if editing is fully implemented, these would need to become comboboxes again.
+            // For now, they remain readonly text fields displaying the name.
             fechaIngresoInput,
             fechaRegistroInput,
-            asesorInput,
             valorAPagarInput
             // fechaRetiroInput no se incluye aquí porque siempre debe ser editable para establecer la fecha de retiro
         ];
@@ -668,7 +674,7 @@
              filterInput.addEventListener('focus', (e) => {
                  // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
                  if (originalOptions.length > 0 || e.target.value.length > 0) {
-                      populateAndFilterFloatingList(filterInput, originalOptions, e.target.value); // Usar originalOptions directamente
+                      populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value); // Usar originalOptions directamente
                       optionsListElement.classList.add('show');
                  }
              });
@@ -815,7 +821,7 @@
                      currentUserOptions.push(defaultOption);
 
                     // Cargar nombres de empresas y asesores para mostrar en la lista y al cargar datos
-                    await loadEmpresasAndAsesoresMaps();
+                    await loadLookupMaps(); // Cargar todos los mapas de entidades
 
                     snapshot.forEach((doc) => {
                         const user = doc.data();
@@ -867,30 +873,75 @@
             }
         }
 
-        // Función para cargar los mapas de empresas y asesores (para mostrar nombres en lugar de IDs)
-        async function loadEmpresasAndAsesoresMaps() {
+        // Función para cargar los mapas de todas las entidades (para mostrar nombres en lugar de IDs)
+        async function loadLookupMaps() {
             try {
-                const empresasSnapshot = await empresasCollection.get();
+                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
+                    empresasCollection.get(),
+                    asesoresCollection.get(),
+                    arlCollection.get(), // Cargar ARL
+                    epsCollection.get(), // Cargar EPS
+                    ccfCollection.get(), // Cargar CCF
+                    afpCollection.get()  // Cargar AFP
+                ]);
+
                 empresasMap = new Map();
                 empresasSnapshot.forEach(doc => {
-                    empresasMap.set(doc.id, doc.data().nombre);
+                    empresasMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
                 });
 
-                const asesoresSnapshot = await asesoresCollection.get();
                 asesoresMap = new Map();
                 asesoresSnapshot.forEach(doc => {
-                    asesoresMap.set(doc.id, doc.data().nombre);
+                    asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
                 });
-                 console.log("Mapas de Empresas y Asesores cargados."); // Debugging
+
+                arlMap = new Map(); // Llenar mapa de ARL
+                arlSnapshot.forEach(doc => {
+                    arlMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                epsMap = new Map(); // Llenar mapa de EPS
+                epsSnapshot.forEach(doc => {
+                    epsMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                ccfMap = new Map(); // Llenar mapa de CCF
+                ccfSnapshot.forEach(doc => {
+                    ccfMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                afpMap = new Map(); // Llenar mapa de AFP
+                afpSnapshot.forEach(doc => {
+                    afpMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+
+                 console.log("Mapas de Empresas, Asesores, ARL, EPS, CCF, AFP cargados."); // Debugging
             } catch (error) {
-                console.error("Error al cargar mapas de empresas y asesores:", error);
-                 // Opcional: Mostrar un mensaje de error si la carga de mapas falla
+                console.error("Error al cargar mapas:", error);
+                // Opcional: Mostrar un mensaje de error si la carga de mapas falla
             }
         }
 
 
         // --- Función para cargar datos de un usuario seleccionado ---
         async function loadUserData(userId) {
+            console.log(`Attempting to load user data for userId: ${userId}`); // Added logging
+
+            if (!userId) {
+                console.warn("loadUserData called with empty userId.");
+                clearUserDataFields();
+                hideFormActionButtons();
+                hideUserStatusDisplay();
+                statusMessage.textContent = 'Error: No se ha seleccionado un usuario válido.';
+                statusMessage.className = 'error';
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000);
+                return; // Exit if userId is empty
+            }
+
             try {
                 const userDoc = await usersCollection.doc(userId).get();
                 if (userDoc.exists) {
@@ -902,14 +953,55 @@
                     identificacionInput.value = userData.identificacion || '';
                     // Usar los mapas para obtener los nombres de empresa y asesor
                     empresaInput.value = empresasMap.get(userData.empresaId) || 'Desconocido';
-                    arlInput.value = userData.arl || '';
+                    arlInput.value = arlMap.get(userData.arlId) || 'Desconocido'; // Usar mapa para ARL
                     riesgoInput.value = userData.riesgo || '';
-                    epsInput.value = userData.eps || '';
-                    ccfInput.value = userData.ccf || '';
-                    afpInput.value = userData.afp || '';
-                    // Asegurarse de que las fechas se muestren correctamente en el input type="date"
-                    fechaIngresoInput.value = userData.fecha ? new Date(userData.fecha).toISOString().split('T')[0] : '';
-                    fechaRegistroInput.value = userData.ingreso ? new Date(userData.ingreso).toISOString().split('T')[0] : '';
+                    epsInput.value = epsMap.get(userData.epsId) || 'Desconocido'; // Usar mapa para EPS
+                    ccfInput.value = ccfMap.get(userData.ccfId) || 'Desconocido'; // Usar mapa para CCF
+                    afpInput.value = afpMap.get(userData.afpId) || 'Desconocido'; // Usar mapa para AFP
+
+                    // --- Manejo mejorado de fechas ---
+                    let fechaIngreso = '';
+                    if (userData.fecha && typeof userData.fecha.toDate === 'function') {
+                        // Si es un Timestamp de Firestore
+                        const date = userData.fecha.toDate();
+                        if (!isNaN(date.getTime())) { // Check if the date is valid
+                             fechaIngreso = date.toISOString().split('T')[0];
+                        } else {
+                             console.warn(`Invalid date value for fecha in user ${userId}:`, userData.fecha);
+                        }
+                    } else if (userData.fecha) {
+                         // If it's not a Timestamp, try to create a Date object
+                         const date = new Date(userData.fecha);
+                         if (!isNaN(date.getTime())) { // Check if the date is valid
+                             fechaIngreso = date.toISOString().split('T')[0];
+                         } else {
+                             console.warn(`Invalid date value for fecha in user ${userId}:`, userData.fecha);
+                         }
+                    }
+                    fechaIngresoInput.value = fechaIngreso;
+
+
+                    let fechaRegistro = '';
+                    if (userData.ingreso && typeof userData.ingreso.toDate === 'function') {
+                         // If it's a Firestore Timestamp
+                         const date = userData.ingreso.toDate();
+                         if (!isNaN(date.getTime())) { // Check if the date is valid
+                             fechaRegistro = date.toISOString().split('T')[0];
+                         } else {
+                             console.warn(`Invalid date value for ingreso in user ${userId}:`, userData.ingreso);
+                         }
+                    } else if (userData.ingreso) {
+                         // If it's not a Timestamp, try to create a Date object
+                         const date = new Date(userData.ingreso);
+                          if (!isNaN(date.getTime())) { // Check if the date is valid
+                             fechaRegistro = date.toISOString().split('T')[0];
+                         } else {
+                             console.warn(`Invalid date value for ingreso in user ${userId}:`, userData.ingreso);
+                         }
+                    }
+                    fechaRegistroInput.value = fechaRegistro;
+                    // --- Fin manejo mejorado de fechas ---
+
 
                     asesorInput.value = asesoresMap.get(userData.asesorId) || 'Desconocido';
                     valorAPagarInput.value = userData.valorAPagar || '';
@@ -938,21 +1030,47 @@
                      }, 5000);
                 }
             } catch (error) {
-                console.error("Error al cargar datos del usuario:", error);
+                console.error(`Error al cargar datos del usuario con ID ${userId}:`, error); // Log the specific ID and the full error object
+
+                // --- Intenta loggear más detalles del error ---
+                if (error && error.message) {
+                    console.error("Firebase Error Message:", error.message);
+                }
+                if (error && error.code) {
+                    console.error("Firebase Error Code:", error.code);
+                }
+                 // Si el error es un objeto vacío {}, JSON.stringify podría no mostrar nada útil.
+                 // Logging las propiedades específicas (message, code) es más fiable.
+                 // console.error("Full Error Object:", JSON.stringify(error)); // Optional: log stringified error
+
+
+                let errorMessage = 'Error al cargar datos del usuario.';
+                if (error && error.message) { // Check if error and error.message exist
+                    errorMessage += ' Detalles: ' + error.message; // Add Firebase error message if available
+                } else {
+                     errorMessage += ' Consulte la consola para más detalles.';
+                }
+
                 clearUserDataFields();
-                hideFormActionButtons(); // Ocultar botones de acción
-                hideUserStatusDisplay(); // Ocultar mensaje de estado
-                statusMessage.textContent = 'Error al cargar datos del usuario.';
+                hideFormActionButtons();
+                hideUserStatusDisplay();
+                statusMessage.textContent = errorMessage;
                 statusMessage.className = 'error';
-                 setTimeout(() => {
-                     statusMessage.textContent = '';
-                     statusMessage.className = '';
-                 }, 5000);
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                    statusMessage.className = '';
+                }, 5000);
+
+                // --- Comentario importante para el usuario ---
+                console.warn("POSIBLES CAUSAS ADICIONALES DEL ERROR 'Invalid time value':");
+                console.warn("Verifique que los campos 'fecha' e 'ingreso' en el documento del usuario en Firestore contengan valores de fecha o marca de tiempo válidos.");
+
             }
         }
 
         // Función para limpiar los campos de información del usuario
         function clearUserDataFields() {
+            // Limpiar los inputs de texto readonly
             tipoIdentificacionInput.value = '';
             identificacionInput.value = '';
             empresaInput.value = '';
@@ -1103,6 +1221,10 @@
                 hideFormActionButtons(); // Ocultar botones de acción
                 hideUserStatusDisplay(); // Ocultar mensaje de estado
 
+                // Limpiar el input de filtro del usuario seleccionado
+                userNameFilterInput.value = '';
+                userNameSelect.value = ''; // Resetear el select oculto
+
 
                 // Limpiar el mensaje después de unos segundos
                 setTimeout(() => {
@@ -1128,13 +1250,8 @@
         editUserButton.addEventListener('click', () => {
              // Verificar si hay un usuario seleccionado antes de habilitar la edición
              if (userNameSelect.value) {
-                 enableUserDataFields(); // Habilitar los campos para edición
-                 statusMessage.textContent = 'Campos habilitados para edición.';
-                 statusMessage.className = '';
-                  setTimeout(() => {
-                     statusMessage.textContent = '';
-                     statusMessage.className = '';
-                 }, 3000);
+                 // Redirigir a la página de gestionar usuario con el ID del usuario
+                 window.location.href = `gestionar_basedatos.html?userId=${userNameSelect.value}`;
              } else {
                  statusMessage.textContent = 'Por favor, seleccione un usuario para editar.';
                  statusMessage.className = 'error';
