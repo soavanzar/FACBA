@@ -1,1 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Base de Datos - FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* Estilos CSS personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px;
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            max-width: 1200px; /* Ancho máximo para la tabla */
+            margin: 20px auto; /* Centra el contenedor y añade margen */
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Estilos de tabla tipo Excel */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse; /* Elimina el espacio entre bordes */
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 12px 15px; /* Espaciado interno */
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* Borde inferior para filas */
+        }
+
+        .user-table th {
+            background-color: #eef2ff; /* Fondo azul/morado muy claro para encabezados */
+            color: #1f2937; /* Texto oscuro */
+            font-weight: 600;
+            text-transform: uppercase; /* Texto en mayúsculas */
+            font-size: 0.9rem;
+        }
+
+        .user-table tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* Fondo ligeramente diferente para filas pares (efecto cebra) */
+        }
+
+        .user-table tbody tr:hover {
+            background-color: #e5e7eb; /* Fondo gris claro al pasar el ratón */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .user-table td {
+            font-size: 0.95rem;
+            color: #374151; /* Texto gris oscuro */
+        }
+
+        /* Estilos para las celdas de acciones */
+        .action-buttons {
+            display: flex;
+            gap: 8px; /* Espacio entre botones */
+            justify-content: center; /* Centra los botones en la celda */
+        }
+
+        .action-button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            border: none; /* Sin borde por defecto */
+        }
+
+        .action-button i {
+             margin-right: 4px; /* Espacio entre icono y texto */
+        }
+
+        .edit-button {
+            background-color: #60a5fa; /* Azul */
+            color: white;
+        }
+        .edit-button:hover {
+            background-color: #3b82f6; /* Azul más oscuro */
+        }
+
+        .delete-button {
+            background-color: #f87171; /* Rojo */
+            color: white;
+        }
+        .delete-button:hover {
+            background-color: #ef4444; /* Rojo más oscuro */
+        }
+
+        .status-button {
+            background-color: #a78bfa; /* Morado */
+            color: white;
+        }
+        .status-button:hover {
+            background-color: #8b5cf6; /* Morado más oscuro */
+        }
+
+        /* Estilos para el modal de edición */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente más oscuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px; /* Ancho máximo del modal */
+            position: relative;
+            max-height: 90vh; /* Altura máxima para scroll */
+            overflow-y: auto; /* Habilita scroll si el contenido es largo */
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #9ca3af; /* Gris */
+            transition: color 0.2s ease-in-out;
+        }
+
+        .modal-close-button:hover {
+            color: #6b7280; /* Gris más oscuro */
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1f2937;
+        }
+
+        .modal-form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .modal-form-group input[type="text"],
+        .modal-form-group input[type="number"],
+        .modal-form-group input[type="date"],
+        .modal-form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+         .modal-form-group input:focus,
+         .modal-form-group select:focus {
+             outline: none;
+             border-color: #4f46e5;
+             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+         }
+
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+        }
+
+        .save-changes-button {
+            background-color: #10b981; /* Verde */
+            color: white;
+        }
+        .save-changes-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+        }
+
+        .cancel-button {
+            background-color: #9ca3af; /* Gris */
+            color: white;
+        }
+        .cancel-button:hover {
+            background-color: #6b7280; /* Gris más oscuro */
+        }
+
+        /* Estilos para mensajes de estado */
+        #status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        }
+
+        #status-message.success {
+            background-color: #d4edda; /* Verde claro */
+            color: #155724; /* Verde oscuro */
+            border: 1px solid #c3e6cb;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #status-message.error {
+            background-color: #f8d7da; /* Rojo claro */
+            color: #721c24; /* Rojo oscuro */
+            border: 1px solid #f5c6cb;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #status-message.info {
+            background-color: #cce5ff; /* Azul claro */
+            color: #004085; /* Azul oscuro */
+            border: 1px solid #b8daff;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Ir Atrás
+        </a>
+
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios</h1>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Buscar por nombre, identificación, empresa...">
+        </div>
+
+        <div class="table-container">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Identificación</th>
+                        <th>Empresa</th>
+                        <th>Estado</th>
+                        <th>Fecha Ingreso</th>
+                        <th>Fecha Registro</th>
+                        <th>Asesor</th>
+                        <th>Valor a Pagar</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="status-message"></div>
+    </div>
+
+    <div id="edit-user-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-edit-modal">&times;</span>
+            <h2>Editar Usuario</h2>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id"> <div class="modal-form-group">
+                    <label for="edit-nombre">Nombre:</label>
+                    <input type="text" id="edit-nombre" name="nombre" required>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-tipo-identificacion">Tipo de Identificación:</label>
+                    <select id="edit-tipo-identificacion" name="tipoIdentificacion" required>
+                        <option value="">Selecciona</option>
+                        <option value="CC">Cédula de Ciudadanía</option>
+                        <option value="TI">Tarjeta de Identidad</option>
+                        <option value="CE">Cédula de Extranjería</option>
+                        <option value="PA">Pasaporte</option>
+                        </select>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-identificacion">Identificación:</label>
+                    <input type="number" id="edit-identificacion" name="identificacion" required>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-empresa">Empresa:</label>
+                     <select id="edit-empresa" name="empresaId" required>
+                         <option value="">Selecciona una empresa</option>
+                         </select>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-arl">ARL:</label>
+                    <input type="text" id="edit-arl" name="arl">
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-riesgo">Riesgo:</label>
+                    <input type="text" id="edit-riesgo" name="riesgo">
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-eps">EPS:</label>
+                    <input type="text" id="edit-eps" name="eps">
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-ccf">CCF:</label>
+                    <input type="text" id="edit-ccf" name="ccf">
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-afp">AFP:</label>
+                    <input type="text" id="edit-afp" name="afp">
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-fecha-ingreso">Fecha de Ingreso:</label>
+                    <input type="date" id="edit-fecha-ingreso" name="fecha" required>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-fecha-registro">Fecha de Registro Inicial:</label>
+                    <input type="date" id="edit-fecha-registro" name="ingreso" required>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="edit-asesor">Asesor:</label>
+                     <select id="edit-asesor" name="asesorId" required>
+                         <option value="">Selecciona un asesor</option>
+                         </select>
+                </div>
+
+                 <div class="modal-form-group">
+                    <label for="edit-valor-a-pagar">Valor a Pagar (COP):</label>
+                    <input type="number" id="edit-valor-a-pagar" name="valorAPagar" step="0.01">
+                </div>
+
+                 <div class="modal-form-group">
+                    <label for="edit-estado">Estado:</label>
+                    <select id="edit-estado" name="estado" required>
+                        <option value="activo">Activo</option>
+                        <option value="retirado">Retirado</option>
+                        </select>
+                </div>
+
+                 <div class="modal-form-group" id="edit-fecha-retiro-group" style="display: none;">
+                    <label for="edit-fecha-retiro">Fecha de Retiro:</label>
+                    <input type="date" id="edit-fecha-retiro" name="fechaRetiro">
+                </div>
+
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const db = firebase.firestore(); // Inicializar Firestore
+
+        // Referencias a las colecciones en Firestore
+        const usersCollection = db.collection('usuarios');
+        const empresasCollection = db.collection('empresas');
+        const asesoresCollection = db.collection('asesores');
+
+        // Obtener elementos del DOM
+        const userTableBody = document.getElementById('user-table-body');
+        const searchInput = document.getElementById('search-input');
+        const statusMessage = document.getElementById('status-message');
+
+        // Modal de Edición DOM elements
+        const editUserModal = document.getElementById('edit-user-modal');
+        const closeEditModalButton = document.getElementById('close-edit-modal');
+        const cancelEditButton = document.getElementById('cancel-edit');
+        const editUserForm = document.getElementById('edit-user-form');
+
+        // Campos del formulario de edición
+        const editUserIdInput = document.getElementById('edit-user-id');
+        const editNombreInput = document.getElementById('edit-nombre');
+        const editTipoIdentificacionSelect = document.getElementById('edit-tipo-identificacion');
+        const editIdentificacionInput = document.getElementById('edit-identificacion');
+        const editEmpresaSelect = document.getElementById('edit-empresa');
+        const editArlInput = document.getElementById('edit-arl');
+        const editRiesgoInput = document.getElementById('edit-riesgo');
+        const editEpsInput = document.getElementById('edit-eps');
+        const editCcfInput = document.getElementById('edit-ccf');
+        const editAfpInput = document.getElementById('edit-afp');
+        const editFechaIngresoInput = document.getElementById('edit-fecha-ingreso');
+        const editFechaRegistroInput = document.getElementById('edit-fecha-registro');
+        const editAsesorSelect = document.getElementById('edit-asesor');
+        const editValorAPagarInput = document.getElementById('edit-valor-a-pagar');
+        const editEstadoSelect = document.getElementById('edit-estado');
+        const editFechaRetiroGroup = document.getElementById('edit-fecha-retiro-group');
+        const editFechaRetiroInput = document.getElementById('edit-fecha-retiro');
+
+
+        // Mapas para almacenar nombres de empresas y asesores (para mostrar en la tabla)
+        let empresasMap = new Map();
+        let asesoresMap = new Map();
+
+        // --- Funciones de Utilidad ---
+
+        // Función para mostrar mensajes de estado
+        function showStatusMessage(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = ''; // Reset classes
+            statusMessage.classList.add(type);
+            setTimeout(() => {
+                statusMessage.classList.remove(type);
+                statusMessage.textContent = '';
+            }, 5000); // Ocultar después de 5 segundos
+        }
+
+        // Función para formatear fechas (Firestore Timestamp a YYYY-MM-DD)
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            let date;
+            if (timestamp.toDate) { // Check if it's a Firestore Timestamp
+                 date = timestamp.toDate();
+            } else if (typeof timestamp === 'string') { // Handle string dates
+                 date = new Date(timestamp);
+            } else { // Handle other potential date formats
+                 date = new Date(timestamp);
+            }
+
+            if (isNaN(date.getTime())) {
+                return ''; // Return empty string if date is invalid
+            }
+
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para formatear números como moneda (COP)
+        function formatCurrency(number) {
+             if (number === undefined || number === null) return '';
+             return new Intl.NumberFormat('es-CO', {
+                 style: 'currency',
+                 currency: 'COP',
+                 minimumFractionDigits: 0, // No mostrar decimales por defecto
+                 maximumFractionDigits: 2, // Mostrar hasta 2 decimales si existen
+             }).format(number);
+        }
+
+
+        // --- Carga de Datos Inicial ---
+
+        // Cargar mapas de empresas y asesores
+        async function loadEmpresasAndAsesoresMaps() {
+            try {
+                const empresasSnapshot = await empresasCollection.get();
+                empresasMap = new Map();
+                empresasSnapshot.forEach(doc => {
+                    empresasMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                const asesoresSnapshot = await asesoresCollection.get();
+                asesoresMap = new Map();
+                asesoresSnapshot.forEach(doc => {
+                    asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+                 console.log("Mapas de Empresas y Asesores cargados."); // Debugging
+            } catch (error) {
+                console.error("Error al cargar mapas de empresas y asesores:", error);
+                showStatusMessage('Error al cargar datos de empresas y asesores.', 'error');
+            }
+        }
+
+        // Poblar selectores de empresa y asesor en el modal de edición
+        async function populateModalSelects() {
+             try {
+                 // Empresas
+                 const empresasSnapshot = await empresasCollection.get();
+                 editEmpresaSelect.innerHTML = '<option value="">Selecciona una empresa</option>'; // Limpiar y añadir opción por defecto
+                 empresasSnapshot.forEach(doc => {
+                     const option = document.createElement('option');
+                     option.value = doc.id;
+                     option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editEmpresaSelect.appendChild(option);
+                 });
+
+                 // Asesores
+                 const asesoresSnapshot = await asesoresCollection.get();
+                 editAsesorSelect.innerHTML = '<option value="">Selecciona un asesor</option>'; // Limpiar y añadir opción por defecto
+                 asesoresSnapshot.forEach(doc => {
+                     const option = document.createElement('option');
+                     option.value = doc.id;
+                     option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                     editAsesorSelect.appendChild(option);
+                 });
+                  console.log("Selectores de modal poblados."); // Debugging
+             } catch (error) {
+                 console.error("Error al poblar selectores de modal:", error);
+                 showStatusMessage('Error al cargar opciones de empresa/asesor para edición.', 'error');
+             }
+        }
+
+
+        // Renderizar una fila de usuario en la tabla
+        function renderUserRow(userDoc) {
+            const user = userDoc.data();
+            const row = document.createElement('tr');
+            row.dataset.id = userDoc.id; // Guardar el ID del documento en la fila
+
+            // Determinar el estado y la fecha de retiro para mostrar
+            const estado = user.estado || 'activo'; // Estado por defecto si no está definido
+            const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
+
+            row.innerHTML = `
+                <td>${user.nombre || 'Sin Nombre'}</td>
+                <td>${user.identificacion || 'Sin Identificación'}</td>
+                <td>${empresasMap.get(user.empresaId) || 'Desconocida'}</td>
+                <td>${estado}</td>
+                <td>${formatDate(user.fecha)}</td>
+                <td>${formatDate(user.ingreso)}</td>
+                <td>${asesoresMap.get(user.asesorId) || 'Desconocido'}</td>
+                <td>${formatCurrency(user.valorAPagar)}</td>
+                <td class="action-buttons">
+                    <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                    <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
+                         <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
+                    </button>
+                </td>
+            `;
+            return row;
+        }
+
+        // Cargar y mostrar usuarios en la tabla (usando onSnapshot para actualizaciones en tiempo real)
+        async function loadUsersTable() {
+             // Cargar mapas antes de la primera carga de la tabla
+             await loadEmpresasAndAsesoresMaps();
+
+             usersCollection.orderBy('nombre').onSnapshot(snapshot => {
+                 userTableBody.innerHTML = ''; // Limpiar tabla actual
+                 const filterText = searchInput.value.toLowerCase();
+
+                 snapshot.forEach(doc => {
+                     const user = doc.data();
+                     const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+                     const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
+                     const estado = user.estado || 'activo'; // Estado por defecto
+
+                     // Filtrar filas si hay texto en la búsqueda
+                     if (filterText === '' ||
+                         (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
+                         (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
+                         (empresaNombre.toLowerCase().includes(filterText)) ||
+                         (estado.toLowerCase().includes(filterText)) ||
+                         (asesorNombre.toLowerCase().includes(filterText)))
+                     {
+                         const row = renderUserRow(doc);
+                         userTableBody.appendChild(row);
+                     }
+                 });
+
+                 if (userTableBody.children.length === 0) {
+                     const noDataRow = document.createElement('tr');
+                     noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
+                     userTableBody.appendChild(noDataRow);
+                 }
+
+                 console.log(`Tabla de usuarios actualizada. ${snapshot.size} usuarios cargados.`); // Debugging
+             }, error => {
+                 console.error("Error al cargar usuarios con onSnapshot:", error);
+                 showStatusMessage('Error al cargar usuarios.', 'error');
+             });
+        }
+
+
+        // --- Funcionalidad de Búsqueda ---
+        searchInput.addEventListener('input', () => {
+            // onSnapshot ya maneja el filtrado en el callback, solo necesitamos que se dispare
+            // al cambiar el input. La carga inicial de loadUsersTable ya configuró el listener.
+            // No necesitamos llamar a loadUsersTable() aquí directamente, ya que onSnapshot
+            // se encargará de actualizar la tabla con el filtro aplicado.
+        });
+
+
+        // --- Funcionalidad de Edición, Eliminación y Cambio de Estado ---
+
+        // Listener para los botones de acción en la tabla (usando delegación de eventos)
+        userTableBody.addEventListener('click', async (e) => {
+            const targetButton = e.target.closest('.action-button');
+            if (!targetButton) return; // No es un botón de acción
+
+            const userId = targetButton.dataset.id;
+
+            if (targetButton.classList.contains('edit-button')) {
+                // Acción de Editar
+                console.log("Botón Editar clickeado para usuario:", userId);
+                await populateModalSelects(); // Asegurarse de que los selectores estén poblados
+                await loadUserDataForEdit(userId);
+                showEditModal();
+
+            } else if (targetButton.classList.contains('delete-button')) {
+                // Acción de Eliminar
+                console.log("Botón Eliminar clickeado para usuario:", userId);
+                if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.')) {
+                    deleteUser(userId);
+                }
+
+            } else if (targetButton.classList.contains('status-button')) {
+                // Acción de Cambiar Estado
+                console.log("Botón Cambiar Estado clickeado para usuario:", userId);
+                const currentStatus = targetButton.dataset.currentStatus;
+                const newStatus = currentStatus === 'activo' ? 'retirado' : 'activo';
+                changeUserStatus(userId, newStatus);
+            }
+        });
+
+        // Cargar datos de un usuario en el modal de edición
+        async function loadUserDataForEdit(userId) {
+            try {
+                const userDoc = await usersCollection.doc(userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    console.log("Datos del usuario cargados para edición:", userData);
+
+                    // Llenar el formulario del modal
+                    editUserIdInput.value = userId;
+                    editNombreInput.value = userData.nombre || '';
+                    editTipoIdentificacionSelect.value = userData.tipoIdentificacion || '';
+                    editIdentificacionInput.value = userData.identificacion || '';
+                    editEmpresaSelect.value = userData.empresaId || ''; // Seleccionar por ID
+                    editArlInput.value = userData.arl || '';
+                    editRiesgoInput.value = userData.riesgo || '';
+                    editEpsInput.value = userData.eps || '';
+                    editCcfInput.value = userData.ccf || '';
+                    editAfpInput.value = userData.afp || '';
+                    editFechaIngresoInput.value = formatDate(userData.fecha);
+                    editFechaRegistroInput.value = formatDate(userData.ingreso);
+                    editAsesorSelect.value = userData.asesorId || ''; // Seleccionar por ID
+                    editValorAPagarInput.value = userData.valorAPagar || '';
+                    editEstadoSelect.value = userData.estado || 'activo'; // Estado por defecto
+
+                    // Mostrar/ocultar campo fechaRetiro basado en el estado
+                    if (editEstadoSelect.value === 'retirado') {
+                        editFechaRetiroGroup.style.display = 'block';
+                        editFechaRetiroInput.value = formatDate(userData.fechaRetiro);
+                    } else {
+                        editFechaRetiroGroup.style.display = 'none';
+                        editFechaRetiroInput.value = ''; // Limpiar si no está retirado
+                    }
+
+                } else {
+                    console.error("Usuario no encontrado para edición:", userId);
+                    showStatusMessage('Error: Usuario no encontrado para editar.', 'error');
+                    hideEditModal();
+                }
+            } catch (error) {
+                console.error("Error al cargar datos para edición:", error);
+                showStatusMessage('Error al cargar datos del usuario para edición.', 'error');
+                hideEditModal();
+            }
+        }
+
+        // Listener para el cambio en el selector de estado en el modal
+        editEstadoSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'retirado') {
+                editFechaRetiroGroup.style.display = 'block';
+                // Opcional: establecer la fecha actual por defecto si se cambia a retirado
+                if (!editFechaRetiroInput.value) {
+                     editFechaRetiroInput.valueAsDate = new Date();
+                }
+            } else {
+                editFechaRetiroGroup.style.display = 'none';
+                editFechaRetiroInput.value = ''; // Limpiar el campo si no está retirado
+            }
+        });
+
+
+        // Mostrar el modal de edición
+        function showEditModal() {
+            editUserModal.classList.add('show');
+        }
+
+        // Ocultar el modal de edición
+        function hideEditModal() {
+            editUserModal.classList.remove('show');
+            editUserForm.reset(); // Resetear formulario al cerrar
+             editFechaRetiroGroup.style.display = 'none'; // Ocultar campo fecha retiro al cerrar
+        }
+
+        // Listener para cerrar modal con la X
+        closeEditModalButton.addEventListener('click', hideEditModal);
+
+        // Listener para cerrar modal con el botón Cancelar
+        cancelEditButton.addEventListener('click', hideEditModal);
+
+        // Listener para cerrar modal haciendo clic fuera del contenido
+        editUserModal.addEventListener('click', (e) => {
+            if (e.target === editUserModal) {
+                hideEditModal();
+            }
+        });
+
+        // Listener para guardar cambios del formulario de edición
+        editUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevenir envío por defecto
+
+            const userId = editUserIdInput.value;
+            const updatedData = {
+                nombre: editNombreInput.value,
+                tipoIdentificacion: editTipoIdentificacionSelect.value,
+                identificacion: editIdentificacionInput.value,
+                empresaId: editEmpresaSelect.value, // Guardar solo el ID
+                arl: editArlInput.value,
+                riesgo: editRiesgoInput.value,
+                eps: editEpsInput.value,
+                ccf: editCcfInput.value,
+                afp: editAfpInput.value,
+                fecha: editFechaIngresoInput.value, // Guardar como string YYYY-MM-DD
+                ingreso: editFechaRegistroInput.value, // Guardar como string YYYY-MM-DD
+                asesorId: editAsesorSelect.value, // Guardar solo el ID
+                valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número
+                estado: editEstadoSelect.value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Añadir fechaRetiro solo si el estado es 'retirado'
+            if (updatedData.estado === 'retirado' && editFechaRetiroInput.value) {
+                updatedData.fechaRetiro = editFechaRetiroInput.value; // Guardar como string YYYY-MM-DD
+            } else {
+                 // Si el estado no es retirado, asegurarse de que fechaRetiro no esté en los datos a actualizar
+                 // o establecerlo a null si ya existía
+                 updatedData.fechaRetiro = null;
+            }
+
+
+            showStatusMessage('Guardando cambios...', 'info');
+
+            try {
+                await usersCollection.doc(userId).update(updatedData);
+                showStatusMessage('Cambios guardados con éxito!', 'success');
+                hideEditModal(); // Cerrar modal después de guardar
+            } catch (error) {
+                console.error("Error al guardar cambios:", error);
+                showStatusMessage('Error al guardar cambios: ' + error.message, 'error');
+            }
+        });
+
+
+        // Eliminar un usuario
+        async function deleteUser(userId) {
+            showStatusMessage('Eliminando usuario...', 'info');
+            try {
+                await usersCollection.doc(userId).delete();
+                showStatusMessage('Usuario eliminado con éxito!', 'success');
+            } catch (error) {
+                console.error("Error al eliminar usuario:", error);
+                showStatusMessage('Error al eliminar usuario: ' + error.message, 'error');
+            }
+        }
+
+        // Cambiar el estado de un usuario
+        async function changeUserStatus(userId, newStatus) {
+             showStatusMessage(`Cambiando estado a "${newStatus}"...`, 'info');
+             const updateData = {
+                 estado: newStatus,
+                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+             };
+
+             // Añadir/eliminar fechaRetiro según el nuevo estado
+             if (newStatus === 'retirado') {
+                  // Si se cambia a retirado, añadir la fecha actual si no existe una
+                  // En este caso, al cambiar desde la tabla, siempre pondremos la fecha actual
+                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual
+             } else {
+                  // Si se cambia a activo, eliminar el campo fechaRetiro
+                  updateData.fechaRetiro = firebase.firestore.FieldValue.delete();
+             }
+
+
+             try {
+                 await usersCollection.doc(userId).update(updateData);
+                 showStatusMessage(`Estado actualizado a "${newStatus}" con éxito!`, 'success');
+             } catch (error) {
+                 console.error("Error al cambiar estado:", error);
+                 showStatusMessage('Error al cambiar estado: ' + error.message, 'error');
+             }
+        }
+
+
+        // --- Inicialización ---
+        // Cargar la tabla de usuarios al cargar la página
+        loadUsersTable();
+
+
+    </script>
+
+</body>
+</html>
