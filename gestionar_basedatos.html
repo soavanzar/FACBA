@@ -861,6 +861,7 @@
         const closeManageEntityModalButton = document.getElementById('close-manage-entity-modal');
         const closeManageEntityModalButtonInModal = document.getElementById('close-manage-entity-modal-button');
         const manageEntityModalTitle = document.getElementById('manage-entity-modal-title');
+        const manageEntityTypeInput = document.getElementById('manage-entity-type'); // <-- FIX: Get reference to the input
         const entityList = document.getElementById('entity-list');
         const openAddFromManageButton = document.getElementById('open-add-from-manage-button');
 
@@ -1633,17 +1634,27 @@
 
         // Función para eliminar una entidad
         async function deleteEntity(entityType, entityId, entityName) {
-             showStatusMessage(`Eliminando ${entityTypeName}...`, 'info'); // Usar entityTypeName del scope de loadEntitiesForManagement o re-determinarlo
+             // Determine the entity type name for the status message
+             let entityTypeName = '';
+             switch (entityType) {
+                 case 'eps': entityTypeName = 'EPS'; break;
+                 case 'ccf': entityTypeName = 'CCF'; break;
+                 case 'afp': entityTypeName = 'AFP'; break;
+                 case 'asesor': entityTypeName = 'Asesor'; break;
+                 case 'empresa': entityTypeName = 'Empresa'; break;
+                 default: entityTypeName = 'Entidad';
+             }
+
+             showStatusMessage(`Eliminando ${entityTypeName}...`, 'info');
 
              let collectionRef;
-             let entityTypeName = ''; // Re-determinar el nombre para el mensaje
 
              switch (entityType) {
-                 case 'eps': collectionRef = epsCollection; entityTypeName = 'EPS'; break;
-                 case 'ccf': collectionRef = ccfCollection; entityTypeName = 'CCF'; break;
-                 case 'afp': collectionRef = afpCollection; entityTypeName = 'AFP'; break;
-                 case 'asesor': collectionRef = asesoresCollection; entityTypeName = 'Asesor'; break;
-                 case 'empresa': collectionRef = empresasCollection; entityTypeName = 'Empresa'; break;
+                 case 'eps': collectionRef = epsCollection; break;
+                 case 'ccf': collectionRef = ccfCollection; break;
+                 case 'afp': collectionRef = afpCollection; break;
+                 case 'asesor': collectionRef = asesoresCollection; break;
+                 case 'empresa': collectionRef = empresasCollection; break;
                  default:
                      showStatusMessage('Error: Tipo de entidad desconocido para eliminar.', 'error');
                      return;
