@@ -618,16 +618,7 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Identificación</th>
                         <th>Empresa</th>
-                        <th>Estado</th>
-                        <th>Fecha Ingreso</th>
-                        <th>Fecha Registro</th>
-                        <th>Asesor</th>
-                        <th>ARL</th> <th>Riesgo</th>
-                        <th>EPS</th>
-                        <th>CCF</th>
-                        <th>AFP</th>
                         <th>Valor a Pagar</th>
                         <th>Acciones</th>
                     </tr>
@@ -1257,33 +1248,16 @@
             const row = document.createElement('tr');
             row.dataset.id = userDoc.id; // Guardar el ID del documento en la fila
 
-            // Determinar el estado y la fecha de retiro para mostrar
-            const estado = user.estado || 'activo'; // Estado por defecto si no está definido
-            const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
-
             // Obtener nombres de entidades usando los mapas
             const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
-            const asesorNombre = asesoresMap.get(user.asesorId) || 'Desconocido';
-            const arlNombre = arlMap.get(user.arlId) || 'Desconocida'; // Usar mapa para ARL
-            const epsNombre = epsMap.get(user.epsId) || 'Desconocida'; // Usar mapa para EPS
-            const ccfNombre = ccfMap.get(user.ccfId) || 'Desconocida'; // Usar mapa para CCF
-            const afpNombre = afpMap.get(user.afpId) || 'Desconocida'; // Usar mapa para AFP
+            const valorAPagarFormatted = formatCurrency(user.valorAPagar);
+            const estado = user.estado || 'activo'; // Estado por defecto para el botón de estado
 
-
-            // Añadir data-label para la responsividad de la tabla
+            // Añadir data-label para la responsividad de la tabla (manteniendo los originales para compatibilidad con CSS)
             row.innerHTML = `
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
-                <td data-label="Identificación">${user.identificacion || 'Sin Identificación'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
-                <td data-label="Estado">${estado}</td>
-                <td data-label="Fecha Ingreso">${formatDate(user.fecha)}</td>
-                <td data-label="Fecha Registro">${formatDate(user.ingreso)}</td>
-                <td data-label="Asesor">${asesorNombre}</td>
-                <td data-label="ARL">${arlNombre}</td> <td data-label="Riesgo">${user.riesgo || 'Sin Riesgo'}</td>
-                <td data-label="EPS">${epsNombre}</td>
-                <td data-label="CCF">${ccfNombre}</td>
-                <td data-label="AFP">${afpNombre}</td>
-                <td data-label="Valor a Pagar">${formatCurrency(user.valorAPagar)}</td>
+                <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
                 <td class="action-buttons" data-label="Acciones">
                     <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
                     <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
@@ -1358,7 +1332,8 @@
                 });
             } else {
                 const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="14" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
+                // Actualizar colspan a 4 para que ocupe todo el ancho de las 4 columnas visibles
+                noDataRow.innerHTML = `<td colspan="4" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
                 userTableBody.appendChild(noDataRow);
             }
 
