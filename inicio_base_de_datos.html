@@ -30,6 +30,9 @@
                         // Colores para el icono de HOME
                         home_icon_color: '#4f46e5', // Color del icono de HOME
                         home_icon_hover_color: '#6d28d9', // Color del icono de HOME al pasar el ratón
+                        // Colores para el mini fondo futurista
+                        mini_bg_start: '#a78bfa', // Morado claro para el inicio del mini fondo
+                        mini_bg_end: '#818cf8', // Azul claro para el fin del mini fondo
                     },
                     boxShadow: {
                         // Sombras más notorias para los botones y otros elementos
@@ -37,6 +40,7 @@
                         card: '0 4px 16px rgba(0, 0, 0, 0.08)', // Sombra para tarjetas de contenido
                         button_shadow: '0 4px 12px rgba(0,0,0,0.15)', // Sombra más pronunciada por defecto
                         button_hover_shadow: '0 8px 20px rgba(0,0,0,0.25)', // Sombra aún más pronunciada al pasar el ratón
+                        mini_bg_shadow: '0 10px 30px rgba(0,0,0,0.1)', // Sombra para el mini fondo
                     },
                      // Eliminamos las definiciones de backgroundImage y gradientColorStopRefs
                 }
@@ -122,16 +126,21 @@
             flex-grow: 1; /* Permite que el contenido principal ocupe el espacio restante */
             background-color: var(--tw-colors-main_bg); /* Fondo azul/morado muy claro */
             padding: 20px; /* Espaciado interno */
+            position: relative; /* Necesario para posicionar el mini fondo */
+            overflow: hidden; /* Oculta cualquier desbordamiento del mini fondo */
         }
 
         /* Estilo para el contenedor del contenido principal */
         main .main-content-container {
             max-width: 900px; /* Ancho máximo del contenido */
             margin: 0 auto; /* Centra el contenido */
-            background-color: var(--tw-colors-sidebar_bg); /* Fondo blanco para el contenido (como una tarjeta grande) */
+            /* Aplicar fondo blanco */
+            background-color: #ffffff; /* Fondo blanco puro */
             padding: 30px; /* Espaciado interno */
             border-radius: 12px; /* Bordes redondeados */
             box-shadow: var(--tw-boxShadow-card); /* Sombra suave */
+            position: relative; /* Asegura que el contenido esté por encima del mini fondo */
+            z-index: 2; /* Mayor z-index que el mini fondo */
         }
 
          main .main-content-container h1 {
@@ -159,6 +168,21 @@
          .home-icon-container a:hover {
              color: var(--tw-colors-home_icon_hover_color); /* Color del icono al pasar el ratón */
              transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el ratón */
+         }
+
+         /* Estilo para el mini fondo curvo */
+         .mini-background {
+             position: absolute; /* Posicionamiento absoluto dentro de main */
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             /* Aplicar gradiente azul-morado */
+             background-image: linear-gradient(to bottom right, var(--tw-colors-mini_bg_start), var(--tw-colors-mini_bg_end));
+             border-radius: 20px; /* Bordes curvos */
+             box-shadow: var(--tw-boxShadow-mini_bg_shadow); /* Sombra */
+             margin: 10px; /* Espacio alrededor para que se vea el fondo principal */
+             z-index: 1; /* Menor z-index que el contenido principal */
          }
     </style>
 </head>
@@ -195,6 +219,8 @@
         </aside>
 
     <main>
+        <div class="mini-background"></div>
+
         <div class="main-content-container">
             <h1>FACBA</h1>
             <p class="text-gray-700">
