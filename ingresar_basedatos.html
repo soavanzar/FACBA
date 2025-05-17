@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ingresar Datos - FACBA</title>
+    <title>Ingresar Base de Datos - FACBA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,295 +12,310 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-
     <style>
-        /* Estilos CSS personalizados adicionales */
+        /* Estilos CSS personalizados */
         body {
-            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
-            margin: 0; /* Elimina el margen por defecto del body */
+            font-family: 'Inter', sans-serif;
             background-color: #f2f2f7; /* Fondo gris muy claro */
             color: #1c1c1e; /* Color de texto oscuro por defecto */
-            display: flex; /* Usa flexbox para centrar el contenido */
-            justify-content: center; /* Centra horizontalmente */
-            align-items: center; /* Centra verticalmente */
-            min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
-            padding: 20px; /* Espaciado interno */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
         }
 
         .container {
             background-color: #ffffff; /* Fondo blanco para el contenedor */
-            padding: 30px; /* Espaciado interno */
+            padding: 30px;
             border-radius: 12px; /* Bordes redondeados */
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
-            max-width: 600px; /* Ancho máximo del formulario */
-            width: 100%; /* Ocupa todo el ancho disponible hasta el max-width */
+            max-width: 600px; /* Ancho máximo para el formulario */
+            margin: 20px auto; /* Centra el contenedor y añade margen */
+            position: relative; /* Necesario para el contexto del botón de atrás */
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1f2937; /* Gris oscuro */
         }
 
         .form-group {
-            margin-bottom: 20px; /* Espacio entre grupos de formulario */
+            margin-bottom: 20px;
         }
 
         .form-group label {
-            display: block; /* Etiqueta en su propia línea */
-            margin-bottom: 8px; /* Espacio debajo de la etiqueta */
-            font-weight: 500; /* Peso de fuente medio */
-            color: #1c1c1e; /* Color de texto oscuro */
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151; /* Gris medio */
         }
 
         .form-group input[type="text"],
-        .form-group input[type="email"],
-        .form-group input[type="password"],
         .form-group input[type="number"],
         .form-group input[type="date"],
         .form-group select {
-            width: 100%; /* Ocupa todo el ancho del contenedor */
-            padding: 12px; /* Espaciado interno */
-            border: 1px solid #d1d5db; /* Borde gris sutil */
-            border-radius: 8px; /* Bordes redondeados */
-            font-size: 1rem; /* Tamaño de fuente */
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
-            box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-sizing: border-box; /* Incluye padding y borde en el ancho */
         }
 
-         /* Contenedor para simular combobox */
-         .combobox-container {
-             position: relative; /* Para posicionar la lista flotante */
-             width: 100%; /* Ocupa el ancho disponible */
+         /* Estilo específico para el grupo de IBC */
+         .ibc-group {
+             position: relative; /* Para posicionar el cargador */
          }
 
-         /* Estilo para el input de filtro (el campo visible del combobox) */
-         .combobox-container input[type="text"] {
-             margin-bottom: 0; /* Eliminar margen inferior */
-             border-radius: 8px; /* Bordes redondeados */
-             position: relative; /* Para z-index */
-             z-index: 2; /* Asegura que esté sobre la lista flotante */
+         .ibc-group label {
+             display: flex; /* Para alinear el texto y el checkbox */
+             align-items: center;
+             margin-bottom: 8px;
          }
 
-         /* Ocultar el select nativo */
-         .combobox-container select {
-             display: none;
+         .ibc-group label input[type="checkbox"] {
+             margin-right: 8px; /* Espacio entre checkbox y texto */
+             width: auto; /* Permitir que el checkbox tenga su tamaño natural */
          }
 
-         /* Estilo para la lista flotante de opciones */
-         .combobox-options-list {
-             position: absolute; /* Posicionamiento absoluto respecto al contenedor */
-             top: 100%; /* Debajo del input */
-             left: 0;
-             right: 0;
-             background-color: #ffffff; /* Fondo blanco */
-             border: 1px solid #d1d5db; /* Borde */
-             border-top: none; /* Sin borde superior para unirse al input */
-             border-bottom-left-radius: 8px; /* Bordes redondeados inferiores */
-             border-bottom-right-radius: 8px;
-             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra */
-             max-height: 150px; /* Altura máxima antes de scroll */
-             overflow-y: auto; /* Scroll vertical si hay muchas opciones */
-             z-index: 10; /* Mayor z-index para que se muestre encima */
-             list-style: none; /* Sin puntos de lista */
-             padding: 0; /* Sin padding */
-             margin: 0; /* Sin margen */
+         .ibc-group .loading-indicator {
              display: none; /* Oculto por defecto */
+             position: absolute;
+             right: 10px; /* Posicionar a la derecha del input */
+             top: 50%; /* Alinear verticalmente */
+             transform: translateY(-50%);
+             font-size: 0.9rem;
+             color: #4f46e5; /* Color azul/morado */
          }
 
-         .combobox-options-list.show {
-             display: block; /* Mostrar cuando tiene la clase 'show' */
+         .ibc-group .loading-indicator i {
+              margin-left: 5px; /* Espacio entre texto y spinner */
+              animation: spin 1s linear infinite; /* Animación de giro */
          }
 
-         .combobox-options-list li {
-             padding: 10px 12px; /* Espaciado interno de las opciones */
-             cursor: pointer; /* Cursor de mano */
-             transition: background-color 0.1s ease-in-out; /* Transición suave */
-         }
-
-         .combobox-options-list li:hover {
-             background-color: #f3f4f6; /* Fondo gris claro al pasar el ratón */
+         @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
          }
 
 
         .form-group input[type="text"]:focus,
-        .form-group input[type="email"]:focus,
-        .form-group input[type="password"]:focus,
         .form-group input[type="number"]:focus,
         .form-group input[type="date"]:focus,
-        .form-group select:focus { /* Mantener estilos de enfoque para otros inputs */
-            outline: none; /* Elimina el contorno por defecto */
-            border-color: #4f46e5; /* Borde azul/morado al enfocar */
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
+        .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5; /* Color azul/morado */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra de enfoque */
         }
 
-         /* Ajustar el box-shadow al enfocar para el input del combobox */
-         .combobox-container input[type="text"]:focus {
-             border-color: #4f46e5; /* Borde azul/morado al enfocar */
-             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Sombra suave al enfocar */
-         }
-
-
-        .form-group .input-with-button {
-            display: flex; /* Usa flexbox para alinear input y botón */
-            align-items: center; /* Centra verticalmente */
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px; /* Espacio entre botones */
+            margin-top: 30px;
         }
 
-        .form-group .input-with-button input,
-        .form-group .input-with-button select {
-            flex-grow: 1; /* Permite que el input/select ocupe el espacio restante */
-            margin-right: 10px; /* Espacio entre el input/select y el botón */
+        .form-buttons button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
 
-        .form-group .input-with-button button {
-            width: auto; /* Ancho automático basado en contenido */
-            padding: 12px 15px; /* Espaciado interno del botón */
-            flex-shrink: 0; /* Evita que el botón se encoja */
+        .cancel-button {
+            background-color: #e5e7eb; /* Gris claro */
+            color: #374151; /* Gris oscuro */
         }
 
-
-        /* Estilos mejorados para el botón de guardar */
-        button[type="submit"] {
-            display: block; /* Botón en su propia línea */
-            width: 100%; /* Ocupa todo el ancho del contenedor */
-            padding: 14px 24px; /* Espaciado interno ligeramente mayor */
-            background-color: #5e5ce6; /* Color morado */
-            color: #ffffff; /* Texto blanco */
-            font-weight: 700; /* Peso de fuente bold */
-            border: none; /* Sin borde */
-            border-radius: 8px; /* Bordes redondeados */
-            cursor: pointer; /* Cursor de mano */
-            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Transición suave con transform */
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* Sombra más pronunciada */
-            letter-spacing: 0.05em; /* Espaciado entre letras sutil */
-            text-transform: uppercase; /* Texto en mayúsculas */
+        .cancel-button:hover {
+            background-color: #d1d5db; /* Gris más oscuro */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        button[type="submit"]:hover {
-            background-color: #0a84ff; /* Color azul al pasar el ratón */
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Sombra aún más pronunciada */
-            transform: translateY(-2px); /* Mover ligeramente hacia arriba */
+        .submit-button {
+            background-color: #4f46e5; /* Azul/Morado */
+            color: white;
         }
 
-        button[type="submit"]:active {
-             background-color: #007aff; /* Azul un poco más oscuro al hacer clic */
-             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra reducida al hacer clic */
-             transform: translateY(0); /* Volver a la posición original */
+        .submit-button:hover {
+            background-color: #4338ca; /* Azul/Morado más oscuro */
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
         }
 
-
-        /* Estilo para mensajes de estado (animado) */
+        /* Estilos para el mensaje de estado */
         #status-message {
             margin-top: 20px;
-            padding: 15px; /* Aumentar padding */
+            padding: 10px;
             border-radius: 8px;
             text-align: center;
-            font-weight: 600; /* Semibold */
-            opacity: 0; /* Oculto por defecto */
-            transform: translateY(10px); /* Ligeramente desplazado */
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Transición suave */
+            font-size: 0.9rem;
+            opacity: 0; /* Inicialmente oculto */
+            transform: translateY(10px); /* Ligeramente hacia abajo */
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
         }
 
-        /* Estilo para mensajes de éxito (visible y animado) */
+        #status-message.info {
+            background-color: #eef2ff; /* Azul muy claro */
+            color: #4f46e5; /* Azul/Morado */
+        }
+
         #status-message.success {
-            background-color: #d4edda; /* Verde claro */
-            color: #155724; /* Verde oscuro */
-            border: 1px solid #c3e6cb; /* Borde verde */
-            opacity: 1; /* Visible */
-            transform: translateY(0); /* Posición normal */
+            background-color: #d1fae5; /* Verde muy claro */
+            color: #059669; /* Verde oscuro */
         }
 
-        /* Estilo para mensajes de error (visible y animado) */
         #status-message.error {
-            background-color: #f8d7da; /* Rojo claro */
-            color: #721c24; /* Rojo oscuro */
-            border: 1px solid #f5c6cb; /* Borde rojo */
-            opacity: 1; /* Visible */
-            transform: translateY(0); /* Posición normal */
+            background-color: #fee2e2; /* Rojo muy claro */
+            color: #ef4444; /* Rojo oscuro */
         }
 
 
-        /* Estilos para el modal */
-        .modal {
-            position: fixed; /* Posición fija */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente oscuro */
-            display: flex; /* Usa flexbox para centrar el contenido */
-            justify-content: center; /* Centra horizontalmente */
-            align-items: center; /* Centra verticalmente */
-            z-index: 100; /* Asegura que esté por encima de otros elementos */
-            visibility: hidden; /* Oculto por defecto */
-            opacity: 0; /* Transparente por defecto */
-            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Transición suave */
-        }
-
-        .modal.show {
-            visibility: visible; /* Visible cuando tiene la clase 'show' */
-            opacity: 1; /* Opaco cuando tiene la clase 'show' */
-        }
-
-        .modal-content {
-            background-color: #ffffff; /* Fondo blanco para el contenido del modal */
-            padding: 30px; /* Espaciado interno */
-            border-radius: 12px; /* Bordes redondeados */
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); /* Sombra */
-            max-width: 400px; /* Ancho máximo del modal */
-            width: 90%; /* Ocupa el 90% del ancho disponible hasta el max-width */
-        }
-
-        .modal-content h2 {
-            font-size: 1.8rem; /* Tamaño de fuente del título del modal */
-            font-weight: 600; /* Peso de fuente semibold */
-            text-align: center; /* Centra el texto */
-            margin-bottom: 20px; /* Espacio debajo del título */
-            color: #1c1c1e; /* Color de texto oscuro */
-        }
-
-        .modal-content .form-group {
-             margin-bottom: 15px; /* Espacio entre grupos de formulario en el modal */
-        }
-
-        .modal-content button {
-            margin-top: 15px; /* Espacio encima del botón */
-            padding: 10px 20px; /* Espaciado interno del botón */
-        }
-
-        .modal-content .button-group {
-            display: flex;
-            justify-content: flex-end; /* Alinea botones a la derecha */
-            gap: 10px; /* Espacio entre botones */
-            margin-top: 20px; /* Espacio encima del grupo de botones */
-        }
-
-        .modal-content .button-group button {
-            width: auto; /* Ancho automático */
-            padding: 10px 15px; /* Espaciado interno */
-            box-shadow: none; /* Sin sombra en los botones del modal */
-        }
-
-         .modal-content .button-group button.cancel-button {
-             background-color: #6b7280; /* Color gris para cancelar */
+         /* Estilos para el modal */
+         .modal-overlay {
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro semitransparente */
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             z-index: 1000; /* Asegura que esté por encima de todo */
+             visibility: hidden; /* Oculto por defecto */
+             opacity: 0;
+             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
          }
 
-         .modal-content .button-group button.cancel-button:hover {
-             background-color: #4b5563; /* Gris más oscuro al pasar el ratón */
+         .modal-overlay.show {
+             visibility: visible;
+             opacity: 1;
          }
 
-        /* Estilo para el botón de ir atrás */
-        .back-button {
-            display: inline-block; /* Permite aplicar padding y margin */
-            margin-bottom: 20px; /* Espacio debajo del botón */
-            padding: 10px 15px; /* Espaciado interno */
-            background-color: #d1d5db; /* Gris claro */
-            color: #1f2937; /* Gris oscuro */
-            font-weight: 600; /* Peso de fuente semibold */
-            text-decoration: none; /* Sin subrayado */
-            border-radius: 8px; /* Bordes redondeados */
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
-        }
+         .modal-content {
+             background-color: #ffffff;
+             padding: 30px;
+             border-radius: 12px;
+             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+             max-width: 500px; /* Ancho máximo del modal */
+             width: 90%; /* Ancho responsivo */
+             position: relative;
+             transform: translateY(-20px); /* Inicia ligeramente arriba */
+             transition: transform 0.3s ease-in-out;
+         }
 
-        .back-button:hover {
-            background-color: #9ca3af; /* Gris más oscuro al pasar el ratón */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Sombra más pronunciada */
-        }
+         .modal-overlay.show .modal-content {
+             transform: translateY(0); /* Se desliza a su posición */
+         }
+
+         .modal-close-button {
+             position: absolute;
+             top: 15px;
+             right: 15px;
+             font-size: 1.5rem;
+             color: #9ca3af; /* Gris */
+             cursor: pointer;
+             transition: color 0.2s ease-in-out;
+         }
+
+         .modal-close-button:hover {
+             color: #6b7280; /* Gris oscuro */
+         }
+
+         .modal-content h2 {
+             font-size: 1.8rem;
+             font-weight: 700;
+             margin-bottom: 20px;
+             color: #1f2937;
+             text-align: center;
+         }
+
+         .modal-form-group {
+             margin-bottom: 15px;
+         }
+
+         .modal-form-group label {
+             display: block;
+             font-weight: 600;
+             margin-bottom: 8px;
+             color: #374151;
+             font-size: 0.9rem;
+         }
+
+         .modal-form-group input[type="text"],
+         .modal-form-group select {
+             width: 100%;
+             padding: 10px;
+             border: 1px solid #d1d5db;
+             border-radius: 6px;
+             font-size: 1rem;
+             box-sizing: border-box;
+         }
+
+         .modal-form-group input[type="text"]:focus,
+         .modal-form-group select:focus {
+             outline: none;
+             border-color: #4f46e5;
+             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+         }
+
+         .modal-buttons {
+             display: flex;
+             justify-content: flex-end;
+             gap: 10px;
+             margin-top: 20px;
+         }
+
+         .modal-buttons button {
+             padding: 10px 20px;
+             border: none;
+             border-radius: 6px;
+             font-size: 0.9rem;
+             font-weight: 600;
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out;
+         }
+
+         .modal-buttons .cancel-button {
+              background-color: #e5e7eb;
+              color: #374151;
+         }
+         .modal-buttons .cancel-button:hover {
+              background-color: #d1d5db;
+         }
+
+         .modal-buttons .save-changes-button {
+              background-color: #10b981; /* Verde */
+              color: white;
+         }
+         .modal-buttons .save-changes-button:hover {
+              background-color: #059669; /* Verde oscuro */
+         }
+
 
     </style>
 </head>
@@ -311,166 +326,125 @@
             <i class="fas fa-arrow-left"></i> Ir Atrás
         </a>
 
-        <h1 class="text-2xl font-bold text-center mb-6">Ingresar Nuevo Usuario</h1>
+        <h1>Ingresar Nuevo Usuario</h1>
 
         <form id="user-form">
             <div class="form-group">
                 <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" required name="nombre">
+                <input type="text" id="nombre" name="nombre" required>
             </div>
 
             <div class="form-group">
                 <label for="tipo-identificacion">Tipo de Identificación:</label>
-                <div class="combobox-container">
-                    <input type="text" id="tipo-identificacion-filter" placeholder="Buscar tipo...">
-                    <ul id="tipo-identificacion-options" class="combobox-options-list">
-                        </ul>
-                    <select id="tipo-identificacion" name="tipoIdentificacion"> <option value="">Seleccione</option>
-                        <option value="CC">Cédula de Ciudadanía (CC)</option>
-                        <option value="TI">Tarjeta de Identidad (TI)</option>
-                        <option value="CE">Cédula de Extranjería (CE)</option>
-                        <option value="NIT">Número de Identificación Tributaria (NIT)</option>
-                        <option value="PP">Pasaporte (PP)</option>
-                        <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
-                    </select>
-                </div>
+                <select id="tipo-identificacion" name="tipoIdentificacion" required>
+                    <option value="">Selecciona</option>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                    <option value="PA">Pasaporte</option>
+                </select>
             </div>
 
             <div class="form-group">
                 <label for="identificacion">Identificación:</label>
-                <input type="number" id="identificacion" required pattern="[0-9]*" inputmode="numeric" name="identificacion">
+                <input type="number" id="identificacion" name="identificacion" required>
             </div>
 
             <div class="form-group">
                 <label for="empresa">Empresa:</label>
-                <div class="combobox-container input-with-button">
-                     <input type="text" id="empresa-filter" class="flex-grow" placeholder="Buscar empresa...">
-                    <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
-                     <ul id="empresa-options" class="combobox-options-list">
-                        </ul>
-                     <select id="empresa" name="empresaId"> <option value="">Seleccione</option>
-                         </select>
-                </div>
+                <select id="empresa" name="empresaId" required>
+                    <option value="">Selecciona una empresa</option>
+                    </select>
             </div>
 
             <div class="form-group">
                 <label for="arl">ARL:</label>
-                 <div class="combobox-container">
-                    <input type="text" id="arl-filter" placeholder="Buscar ARL...">
-                     <ul id="arl-options" class="combobox-options-list">
-                        </ul>
-                     <select id="arl" name="arlId"> <option value="">Seleccione</option>
-                         </select>
-                </div>
+                <select id="arl" name="arlId">
+                    <option value="">Selecciona una ARL</option>
+                    </select>
             </div>
 
-             <div class="form-group">
+            <div class="form-group">
                 <label for="riesgo">Riesgo:</label>
-                 <div class="combobox-container">
-                    <input type="text" id="riesgo-filter" placeholder="Buscar riesgo...">
-                     <ul id="riesgo-options" class="combobox-options-list">
-                        </ul>
-                     <select id="riesgo" name="riesgo"> <option value="">Seleccione</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
+                <input type="text" id="riesgo" name="riesgo">
             </div>
 
             <div class="form-group">
                 <label for="eps">EPS:</label>
-                 <div class="combobox-container">
-                    <input type="text" id="eps-filter" placeholder="Buscar EPS...">
-                     <ul id="eps-options" class="combobox-options-list">
-                        </ul>
-                     <select id="eps" name="epsId"> <option value="">Seleccione</option>
-                        </select>
-                </div>
+                <select id="eps" name="epsId">
+                    <option value="">Selecciona una EPS</option>
+                    </select>
             </div>
 
             <div class="form-group">
                 <label for="ccf">CCF:</label>
-                 <div class="combobox-container">
-                    <input type="text" id="ccf-filter" placeholder="Buscar CCF...">
-                     <ul id="ccf-options" class="combobox-options-list">
-                        </ul>
-                     <select id="ccf" name="ccfId"> <option value="">Seleccione</option>
-                        </select>
-                </div>
+                <select id="ccf" name="ccfId">
+                    <option value="">Selecciona una CCF</option>
+                    </select>
             </div>
 
             <div class="form-group">
                 <label for="afp">AFP:</label>
-                 <div class="combobox-container">
-                    <input type="text" id="afp-filter" placeholder="Buscar AFP...">
-                     <ul id="afp-options" class="combobox-options-list">
-                        </ul>
-                     <select id="afp" name="afpId"> <option value="">Seleccione</option>
-                        </select>
-                </div>
+                <select id="afp" name="afpId">
+                    <option value="">Selecciona una AFP</option>
+                    </select>
             </div>
 
             <div class="form-group">
-                <label for="fecha">Fecha:</label>
-                <input type="date" id="fecha" required name="fecha"> </div>
+                <label for="fecha-ingreso">Fecha de Ingreso:</label>
+                <input type="date" id="fecha-ingreso" name="fecha" required>
+            </div>
 
             <div class="form-group">
-                <label for="ingreso">Ingreso:</label>
-                <input type="date" id="ingreso" required name="ingreso"> </div>
+                <label for="fecha-registro">Fecha de Registro Inicial:</label>
+                <input type="date" id="fecha-registro" name="ingreso" required>
+            </div>
 
             <div class="form-group">
                 <label for="asesor">Asesor:</label>
-                 <div class="combobox-container input-with-button">
-                     <input type="text" id="asesor-filter" class="flex-grow" placeholder="Buscar asesor...">
-                    <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
-                     <ul id="asesor-options" class="combobox-options-list">
-                        </ul>
-                     <select id="asesor" name="asesorId"> <option value="">Seleccione</option>
-                         </select>
-                </div>
+                <select id="asesor" name="asesorId" required>
+                    <option value="">Selecciona un asesor</option>
+                    </select>
             </div>
 
             <div class="form-group">
                 <label for="valor-a-pagar">Valor a Pagar (COP):</label>
-                <input type="text" id="valor-a-pagar" inputmode="numeric" pattern="[0-9,.]*" name="valorAPagar"> </div>
+                <input type="number" id="valor-a-pagar" name="valorAPagar" step="0.01">
+            </div>
 
-
-            <button type="submit">Guardar Usuario</button>
+             <div class="form-group ibc-group">
+                 <label for="ibc-automatico-check">
+                     <input type="checkbox" id="ibc-automatico-check">
+                     Ingresar IBC automático
+                 </label>
+                 <input type="number" id="ibc" name="ibc" step="0.01" placeholder="Salario del trabajador (IBC)">
+                 <div class="loading-indicator" id="ibc-loading">
+                     Cargando <i class="fas fa-spinner"></i>
+                 </div>
+             </div>
+             <div class="form-buttons">
+                <button type="button" class="cancel-button" id="cancel-button">Cancelar</button>
+                <button type="submit" class="submit-button">Guardar Usuario</button>
+            </div>
         </form>
 
         <div id="status-message"></div>
     </div>
 
-    <div id="add-empresa-modal" class="modal">
-        <div class="modal-content">
-            <h2>Agregar Nueva Empresa</h2>
-            <form id="empresa-modal-form">
-                <div class="form-group">
-                    <label for="nueva-empresa-nombre">Nombre de la Empresa:</label>
-                    <input type="text" id="nueva-empresa-nombre" required>
-                </div>
-                <div class="button-group">
-                    <button type="button" class="cancel-button" id="cancel-add-empresa">Cancelar</button>
-                    <button type="submit">Guardar Empresa</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <div id="add-asesor-modal" class="modal">
+    <div id="add-entity-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>Agregar Nuevo Asesor</h2>
-            <form id="asesor-modal-form">
-                <div class="form-group">
-                    <label for="nuevo-asesor-nombre">Nombre del Asesor:</label>
-                    <input type="text" id="nuevo-asesor-nombre" required>
+            <span class="modal-close-button" id="close-add-entity-modal">&times;</span>
+            <h2 id="add-entity-modal-title">Agregar Nueva Entidad</h2>
+            <form id="add-entity-form">
+                <input type="hidden" id="add-entity-type">
+                <div class="modal-form-group">
+                    <label for="entity-name">Nombre:</label>
+                    <input type="text" id="entity-name" name="name" required>
                 </div>
-                 <div class="button-group">
-                    <button type="button" class="cancel-button" id="cancel-add-asesor">Cancelar</button>
-                    <button type="submit">Guardar Asesor</button>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-add-entity">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar</button>
                 </div>
             </form>
         </div>
@@ -483,7 +457,7 @@
             apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
             authDomain: "facba-69d41.firebaseapp.com",
             projectId: "facba-69d41",
-            storageBucket: "facba-69d41.firebasestorage.app",
+            storageBucket: "facba-69d41.firebaseapp.com", // Corrected storageBucket domain
             messagingSenderId: "264089433073",
             appId: "1:264089433073:web:968551648758972eb74a50",
             measurementId: "G-NL7Y6NDH99"
@@ -492,588 +466,447 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const analytics = firebase.analytics();
-        const db = firebase.firestore(); // Inicializar Firestore
+        const db = firebase.firestore(); // Initialize Firestore
 
-        // Referencias a las colecciones en Firestore
+        // References to Firestore collections
         const usersCollection = db.collection('usuarios');
         const empresasCollection = db.collection('empresas');
         const asesoresCollection = db.collection('asesores');
-        const arlCollection = db.collection('arl'); // Nueva colección para ARL
-        const epsCollection = db.collection('eps'); // Nueva colección para EPS
-        const ccfCollection = db.collection('ccf'); // Nueva colección para CCF
-        const afpCollection = db.collection('afp'); // Nueva colección para AFP
+        const arlCollection = db.collection('arl'); // New collection for ARL
+        const epsCollection = db.collection('eps');
+        const ccfCollection = db.collection('ccf');
+        const afpCollection = db.collection('afp');
 
 
-        // Obtener elementos del DOM
+        // Get DOM elements
         const userForm = document.getElementById('user-form');
         const statusMessage = document.getElementById('status-message');
+        const cancelButton = document.getElementById('cancel-button');
 
-        const addEmpresaBtn = document.getElementById('add-empresa-btn');
-        const addAsesorBtn = document.getElementById('add-asesor-btn');
-        const addEmpresaModal = document.getElementById('add-empresa-modal');
-        const addAsesorModal = document.getElementById('add-asesor-modal');
-        const empresaModalForm = document.getElementById('empresa-modal-form');
-        const asesorModalForm = document.getElementById('asesor-modal-form');
-        const cancelAddEmpresaBtn = document.getElementById('cancel-add-empresa');
-        const cancelAddAsesorBtn = document.getElementById('cancel-add-asesor');
+        // Form fields
+        const nombreInput = document.getElementById('nombre');
+        const tipoIdentificacionSelect = document.getElementById('tipo-identificacion');
+        const identificacionInput = document.getElementById('identificacion');
+        const empresaSelect = document.getElementById('empresa');
+        const arlSelect = document.getElementById('arl'); // Selector for ARL
+        const riesgoInput = document.getElementById('riesgo');
+        const epsSelect = document.getElementById('eps'); // Selector for EPS
+        const ccfSelect = document.getElementById('ccf'); // Selector for CCF
+        const afpSelect = document.getElementById('afp'); // Selector for AFP
+        const fechaIngresoInput = document.getElementById('fecha-ingreso');
+        const fechaRegistroInput = document.getElementById('fecha-registro');
+        const asesorSelect = document.getElementById('asesor');
         const valorAPagarInput = document.getElementById('valor-a-pagar');
-
-        // Obtener inputs de filtro y listas flotantes
-        const tipoIdentificacionFilterInput = document.getElementById('tipo-identificacion-filter');
-        const tipoIdentificacionOptionsList = document.getElementById('tipo-identificacion-options');
-        const tipoIdentificacionSelect = document.getElementById('tipo-identificacion'); // Select nativo oculto
-
-        const empresaFilterInput = document.getElementById('empresa-filter');
-        const empresaOptionsList = document.getElementById('empresa-options');
-        const empresaSelect = document.getElementById('empresa'); // Select nativo oculto
-
-        const arlFilterInput = document.getElementById('arl-filter');
-        const arlOptionsList = document.getElementById('arl-options');
-        const arlSelect = document.getElementById('arl'); // Select nativo oculto
-
-        const riesgoFilterInput = document.getElementById('riesgo-filter');
-        const riesgoOptionsList = document.getElementById('riesgo-options');
-        const riesgoSelect = document.getElementById('riesgo'); // Select nativo oculto
-
-        const epsFilterInput = document.getElementById('eps-filter');
-        const epsOptionsList = document.getElementById('eps-options');
-        const epsSelect = document.getElementById('eps'); // Select nativo oculto
-
-        const ccfFilterInput = document.getElementById('ccf-filter');
-        const ccfOptionsList = document.getElementById('ccf-options');
-        const ccfSelect = document.getElementById('ccf'); // Select nativo oculto
-
-        const afpFilterInput = document.getElementById('afp-filter');
-        const afpOptionsList = document.getElementById('afp-options');
-        const afpSelect = document.getElementById('afp'); // Select nativo oculto
-
-        const asesorFilterInput = document.getElementById('asesor-filter');
-        const asesorOptionsList = document.getElementById('asesor-options');
-        const asesorSelect = document.getElementById('asesor'); // Select nativo oculto
+        const ibcInput = document.getElementById('ibc'); // Input for IBC
+        const ibcAutomaticoCheck = document.getElementById('ibc-automatico-check'); // Checkbox for automatic IBC
+        const ibcLoadingIndicator = document.getElementById('ibc-loading'); // Loading indicator for IBC
 
 
-        // Almacenar opciones originales para filtrado (ahora desde los select nativos ocultos o Firestore)
-        let originalTipoIdentificacionOptions = Array.from(tipoIdentificacionSelect.options);
-        let originalArlOptions = []; // Ahora se cargará desde Firestore
-        let originalRiesgoOptions = Array.from(riesgoSelect.options);
-        let originalEpsOptions = []; // Ahora se cargará desde Firestore
-        let originalCcfOptions = []; // Ahora se cargará desde Firestore
-        let originalAfpOptions = []; // Ahora se cargará desde Firestore
-        let originalEmpresaOptions = []; // Para opciones de Firestore
-        let originalAsesorOptions = []; // Para opciones de Firestore
+        // Modal DOM elements
+        const addEntityModal = document.getElementById('add-entity-modal');
+        const closeAddEntityModalButton = document.getElementById('close-add-entity-modal');
+        const cancelAddEntityButton = document.getElementById('cancel-add-entity');
+        const addEntityModalTitle = document.getElementById('add-entity-modal-title');
+        const addEntityForm = document.getElementById('add-entity-form');
+        const addEntityTypeInput = document.getElementById('add-entity-type');
+        const entityNameInput = document.getElementById('entity-name');
 
 
-        // --- Funciones para Modales ---
-        function showModal(modalElement) {
-            modalElement.classList.add('show');
+        // --- Utility Functions ---
+
+        // Function to show status messages
+        function showStatusMessage(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = ''; // Reset classes
+            statusMessage.classList.add(type);
+            // Fade in
+            statusMessage.style.opacity = '1';
+            statusMessage.style.transform = 'translateY(0)';
+
+            // Fade out after 5 seconds
+            setTimeout(() => {
+                statusMessage.style.opacity = '0';
+                statusMessage.style.transform = 'translateY(10px)';
+                 // Clear text after transition
+                setTimeout(() => {
+                     statusMessage.textContent = '';
+                }, 400); // Match the transition duration
+            }, 5000);
         }
 
-        function hideModal(modalElement) {
-            modalElement.classList.remove('show');
-        }
-
-        // --- Funciones para manejar la lista flotante (Combobox simulado) ---
-
-        // Función genérica para poblar y filtrar la lista flotante
-        function populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, filterText) {
-            optionsListElement.innerHTML = ''; // Limpiar lista actual
-
-            const lowerCaseFilterText = filterText.toLowerCase();
-
-            originalOptions.forEach(option => {
-                // No clonamos aquí, creamos nuevos li elementos
-                if (option.textContent.toLowerCase().includes(lowerCaseFilterText)) {
-                    const li = document.createElement('li');
-                    li.textContent = option.textContent;
-                    li.dataset.value = option.value; // Guardar el valor original (ID de Firestore o valor estático)
-                    optionsListElement.appendChild(li);
-                }
-            });
-
-            // Mostrar u ocultar la lista
-            if (optionsListElement.children.length > 0 && filterText.length > 0) {
-                 optionsListElement.classList.add('show');
-            } else {
-                 optionsListElement.classList.remove('show');
+        // Function to format date (Firestore Timestamp to YYYY-MM-DD)
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            let date;
+            if (timestamp.toDate) { // Check if it's a Firestore Timestamp
+                 date = timestamp.toDate();
+            } else if (typeof timestamp === 'string') { // Handle string dates
+                 date = new Date(timestamp);
+            } else { // Handle other potential date formats
+                 date = new Date(timestamp);
             }
+
+            if (isNaN(date.getTime())) {
+                return ''; // Return empty string if date is invalid
+            }
+
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            return `${year}-${month}-${day}`;
         }
 
-        // Función para configurar listeners para un combobox simulado
-        function setupCombobox(filterInput, optionsListElement, originalOptions, selectElement) {
-            // Listener para filtrar al escribir
-            filterInput.addEventListener('input', (e) => {
-                populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
-            });
+        // Function to format numbers as currency (COP)
+        function formatCurrency(number) {
+             let numericValue = number;
+             if (typeof number === 'string') {
+                 // More robust cleaning for currency strings
+                 const cleanedString = number.replace(/[^0-9.,]/g, '') // Remove all except digits, comma, dot
+                                            .replace(',', '.'); // Replace comma with dot for consistent float parsing
 
-            // --- Nuevos Listeners para manejar Autocompletado ---
-            filterInput.addEventListener('change', (e) => {
-                handleAutofill(e.target, originalOptions, selectElement);
-            });
-
-            filterInput.addEventListener('blur', (e) => {
-                 // Añadir un pequeño retraso para permitir que el evento click en la lista se dispare primero
-                 setTimeout(() => {
-                    handleAutofill(e.target, originalOptions, selectElement);
-                    optionsListElement.classList.remove('show'); // Ocultar lista al perder el foco
-                 }, 100);
-            });
-
-            // Listener para mostrar la lista al enfocar (si hay texto)
-             filterInput.addEventListener('focus', (e) => {
-                 // Mostrar la lista solo si hay opciones disponibles o si el input tiene texto
-                 // También mostrar si el input está vacío para ver todas las opciones
-                 if (originalOptions.length > 0) {
-                      populateAndFilterFloatingList(filterInput, optionsListElement, originalOptions, e.target.value);
-                      optionsListElement.classList.add('show');
-                 }
-             });
-
-
-            // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
-            // Este listener original se mantiene, pero el blur ahora también llama a handleAutofill
-            // filterInput.addEventListener('blur', () => {
-            //     setTimeout(() => {
-            //         optionsListElement.classList.remove('show');
-            //     }, 100); // Pequeño retraso para permitir el clic en una opción
-            // });
-
-            // Listener para seleccionar una opción de la lista flotante
-            optionsListElement.addEventListener('click', (e) => {
-                if (e.target.tagName === 'LI') {
-                    const selectedValue = e.target.dataset.value;
-                    const selectedText = e.target.textContent;
-
-                    console.log(`Opción seleccionada (click): Texto=${selectedText}, Valor=${selectedValue}`); // Debugging
-
-                    // Actualizar el input de filtro con el texto seleccionado
-                    filterInput.value = selectedText;
-
-                    // --- Seleccionar la opción en el select oculto ---
-                    selectOptionInSelectElement(selectElement, selectedValue);
-
-                    console.log(`Valor del select oculto (${selectElement.id}) después de seleccionar (click): ${selectElement.value}`); // Debugging
-
-                    // Ocultar la lista
-                    optionsListElement.classList.remove('show');
-
-                     // Opcional: Disparar un evento 'change' en el select nativo si es necesario
-                     // const event = new Event('change');
-                     // selectElement.dispatchEvent(event);
-                }
-            });
-        }
-
-        // --- Función para manejar el autocompletado ---
-        function handleAutofill(filterInput, originalOptions, selectElement) {
-             const autofilledText = filterInput.value.trim();
-             console.log(`handleAutofill activado para ${filterInput.id}. Texto: "${autofilledText}"`); // Debugging
-
-             if (autofilledText === '') {
-                 // Si el campo está vacío (ej. autocompletado borró algo), resetear el select
-                 selectElement.value = '';
-                 console.log(`Select oculto (${selectElement.id}) reseteado.`); // Debugging
-                 return;
+                 numericValue = parseFloat(cleanedString);
              }
 
-             // Buscar una opción que coincida exactamente con el texto autocompletado (case-insensitive)
-             const matchedOption = originalOptions.find(option => option.textContent.trim().toLowerCase() === autofilledText.toLowerCase());
+             if (numericValue === undefined || numericValue === null || isNaN(numericValue)) {
+                 return '';
+             }
 
-             if (matchedOption) {
-                 console.log(`Coincidencia encontrada por autocompletado: Texto=${matchedOption.textContent}, Valor=${matchedOption.value}`); // Debugging
-                 // Seleccionar la opción en el select oculto
-                 selectOptionInSelectElement(selectElement, matchedOption.value);
-                 console.log(`Valor del select oculto (${selectElement.id}) después de autocompletar: ${selectElement.value}`); // Debugging
-             } else {
-                 // Si no hay una coincidencia exacta, puedes decidir qué hacer.
-                 // Limpiar el select oculto si el texto autocompletado no coincide con ninguna opción.
-                 console.log(`No se encontró coincidencia exacta para "${autofilledText}" en ${filterInput.id}. Limpiando select oculto.`); // Debugging
-                 selectElement.value = '';
-             }
-        }
-
-        // --- Función auxiliar para seleccionar una opción en el select oculto ---
-        function selectOptionInSelectElement(selectElement, valueToSelect) {
-             let optionFound = false;
-             // Convertir valueToSelect a string para comparación segura
-             const valueToSelectString = String(valueToSelect);
-             for (let i = 0; i < selectElement.options.length; i++) {
-                  // Convertir el valor de la opción a string para comparación segura
-                 if (String(selectElement.options[i].value) === valueToSelectString) {
-                     selectElement.options[i].selected = true;
-                     optionFound = true;
-                     break;
-                 }
-             }
-             if (!optionFound) {
-                  console.warn(`Valor ${valueToSelectString} no encontrado en las opciones del select oculto (${selectElement.id}).`);
-                  // Opcional: Si el valor no se encuentra, seleccionar la opción por defecto si existe
-                  selectElement.value = "";
-             }
+             return new Intl.NumberFormat('es-CO', {
+                 style: 'currency',
+                 currency: 'COP',
+                 minimumFractionDigits: 0,
+                 maximumFractionDigits: 2,
+             }).format(numericValue);
         }
 
 
-        // --- Funciones para cargar Dropdowns desde Firestore ---
-        async function loadFirestoreDropdownOptions(collectionRef, filterInput, optionsListElement, selectElement) {
-             try {
-                // Usar onSnapshot para escuchar cambios en tiempo real
-                collectionRef.orderBy('nombre').onSnapshot((snapshot) => {
-                    let currentOptions = []; // Para almacenar las opciones actuales de Firestore
+        // --- Data Loading and Select Population ---
 
-                    // Añadir la opción "Seleccione" al inicio de las opciones
-                     const defaultOption = document.createElement('option');
-                     defaultOption.value = "";
-                     defaultOption.textContent = "Seleccione";
-                     currentOptions.push(defaultOption);
+        // Load and populate entity selects (Empresas, Asesores, ARL, EPS, CCF, AFP)
+        async function populateSelects() {
+            try {
+                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
+                    empresasCollection.get(),
+                    asesoresCollection.get(),
+                    arlCollection.get(), // Get ARLs
+                    epsCollection.get(), // Get EPSs
+                    ccfCollection.get(), // Get CCFs
+                    afpCollection.get()  // Get AFPs
+                ]);
 
-                    snapshot.forEach((doc) => {
-                        const item = doc.data();
-                        if (item.nombre) { // Asegurarse de que el documento tenga un campo 'nombre'
-                            const option = document.createElement('option');
-                            option.value = doc.id; // Usar el ID del documento de Firestore como valor
-                            option.textContent = item.nombre; // Usar la propiedad 'nombre' como texto visible
-                            currentOptions.push(option);
-                        }
-                    });
-
-                    // Actualizar la lista de opciones originales para este combobox
-                    if (selectElement === empresaSelect) originalEmpresaOptions = currentOptions;
-                    else if (selectElement === asesorSelect) originalAsesorOptions = currentOptions;
-                    else if (selectElement === arlSelect) originalArlOptions = currentOptions; // Actualizar ARL
-                    else if (selectElement === epsSelect) originalEpsOptions = currentOptions; // Actualizar EPS
-                    else if (selectElement === ccfSelect) originalCcfOptions = currentOptions; // Actualizar CCF
-                    else if (selectElement === afpSelect) originalAfpOptions = currentOptions; // Actualizar AFP
-
-
-                    // --- Actualizar las opciones del select nativo oculto ---
-                    selectElement.innerHTML = ''; // Limpiar opciones actuales
-                    currentOptions.forEach(option => {
-                         // Clonar la opción para añadirla al select nativo
-                         selectElement.appendChild(option.cloneNode(true));
-                    });
-                    // Asegurarse de que la opción "Seleccione" esté seleccionada por defecto
-                    selectElement.value = "";
-
-
-                    // Configurar el combobox con las opciones cargadas
-                    setupCombobox(filterInput, optionsListElement, currentOptions, selectElement);
-
-                }, (error) => { // Agregar callback de error a onSnapshot
-                    console.error(`Error en onSnapshot al cargar dropdown de ${collectionRef.id}:`, error); // Logear el objeto de error completo
-                    showStatusMessage(`Error al cargar opciones de ${collectionRef.id}.`, 'error');
+                // Empresas
+                empresaSelect.innerHTML = '<option value="">Selecciona una empresa</option>'; // Clear and add default
+                empresasSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    empresaSelect.appendChild(option);
                 });
+
+                // Asesores
+                asesorSelect.innerHTML = '<option value="">Selecciona un asesor</option>'; // Clear and add default
+                asesoresSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    asesorSelect.appendChild(option);
+                });
+
+                // ARL
+                arlSelect.innerHTML = '<option value="">Selecciona una ARL</option>'; // Clear and add default
+                arlSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    arlSelect.appendChild(option);
+                });
+
+                // EPS
+                epsSelect.innerHTML = '<option value="">Selecciona una EPS</option>'; // Clear and add default
+                epsSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    epsSelect.appendChild(option);
+                });
+
+                // CCF
+                ccfSelect.innerHTML = '<option value="">Selecciona una CCF</option>'; // Clear and add default
+                ccfSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    ccfSelect.appendChild(option);
+                });
+
+                // AFP
+                afpSelect.innerHTML = '<option value="">Selecciona una AFP</option>'; // Clear and add default
+                afpSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                    afpSelect.appendChild(option);
+                });
+
+
+                console.log("Selectores poblados."); // Debugging
             } catch (error) {
-                console.error(`Error al configurar el listener onSnapshot para ${collectionRef.id}:`, error); // Logear el objeto de error completo
-                showStatusMessage(`Error al configurar listener para ${collectionRef.id}.`, 'error');
+                console.error("Error populating selects:", error);
+                showStatusMessage('Error al cargar opciones de empresa/asesor/ARL/EPS/CCF/AFP.', 'error');
             }
         }
 
+        // --- Form Submission ---
 
-        // --- Cargar opciones iniciales y configurar comboboxes ---
-
-        // Configurar comboboxes estáticos (solo Tipo de Identificación y Riesgo)
-        setupCombobox(tipoIdentificacionFilterInput, tipoIdentificacionOptionsList, originalTipoIdentificacionOptions, tipoIdentificacionSelect);
-        setupCombobox(riesgoFilterInput, riesgoOptionsList, originalRiesgoOptions, riesgoSelect);
-
-
-        // Cargar opciones de Firestore y configurar comboboxes
-        // Pasar el selectElement para que loadFirestoreDropdownOptions pueda actualizarlo
-        loadFirestoreDropdownOptions(empresasCollection, empresaFilterInput, empresaOptionsList, empresaSelect);
-        loadFirestoreDropdownOptions(asesoresCollection, asesorFilterInput, asesorOptionsList, asesorSelect);
-        loadFirestoreDropdownOptions(arlCollection, arlFilterInput, arlOptionsList, arlSelect); // Cargar ARL
-        loadFirestoreDropdownOptions(epsCollection, epsFilterInput, epsOptionsList, epsSelect); // Cargar EPS
-        loadFirestoreDropdownOptions(ccfCollection, ccfFilterInput, ccfOptionsList, ccfSelect); // Cargar CCF
-        loadFirestoreDropdownOptions(afpCollection, afpFilterInput, afpOptionsList, afpSelect); // Cargar AFP
-
-
-        // --- Manejo de Formularios y Botones ---
-
-        // Mostrar modal de agregar Empresa
-        addEmpresaBtn.addEventListener('click', () => {
-            showModal(addEmpresaModal);
-        });
-
-        // Mostrar modal de agregar Asesor
-        addAsesorBtn.addEventListener('click', () => {
-            showModal(addAsesorModal);
-        });
-
-        // Cerrar modal de agregar Empresa
-        cancelAddEmpresaBtn.addEventListener('click', () => {
-            hideModal(addEmpresaModal);
-            empresaModalForm.reset(); // Limpiar formulario del modal
-        });
-
-        // Cerrar modal de agregar Asesor
-        cancelAddAsesorBtn.addEventListener('click', () => {
-            hideModal(addAsesorModal);
-            asesorModalForm.reset(); // Limpiar formulario del modal
-        });
-
-         // Cerrar modales al hacer clic fuera del contenido (opcional)
-         window.addEventListener('click', (event) => {
-             if (event.target === addEmpresaModal) {
-                 hideModal(addEmpresaModal);
-                 empresaModalForm.reset();
-             }
-             if (event.target === addAsesorModal) {
-                 hideModal(addAsesorModal);
-                 asesorModalForm.reset();
-             }
-         });
-
-
-        // Guardar nueva Empresa en Firestore
-        empresaModalForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nombre = document.getElementById('nueva-empresa-nombre').value.trim(); // Usar trim()
-            if (nombre) {
-                try {
-                    // Verificar si la empresa ya existe (case-insensitive)
-                    const existingEmpresas = await empresasCollection.where('nombre', '==', nombre).get();
-                    if (!existingEmpresas.empty) {
-                        alert(`La empresa "${nombre}" ya existe.`);
-                        return;
-                    }
-
-                    await empresasCollection.add({ nombre: nombre, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    console.log("Empresa guardada con éxito");
-                    hideModal(addEmpresaModal);
-                    empresaModalForm.reset();
-                    // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
-                } catch (error) {
-                    console.error("Error al guardar empresa:", error);
-                    alert('Error al guardar empresa: ' + error.message); // Mostrar mensaje de error
-                }
-            } else {
-                 alert("Por favor, ingresa el nombre de la empresa.");
-            }
-        });
-
-        // Guardar nuevo Asesor en Firestore
-        asesorModalForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nombre = document.getElementById('nuevo-asesor-nombre').value.trim(); // Usar trim()
-            if (nombre) {
-                try {
-                     // Verificar si el asesor ya existe (case-insensitive)
-                    const existingAsesores = await asesoresCollection.where('nombre', '==', nombre).get();
-                    if (!existingAsesores.empty) {
-                        alert(`El asesor "${nombre}" ya existe.`);
-                        return;
-                    }
-
-                    await asesoresCollection.add({ nombre: nombre, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    console.log("Asesor guardado con éxito");
-                    hideModal(addAsesorModal);
-                    asesorModalForm.reset();
-                    // onSnapshot en loadFirestoreDropdownOptions se encargará de actualizar el combobox
-                } catch (error) {
-                    console.error("Error al guardar asesor:", error);
-                    alert('Error al guardar asesor: ' + error.message); // Mostrar mensaje de error
-                }
-            } else {
-                 alert("Por favor, ingresa el nombre del asesor.");
-            }
-        });
-
-
-        // --- Manejo del Formulario Principal (Guardar Usuario) ---
         userForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevenir el envío por defecto del formulario
+            e.preventDefault(); // Prevent default form submission
 
-            // Obtener los valores del formulario
-            // Ahora obtenemos los valores seleccionados del select nativo oculto (que son los IDs de Firestore)
-            const nombre = document.getElementById('nombre').value.trim();
-            const tipoIdentificacion = tipoIdentificacionSelect.value;
-            const identificacion = document.getElementById('identificacion').value.trim();
-            const empresaId = empresaSelect.value; // Esto será el ID del documento de la empresa en Firestore
-            const arlId = arlSelect.value; // Esto será el ID del documento de la ARL en Firestore
-            const riesgo = riesgoSelect.value; // Riesgo sigue siendo un valor estático
-            const epsId = epsSelect.value; // Esto será el ID del documento de la EPS en Firestore
-            const ccfId = ccfSelect.value; // Esto será el ID del documento de la CCF en Firestore
-            const afpId = afpSelect.value; // Esto será el ID del documento de la AFP en Firestore
-            const fecha = document.getElementById('fecha').value;
-            const ingreso = document.getElementById('ingreso').value;
-            const asesorId = asesorSelect.value; // Esto será el ID del documento del asesor en Firestore
-            const valorAPagar = valorAPagarInput.value; // Obtener el valor formateado
+            // Gather form data
+            const userData = {
+                nombre: nombreInput.value,
+                tipoIdentificacion: tipoIdentificacionSelect.value,
+                identificacion: identificacionInput.value,
+                empresaId: empresaSelect.value || null, // Store ID or null if not selected
+                arlId: arlSelect.value || null, // Store ARL ID or null
+                riesgo: riesgoInput.value,
+                epsId: epsSelect.value || null, // Store EPS ID or null
+                ccfId: ccfSelect.value || null, // Store CCF ID or null
+                afpId: afpSelect.value || null, // Store AFP ID or null
+                fecha: fechaIngresoInput.value, // Store as YYYY-MM-DD string
+                ingreso: fechaRegistroInput.value, // Store as YYYY-MM-DD string
+                asesorId: asesorSelect.value || null, // Store ID or null
+                valorAPagar: parseFloat(valorAPagarInput.value) || 0, // Convert to number, default to 0 if empty/invalid
+                ibc: parseFloat(ibcInput.value) || 0, // Store IBC as number, default to 0
+                estado: 'activo', // Default status for new users
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                // fechaRetiro is not applicable for new users
+            };
 
-            console.log("Valores del formulario antes de validación:"); // Debugging
-            console.log("Nombre:", nombre);
-            console.log("Tipo Identificacion:", tipoIdentificacion);
-            console.log("Identificacion:", identificacion);
-            console.log("Empresa ID:", empresaId); // Debugging específico para Empresa ID
-            console.log("ARL ID:", arlId); // Debugging específico para ARL ID
-            console.log("Riesgo:", riesgo);
-            console.log("EPS ID:", epsId); // Debugging específico para EPS ID
-            console.log("CCF ID:", ccfId); // Debugging específico para CCF ID
-            console.log("AFP ID:", afpId); // Debugging específico para AFP ID
-            console.log("Fecha:", fecha);
-            console.log("Ingreso:", ingreso);
-            console.log("Asesor ID:", asesorId); // Debugging específico para Asesor ID
-            console.log("Valor a Pagar:", valorAPagar);
-
-
-            // --- Validación detallada de campos obligatorios ---
-            const missingFields = [];
-            if (!nombre) missingFields.push('Nombre');
-            if (!tipoIdentificacion) missingFields.push('Tipo de Identificación');
-            if (!identificacion) missingFields.push('Identificación');
-            if (!empresaId) missingFields.push('Empresa'); // Validar que se haya seleccionado un ID
-            // ARL, Riesgo, EPS, CCF, AFP, Fecha, Ingreso, Asesor, Valor a Pagar
-            if (!arlId) missingFields.push('ARL');
-            if (!riesgo) missingFields.push('Riesgo');
-            if (!epsId) missingFields.push('EPS');
-            if (!ccfId) missingFields.push('CCF');
-            if (!afpId) missingFields.push('AFP');
-            if (!fecha) missingFields.push('Fecha');
-            if (!ingreso) missingFields.push('Ingreso');
-            if (!asesorId) missingFields.push('Asesor'); // Validar que se haya seleccionado un ID
-             if (!valorAPagar) missingFields.push('Valor a Pagar');
-
-
-            if (missingFields.length > 0) {
-                 showStatusMessage('Por favor, complete los siguientes campos: ' + missingFields.join(', '), 'error');
-                 return; // Detener el envío si faltan campos
+            // Basic validation (more comprehensive validation can be added)
+            if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.empresaId || !userData.fecha || !userData.ingreso || !userData.asesorId) {
+                 showStatusMessage('Por favor, completa todos los campos obligatorios.', 'error');
+                 return;
             }
 
-            // --- Validación de duplicados ---
-            showStatusMessage('Verificando duplicados...', 'info');
+
+            showStatusMessage('Guardando usuario...', 'info');
 
             try {
-                // Consultar Firestore para ver si ya existe un usuario con la misma identificación y tipo
-                const existingUsersSnapshot = await usersCollection
-                    .where('identificacion', '==', identificacion)
-                    .where('tipoIdentificacion', '==', tipoIdentificacion)
-                    .get();
-
-                if (!existingUsersSnapshot.empty) {
-                    // Si el snapshot no está vacío, significa que ya existe un usuario con esa combinación
-                    showStatusMessage('Error: Ya existe un usuario con este número y tipo de identificación.', 'error');
-                    return; // Detener el proceso de guardado
-                }
-
-                // Si no se encontraron duplicados, proceder a guardar el nuevo usuario
-
-                // Crear un objeto con los datos del usuario
-                const newUser = {
-                    nombre: nombre,
-                    tipoIdentificacion: tipoIdentificacion,
-                    identificacion: identificacion,
-                    empresaId: empresaId, // Guardar el ID de la empresa
-                    arlId: arlId, // Guardar el ID de la ARL
-                    riesgo: riesgo,
-                    epsId: epsId, // Guardar el ID de la EPS
-                    ccfId: ccfId, // Guardar el ID de la CCF
-                    afpId: afpId, // Guardar el ID de la AFP
-                    fecha: fecha, // Guardar como string YYYY-MM-DD
-                    ingreso: ingreso, // Guardar como string YYYY-MM-DD
-                    asesorId: asesorId, // Guardar el ID del asesor
-                    valorAPagar: parseFloat(valorAPagar.replace(/[^0-9.]/g, '')), // Convertir a número antes de guardar
-                    estado: 'activo', // Estado por defecto al ingresar
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: añadir timestamp
-                };
-
-                // Guardar el nuevo usuario en Firestore
-                await usersCollection.add(newUser);
-
-                // Mostrar mensaje de éxito
+                const docRef = await usersCollection.add(userData);
+                console.log("Document written with ID: ", docRef.id);
                 showStatusMessage('Usuario guardado con éxito!', 'success');
-                userForm.reset(); // Limpiar el formulario
-                // Limpiar los inputs de filtro y restablecer los selects nativos
-                tipoIdentificacionFilterInput.value = '';
-                tipoIdentificacionSelect.value = ''; // Resetear el select oculto
-                empresaFilterInput.value = '';
-                empresaSelect.value = ''; // Resetear el select oculto
-                arlFilterInput.value = '';
-                arlSelect.value = ''; // Resetear el select oculto
-                riesgoFilterInput.value = '';
-                riesgoSelect.value = ''; // Resetear el select oculto
-                epsFilterInput.value = '';
-                epsSelect.value = ''; // Resetear el select oculto
-                ccfFilterInput.value = '';
-                ccfSelect.value = ''; // Resetear el select oculto
-                afpFilterInput.value = '';
-                afpSelect.value = ''; // Resetear el select oculto
-                asesorFilterInput.value = '';
-                asesorSelect.value = ''; // Resetear el select oculto
-                valorAPagarInput.value = ''; // Asegurar que el input de valor a pagar también se limpie
+                userForm.reset(); // Clear the form
+                populateSelects(); // Repopulate selects in case new entities were added elsewhere
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showStatusMessage('Error al guardar usuario: ' + e.message, 'error');
+            }
+        });
 
+
+        // --- Cancel Button ---
+        cancelButton.addEventListener('click', () => {
+            // Redirect to the main database page
+            window.location.href = 'https://soavanzar.github.io/FACBA/inicio_base_de_datos.html';
+        });
+
+
+        // --- Modal for Adding New Entities ---
+
+        // Show the generic add entity modal
+        function showAddEntityModal(title, entityType) {
+            addEntityModalTitle.textContent = title;
+            addEntityTypeInput.value = entityType; // Store the entity type
+            entityNameInput.value = ''; // Clear the name field
+            addEntityModal.classList.add('show');
+        }
+
+        // Hide the generic add entity modal
+        function hideAddEntityModal() {
+            addEntityModal.classList.remove('show');
+            addEntityForm.reset(); // Reset the form
+        }
+
+        // Listeners to close the generic add entity modal
+        closeAddEntityModalButton.addEventListener('click', hideAddEntityModal);
+        cancelAddEntityButton.addEventListener('click', hideAddEntityModal);
+        addEntityModal.addEventListener('click', (e) => {
+            if (e.target === addEntityModal) {
+                hideAddEntityModal();
+            }
+        });
+
+        // Listener for submitting the generic add entity form
+        addEntityForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default submission
+
+            const entityType = addEntityTypeInput.value;
+            const entityName = entityNameInput.value.trim();
+
+            if (!entityName) {
+                alert("Por favor, ingresa el nombre.");
+                return;
+            }
+
+            let collectionRef;
+            let successMessage = '';
+            let entityData = {
+                 nombre: entityName,
+                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Determine the collection and success message based on entity type
+            switch (entityType) {
+                case 'arl': // Case for ARL
+                    collectionRef = arlCollection;
+                    successMessage = 'Nueva ARL agregada con éxito!';
+                    break;
+                case 'eps':
+                    collectionRef = epsCollection;
+                    successMessage = 'Nueva EPS agregada con éxito!';
+                    break;
+                case 'ccf':
+                    collectionRef = ccfCollection;
+                    successMessage = 'Nueva CCF agregada con éxito!';
+                    break;
+                case 'afp':
+                    collectionRef = afpCollection;
+                    successMessage = 'Nueva AFP agregada con éxito!';
+                    break;
+                case 'asesor':
+                    collectionRef = asesoresCollection;
+                    successMessage = 'Nuevo Asesor agregado con éxito!';
+                    break;
+                case 'empresa':
+                    collectionRef = empresasCollection;
+                    successMessage = 'Nueva Empresa agregada con éxito!';
+                    break;
+                default:
+                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
+                    return;
+            }
+
+            showStatusMessage(`Agregando ${entityName}...`, 'info');
+
+            try {
+                await collectionRef.add(entityData);
+                showStatusMessage(successMessage, 'success');
+                hideAddEntityModal(); // Close modal after saving
+
+                // After adding a new entity, repopulate the selects
+                populateSelects();
 
             } catch (error) {
-                // Mostrar mensaje de error si algo falla durante la consulta o el guardado
-                showStatusMessage('Error al guardar usuario: ' + error.message, 'error');
-                console.error("Error al guardar usuario:", error);
+                console.error(`Error adding ${entityType}:`, error);
+                showStatusMessage(`Error al agregar ${entityType}: ` + error.message, 'error');
             }
         });
 
 
-         // Función para mostrar mensajes de estado (en la parte inferior del formulario)
-         function showStatusMessage(message, type = 'info') {
-             statusMessage.textContent = message;
-             statusMessage.className = ''; // Reset classes
-             statusMessage.classList.add(type);
-             // Fade in
-             statusMessage.style.opacity = '1';
-             statusMessage.style.transform = 'translateY(0)';
+        // --- Automatic IBC Calculation ---
 
-             // Fade out after 5 seconds
-             setTimeout(() => {
-                 statusMessage.style.opacity = '0';
-                 statusMessage.style.transform = 'translateY(10px)';
-                  // Clear text after transition
-                 setTimeout(() => {
-                      statusMessage.textContent = '';
-                 }, 400); // Match the transition duration
-             }, 5000);
-         }
+        ibcAutomaticoCheck.addEventListener('change', async (e) => {
+            if (e.target.checked) {
+                // Checkbox is checked, attempt to find IBC automatically
+                showStatusMessage('Buscando IBC del año actual...', 'info');
+                ibcLoadingIndicator.style.display = 'inline-block'; // Show loading indicator
+                ibcInput.disabled = true; // Disable input while loading
+                ibcAutomaticoCheck.disabled = true; // Disable checkbox while loading
 
 
-        // --- Formato de Moneda para Valor a Pagar ---
-        valorAPagarInput.addEventListener('input', (e) => {
-            let value = e.target.value;
-            // Remover caracteres no numéricos (excepto el punto como separador decimal)
-            value = value.replace(/[^0-9.]/g, '');
+                try {
+                    // Use the google_search tool to find the IBC
+                    // The tool code will be injected and executed by the environment
+                    // The result will be available in the `toolResult` variable
 
-            // Permitir solo un punto decimal
-            const parts = value.split('.');
-            if (parts.length > 2) {
-                value = parts[0] + '.' + parts.slice(1).join('');
-            }
+                    // Construct the search query in both Spanish and English
+                    const currentYear = new Date().getFullYear();
+                    const searchQueryEs = `Salario Mínimo Legal Mensual Vigente Colombia ${currentYear}`; // More specific query
+                    const searchQueryEn = `Minimum Legal Monthly Wage Colombia ${currentYear}`;
 
-            // Opcional: Limitar a 2 decimales después del punto
-            if (value.includes('.')) {
-                 const decimalPart = value.split('.')[1];
-                 if (decimalPart && decimalPart.length > 2) {
-                      value = value.split('.')[0] + '.' + decimalPart.slice(0, 2);
-                 }
-            }
+                    // Execute the search using the tool
+                    const toolResult = await google_search([searchQueryEs, searchQueryEn]);
+
+                    let ibcValue = null;
+
+                    // Process the search results to find a plausible IBC value
+                    if (toolResult && toolResult.length > 0) {
+                         for (const result of toolResult) {
+                             if (result.snippet) {
+                                  console.log("Searching in snippet:", result.snippet); // Log the snippet being searched
+
+                                  // More robust regex to find numbers likely representing currency,
+                                  // allowing for spaces, dots, commas, apostrophes, currency symbols,
+                                  // and prioritizing larger numbers.
+                                  // This regex looks for sequences of digits, potentially separated by
+                                  // .,' and optionally followed by a decimal part.
+                                  const currencyRegex = /[$\s]*(\d{1,3}(?:[.,']?\d{3})*)(?:[.,]\d{0,2})?[$\s]*/g;
+                                  let match;
+                                  const possibleValues = [];
+
+                                  while ((match = currencyRegex.exec(result.snippet)) !== null) {
+                                       // Clean the matched number string: remove all non-digit characters except the last potential decimal point
+                                       let rawValue = match[1].replace(/[^0-9]/g, ''); // Remove all non-digits first
+                                       // If there was a decimal part in the original match, try to re-add the dot for parsing
+                                       if (match[0].includes('.') || match[0].includes(',')) {
+                                            // Simple approach: just take the raw digits and assume it's the main number
+                                            // A more complex approach would involve checking the last separator
+                                       }
+
+                                       const numericValue = parseFloat(rawValue); // Parse the cleaned string
+
+                                       // Filter for values that are likely to be an IBC (e.g., greater than 1,000,000)
+                                       // Also filter out unrealistically large numbers that might be years or other data
+                                       if (!isNaN(numericValue) && numericValue >= 1000000 && numericValue < 10000000) { // Add upper bound filter
+                                            possibleValues.push(numericValue);
+                                       }
+                                  }
+                                   console.log("Possible values found in snippet:", possibleValues); // Log possible values
+
+                                  // Prioritize finding a single, dominant large number, or take the largest plausible one
+                                  if (possibleValues.length > 0) {
+                                       // Sort in descending order and take the largest
+                                       possibleValues.sort((a, b) => b - a);
+                                       ibcValue = possibleValues[0]; // Use the largest plausible value
+                                       console.log("Largest plausible value found:", ibcValue);
+                                       break; // Found a plausible value, stop searching snippets
+                                  }
+                             }
+                         }
+                    }
 
 
-            // Formatear como moneda COP (esto es solo para visualización en el input)
-            // Consideramos que el valor guardado en Firebase es numérico (float)
-            const numberValue = parseFloat(value);
-            if (!isNaN(numberValue)) {
-                 // Usar Intl.NumberFormat para formato de moneda
-                 const formatter = new Intl.NumberFormat('es-CO', {
-                     style: 'currency',
-                     currency: 'COP',
-                     minimumFractionDigits: 0, // Ajusta si necesitas decimales
-                     maximumFractionDigits: 2, // Ajusta si necesitas decimales
-                 });
-                 // Formatear el número
-                 let formattedValue = formatter.format(numberValue);
-                 // Eliminar el símbolo '$' y el espacio no deseado si los hay para el input
-                 formattedValue = formattedValue.replace('$', '').trim();
-                 // Reemplazar la coma decimal (usada por Intl en es-CO) por punto si prefieres punto en el input
-                 formattedValue = formattedValue.replace(',', '.');
+                    if (ibcValue !== null && ibcValue > 0) {
+                        ibcInput.value = ibcValue; // Set the raw numeric value
+                        showStatusMessage(`IBC ${formatCurrency(ibcValue)} encontrado para el año ${currentYear}.`, 'success'); // Display formatted value
+                    } else {
+                        showStatusMessage('No se pudo encontrar el IBC automático para el año actual. Por favor, ingrésalo manualmente.', 'error');
+                        ibcInput.value = ''; // Clear input if not found
+                    }
 
-                 e.target.value = formattedValue;
+                } catch (error) {
+                    console.error("Error searching for IBC:", error);
+                    showStatusMessage('Error al buscar el IBC automático.', 'error');
+                     ibcInput.value = ''; // Clear input on error
+                } finally {
+                     ibcLoadingIndicator.style.display = 'none'; // Hide loading indicator
+                     ibcInput.disabled = false; // Enable input
+                     ibcAutomaticoCheck.disabled = false; // Enable checkbox
+                }
+
             } else {
-                 // Si no es un número válido después de limpiar, dejar el valor actual o vacío
-                 // Dejamos el valor actual para no borrar lo que el usuario está escribiendo si es parcial (ej: solo ".")
-                 // e.target.value = ''; // Descomentar si prefieres limpiar completamente
+                // Checkbox is unchecked, allow manual input
+                ibcInput.disabled = false;
+                ibcInput.value = ''; // Clear the input when unchecked
+                 showStatusMessage('Ingreso manual de IBC habilitado.', 'info');
             }
         });
+
+
+        // --- Initialization ---
+        // Populate selects when the page loads
+        populateSelects();
 
 
     </script>
