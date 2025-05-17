@@ -124,19 +124,45 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
-        /* Estilos de tabla tipo Excel */
+        /* --- Estilos de Tabla con CSS Grid (Vista de Escritorio) --- */
+
         .user-table {
             width: 100%;
             border-collapse: collapse; /* Elimina el espacio entre bordes */
             margin-top: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
+            display: grid; /* <<-- MODIFICACION AQUI: Usar Grid para la tabla */
+            grid-template-columns: repeat(9, 1fr); /* <<-- MODIFICACION AQUI: 9 columnas flexibles */
+            /* Definir áreas para thead y tbody */
+            grid-template-areas:
+                "header header header header header header header header header"
+                "body body body body body body body body body";
+            /* Asegurar que las filas no creen sus propios contextos de grid/flex */
+             grid-auto-rows: auto; /* Ajustar altura de filas automáticamente */
         }
+
+        .user-table thead {
+            display: contents; /* <<-- MODIFICACION AQUI: Permite que los th sean items del grid de la tabla */
+             grid-area: header; /* Asignar a la área de encabezado */
+        }
+
+        .user-table tbody {
+            display: contents; /* <<-- MODIFICACION AQUI: Permite que los td sean items del grid de la tabla */
+             grid-area: body; /* Asignar a la área del cuerpo */
+        }
+
+        .user-table tr {
+             display: contents; /* <<-- MODIFICACION AQUI: Permite que los th/td sean items del grid de thead/tbody */
+        }
+
 
         .user-table th,
         .user-table td {
             padding: 12px 15px; /* Espaciado interno */
             text-align: left;
             border-bottom: 1px solid #e5e7eb; /* Borde inferior para filas */
+            /* Eliminar estilos de tabla nativos que no aplican a grid items */
+            display: block; /* Asegura que sean bloques dentro del grid */
         }
 
         .user-table th {
@@ -145,7 +171,15 @@
             font-weight: 600;
             text-transform: uppercase; /* Texto en mayúsculas */
             font-size: 0.9rem;
+             /* Asegurar que los th se alineen con las columnas del grid */
+             grid-column: span 1;
+             /* Añadir borde derecho a los encabezados */
+             border-right: 1px solid #d1d5db; /* Borde derecho */
         }
+         .user-table th:last-child {
+             border-right: none; /* Sin borde derecho en el último encabezado */
+         }
+
 
         .user-table tbody tr:nth-child(even) {
             background-color: #f9fafb; /* Fondo ligeramente diferente para filas pares (efecto cebra) */
@@ -159,7 +193,15 @@
         .user-table td {
             font-size: 0.95rem; /* Tamaño de fuente por defecto para escritorio */
             color: #374151; /* Texto gris oscuro */
+             /* Asegurar que los td se alineen con las columnas del grid */
+             grid-column: span 1;
+             /* Añadir borde derecho a las celdas */
+             border-right: 1px solid #e5e7eb; /* Borde derecho */
         }
+         .user-table td:last-child {
+             border-right: none; /* Sin borde derecho en la última celda */
+         }
+
 
         /* Estilos para las celdas de acciones */
         .action-cell {
@@ -413,16 +455,24 @@
 
         /* Aplicar estilos solo en pantallas pequeñas (menos de 768px, breakpoint 'md' de Tailwind) */
         @media (max-width: 767px) {
+            .user-table {
+                 display: block; /* <<-- MODIFICACION AQUI: Volver a block en móvil */
+                 grid-template-columns: none; /* <<-- MODIFICACION AQUI: Eliminar columnas de grid */
+                 grid-template-areas: none; /* <<-- MODIFICACION AQUI: Eliminar áreas de grid */
+                 box-shadow: none; /* <<-- MODIFICACION AQUI: Eliminar sombra de tabla en móvil */
+            }
+
             .user-table thead {
                 display: none; /* Ocultar encabezados de tabla */
             }
 
-            .user-table, .user-table tbody, .user-table tr {
-                display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
-                width: 100%; /* Ocupar todo el ancho */
+            .user-table tbody {
+                 display: block; /* <<-- MODIFICACION AQUI: Volver a block en móvil */
             }
 
             .user-table tr {
+                display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
+                width: 100%; /* Ocupar todo el ancho */
                 margin-bottom: 20px; /* Más espacio entre filas apiladas (tarjetas) */
                 border: 1px solid #d1d5db; /* Borde alrededor de cada "tarjeta" de fila */
                 border-radius: 10px; /* Bordes más redondeados */
@@ -432,13 +482,14 @@
             }
 
             .user-table td {
-                display: flex; /* <<-- MODIFICACION AQUI: Usar Flexbox para cada celda */
+                display: flex; /* Usar Flexbox para cada celda */
                 justify-content: space-between; /* Espacio entre la etiqueta y el valor */
                 align-items: center; /* Alinear elementos verticalmente */
                 padding: 8px 15px; /* Espaciado interno para las celdas */
                 position: relative; /* Para posicionar la etiqueta */
                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
                 font-size: 0.9rem; /* Reducir tamaño de fuente para móviles */
+                border-right: none; /* <<-- MODIFICACION AQUI: Eliminar borde derecho en móvil */
             }
 
              .user-table td:last-child {
@@ -450,27 +501,26 @@
 
             .user-table td::before {
                 content: attr(data-label); /* Mostrar el contenido del atributo data-label */
-                flex-basis: 120px; /* <<-- MODIFICACION AQUI: Base inicial de 120px */
-                flex-shrink: 0; /* <<-- MODIFICACION AQUI: Evitar que se encoja */
+                flex-basis: 120px; /* Base inicial de 120px */
+                flex-shrink: 0; /* Evitar que se encoja */
                 padding-right: 10px; /* Espacio entre etiqueta y contenido */
                 font-weight: 600; /* Peso de fuente semibold para la etiqueta */
                 color: #4b5563; /* Color gris oscuro para la etiqueta */
                 text-align: left; /* Alinear etiqueta a la izquierda */
-                /* Eliminamos position: absolute y related properties */
-                position: static; /* <<-- MODIFICACION AQUI: Posicionamiento estático */
-                transform: none; /* <<-- MODIFICACION AQUI: Eliminar transformación */
+                position: static; /* Posicionamiento estático */
+                transform: none; /* Eliminar transformación */
             }
 
             /* Ajuste específico para la celda de acciones */
             .action-cell {
-                 display: block; /* <<-- MODIFICACION AQUI: Volver a block para la celda de acciones */
+                 display: block; /* Volver a block para la celda de acciones */
                  text-align: center; /* Centrar el contenido en la celda de acciones */
                  padding-left: 15px; /* Mantener padding izquierdo */
             }
 
              .action-cell::before {
                  content: ''; /* No mostrar etiqueta para la celda de acciones */
-                 display: none; /* <<-- MODIFICACION AQUI: Ocultar el before en la celda de acciones */
+                 display: none; /* Ocultar el before en la celda de acciones */
              }
 
              /* Asegurar que los botones de acción estén bien espaciados en la vista de tarjeta */
@@ -1395,7 +1445,7 @@
         };
 
 
-        // Renderizar una fila de usuario en la tabla
+        // Renderizar una fila de usuario en la tabla (ahora adaptada para Grid)
         function renderUserRow(userDoc) {
             const user = userDoc.data();
             const row = document.createElement('tr');
