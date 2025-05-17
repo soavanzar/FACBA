@@ -417,7 +417,7 @@
                 display: none; /* Ocultar encabezados de tabla */
             }
 
-            .user-table, .user-table tbody, .user-table tr, .user-table td {
+            .user-table, .user-table tbody, .user-table tr {
                 display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
                 width: 100%; /* Ocupar todo el ancho */
             }
@@ -432,12 +432,13 @@
             }
 
             .user-table td {
-                text-align: right; /* Alinear contenido de celda a la derecha */
+                display: flex; /* <<-- MODIFICACION AQUI: Usar Flexbox para cada celda */
+                justify-content: space-between; /* Espacio entre la etiqueta y el valor */
+                align-items: center; /* Alinear elementos verticalmente */
                 padding: 8px 15px; /* Espaciado interno para las celdas */
-                padding-left: 145px; /* Añadir padding izquierdo para el título */
                 position: relative; /* Para posicionar la etiqueta */
                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
-                font-size: 0.9rem; /* <<-- MODIFICACION AQUI: Reducir tamaño de fuente para móviles */
+                font-size: 0.9rem; /* Reducir tamaño de fuente para móviles */
             }
 
              .user-table td:last-child {
@@ -449,29 +450,27 @@
 
             .user-table td::before {
                 content: attr(data-label); /* Mostrar el contenido del atributo data-label */
-                position: absolute;
-                left: 15px; /* Posición a la izquierda */
-                width: 120px; /* Ancho fijo para el título */
+                flex-basis: 120px; /* <<-- MODIFICACION AQUI: Base inicial de 120px */
+                flex-shrink: 0; /* <<-- MODIFICACION AQUI: Evitar que se encoja */
                 padding-right: 10px; /* Espacio entre etiqueta y contenido */
-                box-sizing: border-box; /* Incluir padding en el ancho */
-                white-space: nowrap; /* Evitar que la etiqueta se rompa en varias líneas */
                 font-weight: 600; /* Peso de fuente semibold para la etiqueta */
                 color: #4b5563; /* Color gris oscuro para la etiqueta */
                 text-align: left; /* Alinear etiqueta a la izquierda */
-                overflow: hidden; /* Ocultar texto si es demasiado largo */
-                text-overflow: ellipsis; /* Mostrar puntos suspensivos si se trunca */
-                top: 50%; /* Centrar verticalmente */
-                transform: translateY(-50%); /* Ajustar para centrado vertical */
+                /* Eliminamos position: absolute y related properties */
+                position: static; /* <<-- MODIFICACION AQUI: Posicionamiento estático */
+                transform: none; /* <<-- MODIFICACION AQUI: Eliminar transformación */
             }
 
             /* Ajuste específico para la celda de acciones */
             .action-cell {
+                 display: block; /* <<-- MODIFICACION AQUI: Volver a block para la celda de acciones */
                  text-align: center; /* Centrar el contenido en la celda de acciones */
-                 padding-left: 15px; /* Resetear padding-left para la celda de acciones */
+                 padding-left: 15px; /* Mantener padding izquierdo */
             }
 
              .action-cell::before {
                  content: ''; /* No mostrar etiqueta para la celda de acciones */
+                 display: none; /* <<-- MODIFICACION AQUI: Ocultar el before en la celda de acciones */
              }
 
              /* Asegurar que los botones de acción estén bien espaciados en la vista de tarjeta */
