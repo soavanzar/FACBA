@@ -14,6 +14,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 
     <style>
         /* Estilos CSS personalizados */
@@ -773,6 +776,149 @@
              visibility: visible;
          }
 
+         /* Estilos específicos para los nuevos modales de Pago y Facturación */
+         #add-payment-modal .modal-content,
+         #billing-modal .modal-content,
+         #payment-history-modal .modal-content,
+         #invoice-history-modal .modal-content {
+             max-width: 600px; /* Aumentar ancho para formularios/historiales */
+         }
+
+         #payment-history-list,
+         #invoice-history-list {
+             list-style: none;
+             padding: 0;
+             margin-top: 20px;
+             border-top: 1px solid #e5e7eb;
+         }
+
+         #payment-history-list li,
+         #invoice-history-list li {
+             padding: 10px 0;
+             border-bottom: 1px solid #e5e7eb;
+             font-size: 0.95rem;
+             color: #374151;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+         }
+
+         #payment-history-list li:last-child,
+         #invoice-history-list li:last-child {
+             border-bottom: none;
+         }
+
+         #payment-history-list li span,
+         #invoice-history-list li span {
+             margin-right: 15px; /* Espacio entre elementos */
+         }
+
+         /* Estilos para la sección de historial dentro de los modales */
+         .history-section {
+             margin-top: 25px;
+             padding-top: 15px;
+             border-top: 1px solid #d1d5db;
+         }
+
+         .history-section h3 {
+             font-size: 1.2rem;
+             font-weight: 600;
+             margin-bottom: 15px;
+             color: #1f2937;
+         }
+
+         /* Estilos para el área de visualización de factura generada */
+         #generated-invoice-details {
+             margin-top: 20px;
+             padding: 15px;
+             border: 1px dashed #d1d5db;
+             border-radius: 8px;
+             background-color: #f9fafb;
+             min-height: 150px; /* Altura mínima */
+             white-space: pre-wrap; /* Respeta saltos de línea y espacios */
+             font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Fuente monoespaciada */
+             font-size: 0.9rem;
+             color: #374151;
+             overflow-x: auto; /* Permite scroll horizontal si es necesario */
+         }
+
+         #generated-invoice-details strong {
+             color: #1f2937;
+         }
+
+         /* Estilos para los botones específicos de facturación */
+         .billing-buttons {
+             display: flex;
+             justify-content: flex-end;
+             gap: 10px;
+             margin-top: 20px;
+         }
+
+         .billing-buttons button {
+             padding: 8px 15px;
+             border-radius: 6px;
+             font-weight: 500;
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out;
+             border: none;
+         }
+
+         .generate-invoice-button {
+             background-color: #3b82f6; /* Azul */
+             color: white;
+         }
+         .generate-invoice-button:hover {
+             background-color: #2563eb; /* Azul más oscuro */
+         }
+
+         .save-invoice-button {
+             background-color: #10b981; /* Verde */
+             color: white;
+         }
+         .save-invoice-button:hover {
+             background-color: #059669; /* Verde más oscuro */
+         }
+
+         .view-invoices-button {
+             background-color: #6366f1; /* Indigo */
+             color: white;
+         }
+         .view-invoices-button:hover {
+             background-color: #4f46e5; /* Indigo más oscuro */
+         }
+
+         .generate-pdf-button {
+             background-color: #ef4444; /* Rojo */
+             color: white;
+         }
+         .generate-pdf-button:hover {
+             background-color: #dc2626; /* Rojo más oscuro */
+         }
+
+         /* Estilos para la lista de historial de facturas */
+         #invoice-history-list li {
+             flex-direction: column; /* Apilar elementos en cada item de factura */
+             align-items: flex-start; /* Alinear a la izquierda */
+         }
+
+         #invoice-history-list li .invoice-summary {
+             width: 100%; /* Ocupar todo el ancho */
+             margin-bottom: 10px; /* Espacio debajo del resumen */
+         }
+
+         #invoice-history-list li .invoice-actions {
+             width: 100%; /* Ocupar todo el ancho */
+             display: flex;
+             justify-content: flex-end; /* Alinear botones a la derecha */
+             gap: 8px; /* Espacio entre botones */
+         }
+
+         #invoice-history-list li .invoice-actions button {
+             padding: 5px 10px;
+             font-size: 0.85rem;
+         }
+
 
     </style>
 </head>
@@ -1064,6 +1210,108 @@
     <div id="click-tooltip-message" class="click-tooltip-message"></div>
 
     <div id="large-status-message"></div>
+    <div id="add-payment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-add-payment-modal">&times;</span>
+            <h2>Agregar Pago</h2>
+            <form id="add-payment-form">
+                <input type="hidden" id="payment-user-id">
+                <div class="modal-form-group">
+                    <label for="payment-date">Fecha:</label>
+                    <input type="date" id="payment-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="payment-value">Valor (COP):</label>
+                    <input type="number" id="payment-value" step="0.01" required>
+                </div>
+                 <div class="modal-form-group">
+                    <label for="payment-novelty">Novedad:</label>
+                    <select id="payment-novelty" required>
+                        <option value="">Selecciona</option>
+                        <option value="APO">APO</option>
+                        <option value="ING">ING</option>
+                        <option value="RET">RET</option>
+                         <option value="OTRO">OTRO</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-add-payment">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Pago</button>
+                </div>
+            </form>
+
+            <div class="history-section">
+                 <h3>Historial de Pagos</h3>
+                 <ul id="payment-history-list">
+                     <li>Cargando historial...</li>
+                 </ul>
+                 <button class="view-history-button mt-4" id="view-all-payments-button" style="display: none;">Ver Historial Completo</button>
+            </div>
+        </div>
+    </div>
+    <div id="payment-history-modal" class="modal-overlay">
+        <div class="modal-content">
+             <span class="modal-close-button" id="close-payment-history-modal">&times;</span>
+             <h2 id="payment-history-modal-title">Historial de Pagos</h2>
+             <ul id="full-payment-history-list">
+                 <li>Cargando historial...</li>
+             </ul>
+             <div class="modal-buttons">
+                 <button type="button" class="cancel-button" id="close-payment-history-modal-button">Cerrar</button>
+             </div>
+        </div>
+    </div>
+    <div id="billing-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-billing-modal">&times;</span>
+            <h2>Facturación</h2>
+            <form id="billing-form">
+                <input type="hidden" id="billing-user-id">
+                <div class="modal-form-group">
+                    <label for="billing-start-date">Fecha Inicio:</label>
+                    <input type="date" id="billing-start-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="billing-end-date">Fecha Fin:</label>
+                    <input type="date" id="billing-end-date" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="generate-invoice-button" id="generate-invoice-button">Generar Factura</button>
+                </div>
+            </form>
+
+            <div class="history-section" id="generated-invoice-section" style="display: none;">
+                 <h3>Detalles de Factura Generada</h3>
+                 <div id="generated-invoice-details">
+                     </div>
+                 <div class="billing-buttons">
+                     <button type="button" class="save-invoice-button" id="save-invoice-button">Guardar Factura</button>
+                     <button type="button" class="generate-pdf-button" id="generate-pdf-button">Generar PDF</button>
+                 </div>
+            </div>
+
+             <div class="history-section">
+                 <h3>Historial de Facturas</h3>
+                 <ul id="invoice-history-list">
+                     <li>Cargando historial...</li>
+                 </ul>
+                 <button class="view-history-button mt-4" id="view-all-invoices-button" style="display: none;">Ver Historial Completo</button>
+             </div>
+        </div>
+    </div>
+    <div id="invoice-history-modal" class="modal-overlay">
+        <div class="modal-content">
+             <span class="modal-close-button" id="close-invoice-history-modal">&times;</span>
+             <h2 id="invoice-history-modal-title">Historial de Facturas</h2>
+             <ul id="full-invoice-history-list">
+                 <li>Cargando historial...</li>
+             </ul>
+             <div class="modal-buttons">
+                 <button type="button" class="cancel-button" id="close-invoice-history-modal-button">Cerrar</button>
+             </div>
+        </div>
+    </div>
     <script>
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -1089,6 +1337,8 @@
         const epsCollection = db.collection('eps');
         const ccfCollection = db.collection('ccf');
         const afpCollection = db.collection('afp');
+        const pagosCollection = db.collection('pagos'); // NUEVA COLECCIÓN: Pagos
+        const facturasCollection = db.collection('facturas'); // NUEVA COLECCIÓN: Facturas
 
 
         // Obtener elementos del DOM
@@ -1189,6 +1439,47 @@
         const processImportButton = document.getElementById('process-import-button');
         const importStatusMessage = document.getElementById('import-status-message');
 
+        // --- NUEVOS ELEMENTOS DE MODALES DE PAGO Y FACTURACIÓN ---
+        const addPaymentModal = document.getElementById('add-payment-modal');
+        const closeAddPaymentModalButton = document.getElementById('close-add-payment-modal');
+        const cancelAddPaymentButton = document.getElementById('cancel-add-payment');
+        const addPaymentForm = document.getElementById('add-payment-form');
+        const paymentUserIdInput = document.getElementById('payment-user-id');
+        const paymentDateInput = document.getElementById('payment-date');
+        const paymentValueInput = document.getElementById('payment-value');
+        const paymentNoveltySelect = document.getElementById('payment-novelty');
+        const paymentHistoryList = document.getElementById('payment-history-list');
+        const viewAllPaymentsButton = document.getElementById('view-all-payments-button');
+
+        const paymentHistoryModal = document.getElementById('payment-history-modal');
+        const closePaymentHistoryModalButton = document.getElementById('close-payment-history-modal');
+        const closePaymentHistoryModalButtonInModal = document.getElementById('close-payment-history-modal-button');
+        const fullPaymentHistoryList = document.getElementById('full-payment-history-list');
+        const paymentHistoryModalTitle = document.getElementById('payment-history-modal-title');
+
+
+        const billingModal = document.getElementById('billing-modal');
+        const closeBillingModalButton = document.getElementById('close-billing-modal');
+        const billingForm = document.getElementById('billing-form');
+        const billingUserIdInput = document.getElementById('billing-user-id');
+        const billingStartDateInput = document.getElementById('billing-start-date');
+        const billingEndDateInput = document.getElementById('billing-end-date');
+        const generateInvoiceButton = document.getElementById('generate-invoice-button');
+        const generatedInvoiceSection = document.getElementById('generated-invoice-section');
+        const generatedInvoiceDetails = document.getElementById('generated-invoice-details');
+        const saveInvoiceButton = document.getElementById('save-invoice-button');
+        const generatePdfButton = document.getElementById('generate-pdf-button');
+        const invoiceHistoryList = document.getElementById('invoice-history-list');
+        const viewAllInvoicesButton = document.getElementById('view-all-invoices-button');
+
+        const invoiceHistoryModal = document.getElementById('invoice-history-modal');
+        const closeInvoiceHistoryModalButton = document.getElementById('close-invoice-history-modal');
+        const closeInvoiceHistoryModalButtonInModal = document.getElementById('close-invoice-history-modal-button');
+        const fullInvoiceHistoryList = document.getElementById('full-invoice-history-list');
+        const invoiceHistoryModalTitle = document.getElementById('invoice-history-modal-title');
+
+        // --- FIN NUEVOS ELEMENTOS ---
+
 
         // Mapas para almacenar nombres de entidades (para mostrar en la tabla y selectores)
         let empresasMap = new Map();
@@ -1201,6 +1492,9 @@
 
         // Variable para almacenar todos los documentos de usuario fetched por onSnapshot
         let allUserDocs = [];
+        // Variable para almacenar el usuario actualmente seleccionado en un modal
+        let currentUserData = null;
+
 
         // Variables para almacenar los filtros actuales
         let currentStatusFilter = 'todos'; // 'todos', 'activo', 'retirado'
@@ -1319,6 +1613,32 @@
             const day = ('0' + date.getDate()).slice(-2);
             return `${year}-${month}-${day}`;
         }
+
+         // Función para formatear fechas y hora (Firestore Timestamp a DD/MM/YYYY HH:mm)
+         function formatDateTime(timestamp) {
+             if (!timestamp) return '';
+             let date;
+             if (timestamp.toDate) { // Check if it's a Firestore Timestamp
+                  date = timestamp.toDate();
+             } else if (typeof timestamp === 'string') { // Handle string dates
+                  date = new Date(timestamp);
+             } else { // Handle other potential date formats
+                  date = new Date(timestamp);
+             }
+
+             if (isNaN(date.getTime())) {
+                 return ''; // Return empty string if date is invalid
+             }
+
+             const day = ('0' + date.getDate()).slice(-2);
+             const month = ('0' + (date.getMonth() + 1)).slice(-2);
+             const year = date.getFullYear();
+             const hours = ('0' + date.getHours()).slice(-2);
+             const minutes = ('0' + date.getMinutes()).slice(-2);
+
+             return `${day}/${month}/${year} ${hours}:${minutes}`;
+         }
+
 
         // Función para formatear números como moneda (COP)
         function formatCurrency(number) {
@@ -1585,7 +1905,9 @@
                         <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
                              <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
                         </button>
-                    </div>
+                         <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-money-bill-wave"></i></button>
+                         <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice-dollar"></i></button>
+                         </div>
                     <i class="fas fa-cog gear-icon" data-id="${userDoc.id}" title="Mostrar Acciones"></i>
                 </td>
             `;
@@ -1872,6 +2194,11 @@
                 return;
             }
 
+            // Almacenar los datos del usuario seleccionado globalmente
+            currentUserData = userDoc.data();
+            currentUserData.id = userDoc.id; // Guardar también el ID
+
+
             const actionCell = target.closest('.action-cell');
             const actionButtonsContainer = actionCell ? actionCell.querySelector('.action-buttons-container') : null;
             const gearIcon = actionCell ? actionCell.querySelector('.gear-icon') : null;
@@ -1897,7 +2224,7 @@
                 }
 
             } else if (target.closest('.action-button')) {
-                // Es un botón de acción (Editar, Eliminar, Estado)
+                // Es un botón de acción (Editar, Eliminar, Estado, Agregar Pago, Facturación)
                 const actionButton = target.closest('.action-button');
 
                 // Ocultar los botones de acción después de la acción
@@ -1927,6 +2254,14 @@
                     const currentStatus = actionButton.dataset.currentStatus;
                     const newStatus = currentStatus === 'activo' ? 'retirado' : 'activo';
                     changeUserStatus(userId, newStatus);
+                } else if (actionButton.classList.contains('add-payment-button')) {
+                    // Acción de Agregar Pago
+                    console.log("Botón Agregar Pago clickeado para usuario:", userId);
+                    showAddPaymentModal(userId); // Pasar el ID del usuario al modal de pago
+                } else if (actionButton.classList.contains('billing-button')) {
+                    // Acción de Facturación
+                    console.log("Botón Facturación clickeado para usuario:", userId);
+                    showBillingModal(userId); // Pasar el ID del usuario al modal de facturación
                 }
             }
         });
@@ -3162,6 +3497,546 @@
 
             reader.readAsArrayBuffer(file); // Read the file as ArrayBuffer
         });
+
+
+        // --- Funcionalidad de Agregar Pago ---
+
+        // Mostrar modal de agregar pago
+        async function showAddPaymentModal(userId) {
+             paymentUserIdInput.value = userId;
+             // Cargar datos del usuario para obtener el valor a pagar
+             const userDoc = allUserDocs.find(doc => doc.id === userId);
+             if (userDoc) {
+                  const userData = userDoc.data();
+                  paymentValueInput.value = userData.valorAPagar || 0; // Rellenar valor a pagar
+                  // Establecer fecha actual por defecto
+                  paymentDateInput.valueAsDate = new Date();
+             } else {
+                  paymentValueInput.value = 0;
+                  paymentDateInput.value = '';
+                  console.error("Usuario no encontrado para agregar pago:", userId);
+                  showStatusMessage('Error: No se pudieron cargar los datos del usuario para el pago.', 'error');
+                  return; // No abrir modal si no se carga el usuario
+             }
+
+             // Cargar historial de pagos reciente (ej. últimos 5)
+             await loadPaymentHistory(userId, paymentHistoryList, 5);
+             viewAllPaymentsButton.style.display = 'block'; // Mostrar botón de ver todo
+
+             addPaymentModal.classList.add('show');
+        }
+
+        // Ocultar modal de agregar pago
+        function hideAddPaymentModal() {
+             addPaymentModal.classList.remove('show');
+             addPaymentForm.reset(); // Resetear formulario
+             paymentHistoryList.innerHTML = ''; // Limpiar historial al cerrar
+             viewAllPaymentsButton.style.display = 'none'; // Ocultar botón de ver todo
+        }
+
+        // Listeners para cerrar modal de agregar pago
+        closeAddPaymentModalButton.addEventListener('click', hideAddPaymentModal);
+        cancelAddPaymentButton.addEventListener('click', hideAddPaymentModal);
+        addPaymentModal.addEventListener('click', (e) => {
+             if (e.target === addPaymentModal) {
+                 hideAddPaymentModal();
+             }
+        });
+
+        // Listener para guardar nuevo pago
+        addPaymentForm.addEventListener('submit', async (e) => {
+             e.preventDefault();
+
+             const userId = paymentUserIdInput.value;
+             const paymentDateString = paymentDateInput.value;
+             const paymentValue = parseFloat(paymentValueInput.value);
+             const paymentNovelty = paymentNoveltySelect.value;
+
+             if (!userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
+                 showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+                 return;
+             }
+
+             // Convertir string de fecha a Timestamp (UTC)
+             const paymentDate = new Date(paymentDateString + 'T00:00:00Z');
+             const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
+
+
+             const newPayment = {
+                 userId: userId,
+                 fecha: paymentTimestamp, // Guardar como Timestamp
+                 valor: paymentValue,
+                 novedad: paymentNovelty,
+                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
+             };
+
+             showStatusMessage('Guardando pago...', 'info');
+
+             try {
+                 await pagosCollection.add(newPayment);
+                 showStatusMessage('Pago guardado con éxito!', 'success');
+                 addPaymentForm.reset(); // Resetear formulario después de guardar
+                 paymentValueInput.value = currentUserData.valorAPagar || 0; // Restablecer valor a pagar por defecto
+                 paymentDateInput.valueAsDate = new Date(); // Restablecer fecha actual
+
+                 // Recargar historial de pagos en el modal
+                 await loadPaymentHistory(userId, paymentHistoryList, 5);
+
+             } catch (error) {
+                 console.error("Error al guardar pago:", error);
+                 showStatusMessage('Error al guardar pago: ' + error.message, 'error');
+             }
+        });
+
+        // Función para cargar y mostrar historial de pagos
+        async function loadPaymentHistory(userId, listElement, limit = null) {
+             listElement.innerHTML = '<li>Cargando historial...</li>';
+             try {
+                 let query = pagosCollection.where('userId', '==', userId).orderBy('fecha', 'desc');
+                 if (limit) {
+                     query = query.limit(limit);
+                 }
+                 const snapshot = await query.get();
+
+                 listElement.innerHTML = ''; // Limpiar lista
+
+                 if (snapshot.empty) {
+                     listElement.innerHTML = '<li>No hay historial de pagos para este usuario.</li>';
+                     return;
+                 }
+
+                 snapshot.forEach(doc => {
+                     const payment = doc.data();
+                     const listItem = document.createElement('li');
+                     // Mostrar fecha formateada, valor y novedad
+                     listItem.innerHTML = `
+                         <span>Fecha: ${formatDate(payment.fecha)}</span>
+                         <span>Valor: ${formatCurrency(payment.valor)}</span>
+                         <span>Novedad: ${payment.novedad || 'N/A'}</span>
+                     `;
+                     listElement.appendChild(listItem);
+                 });
+
+             } catch (error) {
+                 console.error("Error al cargar historial de pagos:", error);
+                 listElement.innerHTML = '<li>Error al cargar historial de pagos.</li>';
+                 showStatusMessage('Error al cargar historial de pagos.', 'error');
+             }
+        }
+
+        // Listener para el botón "Ver Historial Completo" de pagos
+        viewAllPaymentsButton.addEventListener('click', () => {
+             const userId = paymentUserIdInput.value;
+             if (userId) {
+                 hideAddPaymentModal(); // Ocultar el modal de agregar pago
+                 showPaymentHistoryModal(userId); // Mostrar el modal de historial completo
+             }
+        });
+
+         // Mostrar modal de historial de pagos completo
+         async function showPaymentHistoryModal(userId) {
+              paymentHistoryModalTitle.textContent = `Historial de Pagos de ${currentUserData.nombre || 'Usuario'}`;
+              await loadPaymentHistory(userId, fullPaymentHistoryList); // Cargar todos los pagos
+              paymentHistoryModal.classList.add('show');
+         }
+
+         // Ocultar modal de historial de pagos completo
+         function hidePaymentHistoryModal() {
+              paymentHistoryModal.classList.remove('show');
+              fullPaymentHistoryList.innerHTML = ''; // Limpiar lista al cerrar
+         }
+
+         // Listeners para cerrar modal de historial de pagos completo
+         closePaymentHistoryModalButton.addEventListener('click', hidePaymentHistoryModal);
+         closePaymentHistoryModalButtonInModal.addEventListener('click', hidePaymentHistoryModal);
+         paymentHistoryModal.addEventListener('click', (e) => {
+              if (e.target === paymentHistoryModal) {
+                  hidePaymentHistoryModal();
+              }
+         });
+
+
+        // --- Funcionalidad de Facturación ---
+
+        // Mostrar modal de facturación
+        async function showBillingModal(userId) {
+             billingUserIdInput.value = userId;
+             // Limpiar y ocultar sección de factura generada
+             generatedInvoiceDetails.innerHTML = '';
+             generatedInvoiceSection.style.display = 'none';
+             saveInvoiceButton.style.display = 'none'; // Ocultar botón de guardar
+             generatePdfButton.style.display = 'none'; // Ocultar botón de PDF
+
+             // Cargar historial de facturas reciente (ej. últimos 3)
+             await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+             viewAllInvoicesButton.style.display = 'block'; // Mostrar botón de ver todo
+
+             billingModal.classList.add('show');
+        }
+
+        // Ocultar modal de facturación
+        function hideBillingModal() {
+             billingModal.classList.remove('show');
+             billingForm.reset(); // Resetear formulario
+             generatedInvoiceDetails.innerHTML = ''; // Limpiar detalles de factura
+             generatedInvoiceSection.style.display = 'none'; // Ocultar sección de factura generada
+             saveInvoiceButton.style.display = 'none'; // Ocultar botón de guardar
+             generatePdfButton.style.display = 'none'; // Ocultar botón de PDF
+             invoiceHistoryList.innerHTML = ''; // Limpiar historial al cerrar
+             viewAllInvoicesButton.style.display = 'none'; // Ocultar botón de ver todo
+        }
+
+        // Listeners para cerrar modal de facturación
+        closeBillingModalButton.addEventListener('click', hideBillingModal);
+        billingModal.addEventListener('click', (e) => {
+             if (e.target === billingModal) {
+                 hideBillingModal();
+             }
+        });
+
+        // Listener para generar factura
+        generateInvoiceButton.addEventListener('click', async () => {
+             const userId = billingUserIdInput.value;
+             const startDateString = billingStartDateInput.value;
+             const endDateString = billingEndDateInput.value;
+
+             if (!userId || !startDateString || !endDateString) {
+                 showStatusMessage('Por favor, selecciona las fechas de inicio y fin.', 'error');
+                 return;
+             }
+
+             const startDate = new Date(startDateString + 'T00:00:00Z');
+             const endDate = new Date(endDateString + 'T23:59:59Z'); // Incluir todo el día de fin
+
+             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                 return;
+             }
+
+             showStatusMessage('Generando factura...', 'info');
+
+             try {
+                 // Obtener datos actualizados del usuario
+                 const userDoc = await usersCollection.doc(userId).get();
+                 if (!userDoc.exists) {
+                     showStatusMessage('Error: Datos del usuario no encontrados para facturar.', 'error');
+                     return;
+                 }
+                 const userData = userDoc.data();
+                 currentUserData = userData; // Actualizar datos del usuario actual
+                 currentUserData.id = userDoc.id;
+
+
+                 // Generar código único de factura (Ejemplo: timestamp + 4 dígitos aleatorios)
+                 const timestampPart = Date.now();
+                 const randomPart = Math.floor(1000 + Math.random() * 9000); // Número aleatorio entre 1000 y 9999
+                 const invoiceCode = `${timestampPart}-${randomPart}`;
+
+                 // Obtener nombres de entidades para la factura
+                 const empresaNombre = empresasMap.get(userData.empresaId) || 'Desconocida';
+                 const asesorNombre = asesoresMap.get(userData.asesorId) || 'Desconocido';
+                 const arlNombre = arlMap.get(userData.arlId) || 'Desconocida';
+                 const epsNombre = epsMap.get(userData.epsId) || 'Desconocida';
+                 const ccfNombre = ccfMap.get(userData.ccfId) || 'Desconocida';
+                 const afpNombre = afpMap.get(userData.afpId) || 'Desconocida';
+
+
+                 // --- Lógica de cálculo de factura (Simplificada) ---
+                 // Aquí asumimos que el valor a pagar es por el período seleccionado.
+                 // Si la lógica de facturación es más compleja (ej. por días, por servicios),
+                 // necesitarías implementar esa lógica aquí, posiblemente consultando otros datos.
+                 const valorFacturado = userData.valorAPagar || 0; // Usamos el valor a pagar del usuario como base
+
+                 // Formatear fechas para mostrar en la factura
+                 const formattedStartDate = formatDate(startDate);
+                 const formattedEndDate = formatDate(endDate);
+
+
+                 // Construir los detalles de la factura para mostrar
+                 let invoiceDetailsText = `
+                     FACBA - Factura
+                     -------------------------------------
+                     Código de Factura: ${invoiceCode}
+                     Fecha de Generación: ${formatDateTime(firebase.firestore.Timestamp.fromDate(new Date()))}
+                     Período Facturado: ${formattedStartDate} al ${formattedEndDate}
+
+                     -------------------------------------
+                     Datos del Usuario:
+                     Nombre: ${userData.nombre || 'Sin Nombre'}
+                     Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})
+                     Estado: ${userData.estado || 'N/A'}
+
+                     -------------------------------------
+                     Datos de Entidades Asociadas:
+                     Empresa: ${empresaNombre}
+                     Asesor: ${asesorNombre}
+                     ARL: ${arlNombre} ${userData.riesgo ? `(Riesgo: ${userData.riesgo})` : ''}
+                     EPS: ${epsNombre}
+                     CCF: ${ccfNombre}
+                     AFP: ${afpNombre}
+
+                     -------------------------------------
+                     Detalle del Servicio:
+                     Servicio de Afiliación y Gestión
+                     Valor Base (según usuario): ${formatCurrency(userData.valorAPagar || 0)}
+                     IBC (según usuario): ${formatCurrency(userData.ibc || 0)}
+
+                     -------------------------------------
+                     TOTAL A PAGAR: ${formatCurrency(valorFacturado)}
+                     -------------------------------------
+                 `.trim(); // Usar trim() para eliminar espacios extra al inicio/fin
+
+
+                 // Mostrar los detalles de la factura generada
+                 generatedInvoiceDetails.textContent = invoiceDetailsText;
+                 generatedInvoiceSection.style.display = 'block'; // Mostrar la sección
+                 saveInvoiceButton.style.display = 'inline-block'; // Mostrar botón de guardar
+                 generatePdfButton.style.display = 'inline-block'; // Mostrar botón de PDF
+
+                 showStatusMessage('Factura generada. Revísala y guarda.', 'success');
+
+             } catch (error) {
+                 console.error("Error al generar factura:", error);
+                 showStatusMessage('Error al generar factura: ' + error.message, 'error');
+                 generatedInvoiceDetails.innerHTML = 'Error al generar factura.';
+                 generatedInvoiceSection.style.display = 'block';
+                 saveInvoiceButton.style.display = 'none';
+                 generatePdfButton.style.display = 'none';
+             }
+        });
+
+        // Listener para guardar factura
+        saveInvoiceButton.addEventListener('click', async () => {
+             const userId = billingUserIdInput.value;
+             const startDateString = billingStartDateInput.value;
+             const endDateString = billingEndDateInput.value;
+             const invoiceDetails = generatedInvoiceDetails.textContent; // Obtener el texto mostrado
+
+             if (!userId || !startDateString || !endDateString || !invoiceDetails || invoiceDetails.includes('Error al generar factura')) {
+                 showStatusMessage('No hay una factura válida para guardar.', 'error');
+                 return;
+             }
+
+             // Extraer el código de factura del texto generado (buscar la línea "Código de Factura:")
+             const invoiceCodeMatch = invoiceDetails.match(/Código de Factura: (.+)/);
+             const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO'; // Usar el código encontrado o un placeholder
+
+
+             const startDate = new Date(startDateString + 'T00:00:00Z');
+             const endDate = new Date(endDateString + 'T23:59:59Z');
+
+             const newInvoice = {
+                 userId: userId,
+                 codigo: invoiceCode, // Guardar el código único
+                 fechaInicio: firebase.firestore.Timestamp.fromDate(startDate), // Guardar fechas como Timestamp
+                 fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                 detalles: invoiceDetails, // Guardar los detalles completos como texto
+                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
+             };
+
+             showStatusMessage('Guardando factura...', 'info');
+
+             try {
+                 await facturasCollection.add(newInvoice);
+                 showStatusMessage('Factura guardada con éxito!', 'success');
+                 // Opcional: Limpiar la sección de factura generada después de guardar
+                 generatedInvoiceDetails.innerHTML = '';
+                 generatedInvoiceSection.style.display = 'none';
+                 saveInvoiceButton.style.display = 'none';
+                 generatePdfButton.style.display = 'none';
+                 billingForm.reset(); // Resetear formulario de fechas
+
+                 // Recargar historial de facturas en el modal
+                 await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+
+
+             } catch (error) {
+                 console.error("Error al guardar factura:", error);
+                 showStatusMessage('Error al guardar factura: ' + error.message, 'error');
+             }
+        });
+
+        // Listener para ver historial de facturas completo
+        viewAllInvoicesButton.addEventListener('click', () => {
+             const userId = billingUserIdInput.value;
+             if (userId) {
+                 hideBillingModal(); // Ocultar el modal de facturación
+                 showInvoiceHistoryModal(userId); // Mostrar el modal de historial completo
+             }
+        });
+
+         // Mostrar modal de historial de facturas completo
+         async function showInvoiceHistoryModal(userId) {
+              invoiceHistoryModalTitle.textContent = `Historial de Facturas de ${currentUserData.nombre || 'Usuario'}`;
+              await loadInvoiceHistory(userId, fullInvoiceHistoryList); // Cargar todas las facturas
+              invoiceHistoryModal.classList.add('show');
+         }
+
+         // Ocultar modal de historial de facturas completo
+         function hideInvoiceHistoryModal() {
+              invoiceHistoryModal.classList.remove('show');
+              fullInvoiceHistoryList.innerHTML = ''; // Limpiar lista al cerrar
+         }
+
+         // Listeners para cerrar modal de historial de facturas completo
+         closeInvoiceHistoryModalButton.addEventListener('click', hideInvoiceHistoryModal);
+         closeInvoiceHistoryModalButtonInModal.addEventListener('click', hideInvoiceHistoryModal);
+         invoiceHistoryModal.addEventListener('click', (e) => {
+              if (e.target === invoiceHistoryModal) {
+                  hideInvoiceHistoryModal();
+              }
+         });
+
+
+        // Función para cargar y mostrar historial de facturas
+        async function loadInvoiceHistory(userId, listElement, limit = null) {
+             listElement.innerHTML = '<li>Cargando historial...</li>';
+             try {
+                 let query = facturasCollection.where('userId', '==', userId).orderBy('createdAt', 'desc');
+                 if (limit) {
+                     query = query.limit(limit);
+                 }
+                 const snapshot = await query.get();
+
+                 listElement.innerHTML = ''; // Limpiar lista
+
+                 if (snapshot.empty) {
+                     listElement.innerHTML = '<li>No hay historial de facturas para este usuario.</li>';
+                     return;
+                 }
+
+                 snapshot.forEach(doc => {
+                     const invoice = doc.data();
+                     const listItem = document.createElement('li');
+                     // Mostrar resumen de la factura y botones de acción
+                     listItem.innerHTML = `
+                         <div class="invoice-summary">
+                             <strong>Factura #${invoice.codigo || 'N/A'}</strong><br>
+                             Período: ${formatDate(invoice.fechaInicio)} al ${formatDate(invoice.fechaFin)}<br>
+                             Fecha Guardada: ${formatDateTime(invoice.createdAt)}
+                         </div>
+                         <div class="invoice-actions">
+                             <button class="action-button view-invoice-details-button" data-id="${doc.id}" title="Ver Detalles">Ver Detalles</button>
+                             <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                              </div>
+                     `;
+                     listElement.appendChild(listItem);
+                 });
+
+             } catch (error) {
+                 console.error("Error al cargar historial de facturas:", error);
+                 listElement.innerHTML = '<li>Error al cargar historial de facturas.</li>';
+                 showStatusMessage('Error al cargar historial de facturas.', 'error');
+             }
+        }
+
+         // Listener para botones de acción en el historial de facturas (usando delegación)
+         invoiceHistoryList.addEventListener('click', async (e) => {
+              const target = e.target;
+              const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+
+              if (!invoiceId) return;
+
+              if (target.classList.contains('view-invoice-details-button')) {
+                   // Acción: Ver Detalles de Factura
+                   console.log("Ver Detalles de Factura clickeado:", invoiceId);
+                   await viewInvoiceDetails(invoiceId);
+
+              } else if (target.classList.contains('generate-invoice-pdf-button')) {
+                   // Acción: Generar PDF de Factura
+                   console.log("Generar PDF de Factura clickeado:", invoiceId);
+                   await generateInvoicePdf(invoiceId);
+              }
+              // Add delete invoice logic here if delete button is added
+         });
+
+         // Listener para botones de acción en el historial de facturas completo (usando delegación)
+         fullInvoiceHistoryList.addEventListener('click', async (e) => {
+              const target = e.target;
+              const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+
+              if (!invoiceId) return;
+
+              if (target.classList.contains('view-invoice-details-button')) {
+                   // Acción: Ver Detalles de Factura (desde historial completo)
+                   console.log("Ver Detalles de Factura (completo) clickeado:", invoiceId);
+                   // Opcional: Cerrar modal de historial completo y abrir modal de factura con detalles
+                   hideInvoiceHistoryModal();
+                   // Need a way to display details, maybe reuse billing modal or a new one
+                   // For now, let's just log the details or show in an alert
+                   const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                   if (invoiceDoc.exists) {
+                        alert("Detalles de Factura:\n\n" + invoiceDoc.data().detalles);
+                   } else {
+                       showStatusMessage('Detalles de factura no encontrados.', 'error');
+                   }
+
+
+              } else if (target.classList.contains('generate-invoice-pdf-button')) {
+                   // Acción: Generar PDF de Factura (desde historial completo)
+                   console.log("Generar PDF de Factura (completo) clickeado:", invoiceId);
+                   await generateInvoicePdf(invoiceId);
+              }
+              // Add delete invoice logic here if delete button is added
+         });
+
+
+         // Función para ver detalles de una factura específica (podría abrir un modal o mostrar en un área)
+         async function viewInvoiceDetails(invoiceId) {
+             showStatusMessage('Cargando detalles de factura...', 'info');
+             try {
+                 const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                 if (invoiceDoc.exists) {
+                     const invoiceData = invoiceDoc.data();
+                     console.log("Detalles de factura cargados:", invoiceData);
+                     // Mostrar los detalles en un alert simple por ahora
+                     // En una aplicación real, usarías un modal dedicado o una sección
+                     alert("Detalles de Factura:\n\n" + invoiceData.detalles);
+                     showStatusMessage('Detalles de factura cargados.', 'success');
+                 } else {
+                     showStatusMessage('Factura no encontrada.', 'error');
+                 }
+             } catch (error) {
+                 console.error("Error al cargar detalles de factura:", error);
+                 showStatusMessage('Error al cargar detalles de factura: ' + error.message, 'error');
+             }
+         }
+
+         // Función para generar PDF de una factura específica
+         async function generateInvoicePdf(invoiceId) {
+             showStatusMessage('Generando PDF...', 'info');
+             try {
+                 const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                 if (!invoiceDoc.exists) {
+                     showStatusMessage('Factura no encontrada para generar PDF.', 'error');
+                     return;
+                 }
+                 const invoiceData = invoiceDoc.data();
+
+                 // Usar jsPDF para crear el PDF
+                 const { jsPDF } = window.jspdf;
+                 const doc = new jsPDF();
+
+                 // Añadir contenido al PDF
+                 doc.setFontSize(18);
+                 doc.text("Factura FACBA", 10, 10);
+
+                 doc.setFontSize(12);
+                 // Dividir el texto de detalles en líneas para el PDF
+                 const detailsLines = doc.splitTextToSize(invoiceData.detalles, 180); // 180mm width
+
+                 doc.text(detailsLines, 10, 20); // Add the details text
+
+                 // Guardar el PDF
+                 doc.save(`factura_${invoiceData.codigo || invoiceId}.pdf`);
+
+                 showStatusMessage('PDF generado con éxito!', 'success');
+
+             } catch (error) {
+                 console.error("Error al generar PDF:", error);
+                 showStatusMessage('Error al generar PDF: ' + error.message, 'error');
+             }
+         }
 
 
         // --- Inicialización ---
