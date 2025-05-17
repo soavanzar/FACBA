@@ -25,13 +25,23 @@
 
         .container {
             background-color: #ffffff; /* Fondo blanco para el contenedor */
-            padding: 30px;
+            padding: 20px; /* Reducir padding en móviles */
             border-radius: 12px; /* Bordes redondeados */
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
             max-width: 600px; /* Ancho máximo para el formulario */
             margin: 20px auto; /* Centra el contenedor y añade margen */
             position: relative; /* Necesario para el contexto del botón de atrás */
+            width: 100%; /* Asegura que ocupe el ancho disponible en móviles */
+            box-sizing: border-box; /* Incluye padding y borde en el ancho */
         }
+
+        /* Ajustar padding del contenedor en pantallas más grandes */
+        @media (min-width: 640px) { /* Tailwind's sm breakpoint */
+            .container {
+                padding: 30px;
+            }
+        }
+
 
         .back-button {
             display: inline-block;
@@ -52,71 +62,70 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 1.8rem; /* Reducir tamaño en móviles */
             font-weight: 700;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* Reducir margen en móviles */
             color: #1f2937; /* Gris oscuro */
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        /* Ajustar tamaño del título en pantallas más grandes */
+        @media (min-width: 640px) {
+             h1 {
+                 font-size: 2rem;
+                 margin-bottom: 30px;
+             }
         }
+
+
+        .form-group {
+            margin-bottom: 15px; /* Reducir espacio entre grupos en móviles */
+        }
+
+        /* Ajustar espacio entre grupos en pantallas más grandes */
+        @media (min-width: 640px) {
+             .form-group {
+                 margin-bottom: 20px;
+             }
+        }
+
 
         .form-group label {
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
             color: #374151; /* Gris medio */
+            font-size: 0.9rem; /* Reducir tamaño de etiqueta en móviles */
         }
+
+         @media (min-width: 640px) {
+              .form-group label {
+                  font-size: 1rem;
+              }
+         }
+
 
         .form-group input[type="text"],
         .form-group input[type="number"],
         .form-group input[type="date"],
         .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 10px; /* Reducir padding en móviles */
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem; /* Reducir tamaño de fuente en móviles */
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             box-sizing: border-box; /* Incluye padding y borde en el ancho */
         }
 
-         /* Estilo específico para el grupo de IBC */
-         .ibc-group {
-             position: relative; /* Para posicionar el cargador */
-         }
-
-         .ibc-group label {
-             display: flex; /* Para alinear el texto y el checkbox */
-             align-items: center;
-             margin-bottom: 8px;
-         }
-
-         .ibc-group label input[type="checkbox"] {
-             margin-right: 8px; /* Espacio entre checkbox y texto */
-             width: auto; /* Permitir que el checkbox tenga su tamaño natural */
-         }
-
-         .ibc-group .loading-indicator {
-             display: none; /* Oculto por defecto */
-             position: absolute;
-             right: 10px; /* Posicionar a la derecha del input */
-             top: 50%; /* Alinear verticalmente */
-             transform: translateY(-50%);
-             font-size: 0.9rem;
-             color: #4f46e5; /* Color azul/morado */
-         }
-
-         .ibc-group .loading-indicator i {
-              margin-left: 5px; /* Espacio entre texto y spinner */
-              animation: spin 1s linear infinite; /* Animación de giro */
-         }
-
-         @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
+         @media (min-width: 640px) {
+             .form-group input[type="text"],
+             .form-group input[type="number"],
+             .form-group input[type="date"],
+             .form-group select {
+                 padding: 12px;
+                 font-size: 1rem;
+             }
          }
 
 
@@ -131,20 +140,41 @@
 
         .form-buttons {
             display: flex;
-            justify-content: flex-end;
-            gap: 15px; /* Espacio entre botones */
-            margin-top: 30px;
+            flex-direction: column; /* Apilar botones en móviles */
+            gap: 10px; /* Espacio entre botones apilados */
+            margin-top: 20px; /* Reducir margen en móviles */
         }
 
+        /* Ajustar layout de botones en pantallas más grandes */
+        @media (min-width: 640px) {
+             .form-buttons {
+                 flex-direction: row; /* Mostrar botones en fila */
+                 justify-content: flex-end; /* Alinear a la derecha */
+                 gap: 15px; /* Espacio entre botones en fila */
+                 margin-top: 30px;
+             }
+        }
+
+
         .form-buttons button {
-            padding: 12px 25px;
+            padding: 12px 20px; /* Ajustar padding en móviles */
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            width: 100%; /* Ocupar todo el ancho en móviles */
         }
+
+         /* Ajustar ancho de botones en pantallas más grandes */
+         @media (min-width: 640px) {
+             .form-buttons button {
+                 width: auto; /* Ancho automático */
+                 padding: 12px 25px;
+             }
+         }
+
 
         .cancel-button {
             background-color: #e5e7eb; /* Gris claro */
@@ -218,7 +248,7 @@
 
          .modal-content {
              background-color: #ffffff;
-             padding: 30px;
+             padding: 20px; /* Reducir padding en móviles */
              border-radius: 12px;
              box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
              max-width: 500px; /* Ancho máximo del modal */
@@ -226,7 +256,15 @@
              position: relative;
              transform: translateY(-20px); /* Inicia ligeramente arriba */
              transition: transform 0.3s ease-in-out;
+             box-sizing: border-box; /* Incluye padding y borde en el ancho */
          }
+
+         @media (min-width: 640px) {
+             .modal-content {
+                 padding: 30px;
+             }
+         }
+
 
          .modal-overlay.show .modal-content {
              transform: translateY(0); /* Se desliza a su posición */
@@ -234,24 +272,36 @@
 
          .modal-close-button {
              position: absolute;
-             top: 15px;
-             right: 15px;
+             top: 10px; /* Ajustar posición en móviles */
+             right: 10px; /* Ajustar posición en móviles */
              font-size: 1.5rem;
              color: #9ca3af; /* Gris */
              cursor: pointer;
              transition: color 0.2s ease-in-out;
          }
 
-         .modal-close-button:hover {
-             color: #6b7280; /* Gris oscuro */
+         @media (min-width: 640px) {
+             .modal-close-button {
+                 top: 15px;
+                 right: 15px;
+                 font-size: 1.8rem;
+             }
          }
 
+
          .modal-content h2 {
-             font-size: 1.8rem;
+             font-size: 1.5rem; /* Reducir tamaño en móviles */
              font-weight: 700;
-             margin-bottom: 20px;
+             margin-bottom: 15px; /* Reducir margen en móviles */
              color: #1f2937;
              text-align: center;
+         }
+
+         @media (min-width: 640px) {
+             .modal-content h2 {
+                 font-size: 1.8rem;
+                 margin-bottom: 20px;
+             }
          }
 
          .modal-form-group {
@@ -285,19 +335,35 @@
 
          .modal-buttons {
              display: flex;
+             flex-direction: column; /* Apilar botones en móviles */
              justify-content: flex-end;
              gap: 10px;
              margin-top: 20px;
          }
 
+         @media (min-width: 640px) {
+             .modal-buttons {
+                 flex-direction: row; /* Mostrar botones en fila */
+             }
+         }
+
+
          .modal-buttons button {
-             padding: 10px 20px;
+             padding: 10px 15px; /* Ajustar padding en móviles */
              border: none;
              border-radius: 6px;
              font-size: 0.9rem;
              font-weight: 600;
              cursor: pointer;
              transition: background-color 0.2s ease-in-out;
+             width: 100%; /* Ocupar todo el ancho en móviles */
+         }
+
+         @media (min-width: 640px) {
+             .modal-buttons button {
+                 width: auto; /* Ancho automático */
+                 padding: 10px 20px;
+             }
          }
 
          .modal-buttons .cancel-button {
@@ -413,14 +479,8 @@
             </div>
 
              <div class="form-group ibc-group">
-                 <label for="ibc-automatico-check">
-                     <input type="checkbox" id="ibc-automatico-check">
-                     Ingresar IBC automático (SMMLV)
-                 </label>
+                 <label for="ibc">IBC (Salario del trabajador):</label>
                  <input type="number" id="ibc" name="ibc" step="0.01" placeholder="Salario del trabajador (IBC)">
-                 <div class="loading-indicator" id="ibc-loading">
-                     Cargando <i class="fas fa-spinner"></i>
-                 </div>
              </div>
              <div class="form-buttons">
                 <button type="button" class="cancel-button" id="cancel-button">Cancelar</button>
@@ -449,7 +509,6 @@
             </form>
         </div>
     </div>
-
 
     <script>
         // Your web app's Firebase configuration
@@ -498,11 +557,11 @@
         const asesorSelect = document.getElementById('asesor');
         const valorAPagarInput = document.getElementById('valor-a-pagar');
         const ibcInput = document.getElementById('ibc'); // Input for IBC
-        const ibcAutomaticoCheck = document.getElementById('ibc-automatico-check'); // Checkbox for automatic IBC
-        const ibcLoadingIndicator = document.getElementById('ibc-loading'); // Loading indicator for IBC
+        // const ibcAutomaticoCheck = document.getElementById('ibc-automatico-check'); // Checkbox eliminado
+        // const ibcLoadingIndicator = document.getElementById('ibc-loading'); // Indicador de carga eliminado
 
 
-        // Modal DOM elements
+        // Modal DOM elements (Add Entity Modal kept)
         const addEntityModal = document.getElementById('add-entity-modal');
         const closeAddEntityModalButton = document.getElementById('close-add-entity-modal');
         const cancelAddEntityButton = document.getElementById('cancel-add-entity');
@@ -510,6 +569,8 @@
         const addEntityForm = document.getElementById('add-entity-form');
         const addEntityTypeInput = document.getElementById('add-entity-type');
         const entityNameInput = document.getElementById('entity-name');
+
+        // IBC Search Modal DOM elements eliminados
 
 
         // --- Utility Functions ---
@@ -534,7 +595,7 @@
             }, 5000);
         }
 
-        // Function to format date (Firestore Timestamp to-MM-DD)
+        // Function to format date (Firestore Timestamp toYYYY-MM-DD) - Kept for potential future use or if needed elsewhere
         function formatDate(timestamp) {
             if (!timestamp) return '';
             let date;
@@ -556,7 +617,7 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Function to format numbers as currency (COP)
+        // Function to format numbers as currency (COP) - Kept for potential future use or if needed elsewhere
         function formatCurrency(number) {
              let numericValue = number;
              if (typeof number === 'string') {
@@ -672,8 +733,8 @@
                 epsId: epsSelect.value || null, // Store EPS ID or null
                 ccfId: ccfSelect.value || null, // Store CCF ID or null
                 afpId: afpSelect.value || null, // Store AFP ID or null
-                fecha: fechaIngresoInput.value, // Store as-MM-DD string
-                ingreso: fechaRegistroInput.value, // Store as-MM-DD string
+                fecha: fechaIngresoInput.value, // Store asYYYY-MM-DD string
+                ingreso: fechaRegistroInput.value, // Store asYYYY-MM-DD string
                 asesorId: asesorSelect.value || null, // Store ID or null
                 valorAPagar: parseFloat(valorAPagarInput.value) || 0, // Convert to number, default to 0 if empty/invalid
                 ibc: parseFloat(ibcInput.value) || 0, // Store IBC as number, default to 0
@@ -804,104 +865,9 @@
         });
 
 
-        // --- Automatic IBC Calculation ---
-
-        ibcAutomaticoCheck.addEventListener('change', async (e) => {
-            if (e.target.checked) {
-                // Checkbox is checked, attempt to find IBC automatically
-                showStatusMessage('Buscando IBC (SMMLV) del año actual...', 'info');
-                ibcLoadingIndicator.style.display = 'inline-block'; // Show loading indicator
-                ibcInput.disabled = true; // Disable input while loading
-                ibcAutomaticoCheck.disabled = true; // Disable checkbox while loading
-
-
-                try {
-                    // Use the google_search tool to find the IBC
-                    // The tool code will be injected and executed by the environment
-                    // The result will be available in the `toolResult` variable
-
-                    // Construct the search query in both Spanish and English, explicitly mentioning SMMLV
-                    const currentYear = new Date().getFullYear();
-                    const searchQueryEs = `Salario Mínimo Legal Mensual Vigente SMMLV Colombia ${currentYear}`; // More specific query
-                    const searchQueryEn = `Minimum Legal Monthly Wage SMMLV Colombia ${currentYear}`;
-
-                    // Execute the search using the tool
-                    const toolResult = await google_search([searchQueryEs, searchQueryEn]);
-
-                    let ibcValue = null;
-
-                    // Process the search results to find a plausible IBC value
-                    if (toolResult && toolResult.length > 0) {
-                         for (const result of toolResult) {
-                             if (result.snippet) {
-                                  console.log("Searching in snippet:", result.snippet); // Log the snippet being searched
-
-                                  // More robust regex to find numbers likely representing currency,
-                                  // allowing for spaces, dots, commas, apostrophes, currency symbols,
-                                  // and prioritizing larger numbers.
-                                  // This regex looks for sequences of digits, potentially separated by
-                                  // .,' and optionally followed by a decimal part.
-                                  const currencyRegex = /[$\s]*(\d{1,3}(?:[.,']?\d{3})*)(?:[.,]\d{0,2})?[$\s]*/g;
-                                  let match;
-                                  const possibleValues = [];
-
-                                  while ((match = currencyRegex.exec(result.snippet)) !== null) {
-                                       // Clean the matched number string: remove all non-digit characters except the last potential decimal point
-                                       let rawValue = match[1].replace(/[^0-9]/g, ''); // Remove all non-digits first
-                                       // If there was a decimal part in the original match, try to re-add the dot for parsing
-                                       if (match[0].includes('.') || match[0].includes(',')) {
-                                            // Simple approach: just take the raw digits and assume it's the main number
-                                            // A more complex approach would involve checking the last separator
-                                       }
-
-                                       const numericValue = parseFloat(rawValue); // Parse the cleaned string
-
-                                       // Filter for values that are likely to be an IBC (e.g., greater than 1,000,000)
-                                       // Also filter out unrealistically large numbers that might be years or other data
-                                       if (!isNaN(numericValue) && numericValue >= 1000000 && numericValue < 10000000) { // Add upper bound filter
-                                            possibleValues.push(numericValue);
-                                       }
-                                  }
-                                   console.log("Possible values found in snippet:", possibleValues); // Log possible values
-
-                                  // Prioritize finding a single, dominant large number, or take the largest plausible one
-                                  if (possibleValues.length > 0) {
-                                       // Sort in descending order and take the largest
-                                       possibleValues.sort((a, b) => b - a);
-                                       ibcValue = possibleValues[0]; // Use the largest plausible value
-                                       console.log("Largest plausible value found:", ibcValue);
-                                       break; // Found a plausible value, stop searching snippets
-                                  }
-                             }
-                         }
-                    }
-
-
-                    if (ibcValue !== null && ibcValue > 0) {
-                        ibcInput.value = ibcValue; // Set the raw numeric value
-                        showStatusMessage(`IBC (SMMLV) ${formatCurrency(ibcValue)} encontrado para el año ${currentYear}.`, 'success'); // Display formatted value
-                    } else {
-                        showStatusMessage('No se pudo encontrar el IBC automático (SMMLV) para el año actual. Por favor, ingrésalo manualmente.', 'error');
-                        ibcInput.value = ''; // Clear input if not found
-                    }
-
-                } catch (error) {
-                    console.error("Error searching for IBC:", error);
-                    showStatusMessage('Error al buscar el IBC automático.', 'error');
-                     ibcInput.value = ''; // Clear input on error
-                } finally {
-                     ibcLoadingIndicator.style.display = 'none'; // Hide loading indicator
-                     ibcInput.disabled = false; // Enable input
-                     ibcAutomaticoCheck.disabled = false; // Enable checkbox
-                }
-
-            } else {
-                // Checkbox is unchecked, allow manual input
-                ibcInput.disabled = false;
-                ibcInput.value = ''; // Clear the input when unchecked
-                 showStatusMessage('Ingreso manual de IBC habilitado.', 'info');
-            }
-        });
+        // --- Automatic IBC Calculation (Logic Removed) ---
+        // ibcAutomaticoCheck.addEventListener('change', async (e) => { /* Logic removed */ });
+        // IBC Search Modal Functions removed
 
 
         // --- Initialization ---
