@@ -15,7 +15,7 @@
     <style>
         /* Estilos CSS personalizados */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif; /* Asegura que la fuente Inter se aplique */
             background-color: #f2f2f7; /* Fondo gris muy claro */
             color: #1c1c1e; /* Color de texto oscuro por defecto */
             margin: 0;
@@ -224,7 +224,7 @@
         }
 
 
-         /* Estilos para el modal */
+         /* Estilos para los modales */
          .modal-overlay {
              position: fixed;
              top: 0;
@@ -382,6 +382,34 @@
               background-color: #059669; /* Verde oscuro */
          }
 
+         /* Estilo para el input con botón al lado */
+         .input-with-button {
+             display: flex;
+             align-items: center;
+             gap: 10px; /* Espacio entre input y botón */
+         }
+
+         .input-with-button input,
+         .input-with-button select {
+             flex-grow: 1; /* Permite que el input o select ocupe el espacio disponible */
+             width: auto; /* Anula el width: 100% del estilo general de input */
+         }
+
+         .input-with-button button {
+             flex-shrink: 0; /* Evita que el botón se encoja */
+             padding: 10px 15px;
+             background-color: #e5e7eb; /* Gris claro */
+             color: #374151; /* Gris oscuro */
+             border: none;
+             border-radius: 8px;
+             cursor: pointer;
+             transition: background-color 0.2s ease-in-out;
+         }
+
+         .input-with-button button:hover {
+             background-color: #d1d5db; /* Gris más oscuro */
+         }
+
 
     </style>
 </head>
@@ -418,9 +446,12 @@
 
             <div class="form-group">
                 <label for="empresa">Empresa:</label>
-                <select id="empresa" name="empresaId" required>
-                    <option value="">Selecciona una empresa</option>
-                    </select>
+                 <div class="input-with-button">
+                    <select id="empresa" name="empresaId" required>
+                        <option value="">Selecciona una empresa</option>
+                        </select>
+                     <button type="button" id="add-empresa-btn"><i class="fas fa-plus"></i></button>
+                 </div>
             </div>
 
             <div class="form-group">
@@ -468,9 +499,12 @@
 
             <div class="form-group">
                 <label for="asesor">Asesor:</label>
-                <select id="asesor" name="asesorId" required>
-                    <option value="">Selecciona un asesor</option>
-                    </select>
+                 <div class="input-with-button">
+                    <select id="asesor" name="asesorId" required>
+                        <option value="">Selecciona un asesor</option>
+                        </select>
+                     <button type="button" id="add-asesor-btn"><i class="fas fa-plus"></i></button>
+                 </div>
             </div>
 
             <div class="form-group">
@@ -491,24 +525,40 @@
         <div id="status-message"></div>
     </div>
 
-
-    <div id="add-entity-modal" class="modal-overlay">
+    <div id="add-empresa-modal" class="modal-overlay">
         <div class="modal-content">
-            <span class="modal-close-button" id="close-add-entity-modal">&times;</span>
-            <h2 id="add-entity-modal-title">Agregar Nueva Entidad</h2>
-            <form id="add-entity-form">
-                <input type="hidden" id="add-entity-type">
+            <span class="modal-close-button" id="close-add-empresa-modal">&times;</span>
+            <h2>Agregar Nueva Empresa</h2>
+            <form id="add-empresa-form">
                 <div class="modal-form-group">
-                    <label for="entity-name">Nombre:</label>
-                    <input type="text" id="entity-name" name="name" required>
+                    <label for="new-empresa-name">Nombre:</label>
+                    <input type="text" id="new-empresa-name" name="name" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="cancel-button" id="cancel-add-entity">Cancelar</button>
+                    <button type="button" class="cancel-button" id="cancel-add-empresa">Cancelar</button>
                     <button type="submit" class="save-changes-button">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <div id="add-asesor-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-add-asesor-modal">&times;</span>
+            <h2>Agregar Nuevo Asesor</h2>
+            <form id="add-asesor-form">
+                <div class="modal-form-group">
+                    <label for="new-asesor-name">Nombre:</label>
+                    <input type="text" id="new-asesor-name" name="name" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-add-asesor">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         // Your web app's Firebase configuration
@@ -557,20 +607,21 @@
         const asesorSelect = document.getElementById('asesor');
         const valorAPagarInput = document.getElementById('valor-a-pagar');
         const ibcInput = document.getElementById('ibc'); // Input for IBC
-        // const ibcAutomaticoCheck = document.getElementById('ibc-automatico-check'); // Checkbox eliminado
-        // const ibcLoadingIndicator = document.getElementById('ibc-loading'); // Indicador de carga eliminado
 
 
-        // Modal DOM elements (Add Entity Modal kept)
-        const addEntityModal = document.getElementById('add-entity-modal');
-        const closeAddEntityModalButton = document.getElementById('close-add-entity-modal');
-        const cancelAddEntityButton = document.getElementById('cancel-add-entity');
-        const addEntityModalTitle = document.getElementById('add-entity-modal-title');
-        const addEntityForm = document.getElementById('add-entity-form');
-        const addEntityTypeInput = document.getElementById('add-entity-type');
-        const entityNameInput = document.getElementById('entity-name');
-
-        // IBC Search Modal DOM elements eliminados
+        // Modal DOM elements (Add Entity Modals)
+        const addEmpresaBtn = document.getElementById('add-empresa-btn');
+        const addAsesorBtn = document.getElementById('add-asesor-btn');
+        const addEmpresaModal = document.getElementById('add-empresa-modal');
+        const addAsesorModal = document.getElementById('add-asesor-modal');
+        const closeAddEmpresaModalButton = document.getElementById('close-add-empresa-modal');
+        const closeAddAsesorModalButton = document.getElementById('close-add-asesor-modal');
+        const cancelAddEmpresaButton = document.getElementById('cancel-add-empresa');
+        const cancelAddAsesorButton = document.getElementById('cancel-add-asesor');
+        const addEmpresaForm = document.getElementById('add-empresa-form');
+        const addAsesorForm = document.getElementById('add-asesor-form');
+        const newEmpresaNameInput = document.getElementById('new-empresa-name');
+        const newAsesorNameInput = document.getElementById('new-asesor-name');
 
 
         // --- Utility Functions ---
@@ -773,101 +824,125 @@
         });
 
 
-        // --- Modal for Adding New Entities ---
+        // --- Modal for Adding New Empresa ---
 
-        // Show the generic add entity modal
-        function showAddEntityModal(title, entityType) {
-            addEntityModalTitle.textContent = title;
-            addEntityTypeInput.value = entityType; // Store the entity type
-            entityNameInput.value = ''; // Clear the name field
-            addEntityModal.classList.add('show');
+        // Show the add Empresa modal
+        addEmpresaBtn.addEventListener('click', () => {
+            addEmpresaModal.classList.add('show');
+            newEmpresaNameInput.value = ''; // Clear input
+        });
+
+        // Hide the add Empresa modal
+        function hideAddEmpresaModal() {
+            addEmpresaModal.classList.remove('show');
+            addEmpresaForm.reset(); // Reset the form
         }
 
-        // Hide the generic add entity modal
-        function hideAddEntityModal() {
-            addEntityModal.classList.remove('show');
-            addEntityForm.reset(); // Reset the form
-        }
-
-        // Listeners to close the generic add entity modal
-        closeAddEntityModalButton.addEventListener('click', hideAddEntityModal);
-        cancelAddEntityButton.addEventListener('click', hideAddEntityModal);
-        addEntityModal.addEventListener('click', (e) => {
-            if (e.target === addEntityModal) {
-                hideAddEntityModal();
+        // Listeners to close the add Empresa modal
+        closeAddEmpresaModalButton.addEventListener('click', hideAddEmpresaModal);
+        cancelAddEmpresaButton.addEventListener('click', hideAddEmpresaModal);
+        addEmpresaModal.addEventListener('click', (e) => {
+            if (e.target === addEmpresaModal) {
+                hideAddEmpresaModal();
             }
         });
 
-        // Listener for submitting the generic add entity form
-        addEntityForm.addEventListener('submit', async (e) => {
+        // Listener for submitting the add Empresa form
+        addEmpresaForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Prevent default submission
 
-            const entityType = addEntityTypeInput.value;
-            const entityName = entityNameInput.value.trim();
+            const entityName = newEmpresaNameInput.value.trim();
 
             if (!entityName) {
-                alert("Por favor, ingresa el nombre.");
+                showStatusMessage("Por favor, ingresa el nombre de la empresa.", 'error');
                 return;
             }
 
-            let collectionRef;
-            let successMessage = '';
-            let entityData = {
-                 nombre: entityName,
-                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            // Determine the collection and success message based on entity type
-            switch (entityType) {
-                case 'arl': // Case for ARL
-                    collectionRef = arlCollection;
-                    successMessage = 'Nueva ARL agregada con éxito!';
-                    break;
-                case 'eps':
-                    collectionRef = epsCollection;
-                    successMessage = 'Nueva EPS agregada con éxito!';
-                    break;
-                case 'ccf':
-                    collectionRef = ccfCollection;
-                    successMessage = 'Nueva CCF agregada con éxito!';
-                    break;
-                case 'afp':
-                    collectionRef = afpCollection;
-                    successMessage = 'Nueva AFP agregada con éxito!';
-                    break;
-                case 'asesor':
-                    collectionRef = asesoresCollection;
-                    successMessage = 'Nuevo Asesor agregado con éxito!';
-                    break;
-                case 'empresa':
-                    collectionRef = empresasCollection;
-                    successMessage = 'Nueva Empresa agregada con éxito!';
-                    break;
-                default:
-                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
-                    return;
-            }
-
-            showStatusMessage(`Agregando ${entityName}...`, 'info');
+            showStatusMessage(`Agregando Empresa ${entityName}...`, 'info');
 
             try {
-                await collectionRef.add(entityData);
-                showStatusMessage(successMessage, 'success');
-                hideAddEntityModal(); // Close modal after saving
+                // Optional: Check if Empresa already exists before adding
+                const existingEmpresas = await empresasCollection.where('nombre', '==', entityName).get();
+                if (!existingEmpresas.empty) {
+                     showStatusMessage(`La empresa "${entityName}" ya existe.`, 'error');
+                     return;
+                }
+
+                await empresasCollection.add({
+                     nombre: entityName,
+                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatusMessage('Nueva Empresa agregada con éxito!', 'success');
+                hideAddEmpresaModal(); // Close modal after saving
 
                 // After adding a new entity, repopulate the selects
                 populateSelects();
 
             } catch (error) {
-                console.error(`Error adding ${entityType}:`, error);
-                showStatusMessage(`Error al agregar ${entityType}: ` + error.message, 'error');
+                console.error(`Error adding Empresa:`, error);
+                showStatusMessage(`Error al agregar Empresa: ` + error.message, 'error');
             }
         });
 
+        // --- Modal for Adding New Asesor ---
 
-        // --- Automatic IBC Calculation (Logic Removed) ---
-        // ibcAutomaticoCheck.addEventListener('change', async (e) => { /* Logic removed */ });
-        // IBC Search Modal Functions removed
+        // Show the add Asesor modal
+        addAsesorBtn.addEventListener('click', () => {
+            addAsesorModal.classList.add('show');
+            newAsesorNameInput.value = ''; // Clear input
+        });
+
+        // Hide the add Asesor modal
+        function hideAddAsesorModal() {
+            addAsesorModal.classList.remove('show');
+            addAsesorForm.reset(); // Reset the form
+        }
+
+        // Listeners to close the add Asesor modal
+        closeAddAsesorModalButton.addEventListener('click', hideAddAsesorModal);
+        cancelAddAsesorButton.addEventListener('click', hideAddAsesorModal);
+        addAsesorModal.addEventListener('click', (e) => {
+            if (e.target === addAsesorModal) {
+                hideAddAsesorModal();
+            }
+        });
+
+        // Listener for submitting the add Asesor form
+        addAsesorForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default submission
+
+            const entityName = newAsesorNameInput.value.trim();
+
+            if (!entityName) {
+                 showStatusMessage("Por favor, ingresa el nombre del asesor.", 'error');
+                return;
+            }
+
+            showStatusMessage(`Agregando Asesor ${entityName}...`, 'info');
+
+            try {
+                 // Optional: Check if Asesor already exists before adding
+                 const existingAsesores = await asesoresCollection.where('nombre', '==', entityName).get();
+                 if (!existingAsesores.empty) {
+                      showStatusMessage(`El asesor "${entityName}" ya existe.`, 'error');
+                      return;
+                 }
+
+                await asesoresCollection.add({
+                     nombre: entityName,
+                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatusMessage('Nuevo Asesor agregado con éxito!', 'success');
+                hideAddAsesorModal(); // Close modal after saving
+
+                // After adding a new entity, repopulate the selects
+                populateSelects();
+
+            } catch (error) {
+                console.error(`Error adding Asesor:`, error);
+                showStatusMessage(`Error al agregar Asesor: ` + error.message, 'error');
+            }
+        });
 
 
         // --- Initialization ---
