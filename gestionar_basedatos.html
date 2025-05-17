@@ -456,7 +456,7 @@
             position: fixed; /* Posición fija para estar siempre visible */
             top: 50%; /* Centrar verticalmente */
             left: 50%; /* Centrar horizontalmente */
-            transform: translate(-50%, -50%) scale(0.8); /* Centrar y empezar un poco más pequeño */
+            transform: translate(-50%, -50%); /* Centrar */
             padding: 30px 40px; /* Espaciado interno generoso */
             border-radius: 15px; /* Bordes muy redondeados */
             font-size: 1.8rem; /* Tamaño de fuente grande */
@@ -466,7 +466,8 @@
             z-index: 2000; /* Asegurar que esté por encima de todo lo demás */
             opacity: 0; /* Empezar invisible */
             visibility: hidden; /* Ocultar completamente cuando no está visible */
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out, background-color 0.4s ease-in-out; /* Transiciones suaves */
+            /* Transición simplificada */
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); /* Sombra pronunciada */
             min-width: 300px; /* Ancho mínimo */
             max-width: 90%; /* Ancho máximo en pantallas pequeñas */
@@ -475,39 +476,22 @@
         #large-status-message.show {
             opacity: 1; /* Mostrar */
             visibility: visible; /* Hacer visible */
-            transform: translate(-50%, -50%) scale(1); /* Volver a tamaño normal */
+            /* Eliminar la escala inicial para simplificar */
+            transform: translate(-50%, -50%);
         }
 
         #large-status-message.success {
             background-color: #10b981; /* Verde */
-            /* Opcional: Añadir animación de color o pulso si se desea */
-            /* animation: pulse-green 2s infinite; */
         }
 
         #large-status-message.error {
             background-color: #ef4444; /* Rojo */
-            /* Opcional: Añadir animación de color o pulso si se desea */
-            /* animation: pulse-red 2s infinite; */
         }
 
         #large-status-message.info {
              background-color: #3b82f6; /* Azul para info */
         }
 
-        /* Opcional: Keyframes para animación de pulso */
-        /*
-        @keyframes pulse-green {
-            0% { background-color: #10b981; }
-            50% { background-color: #059669; }
-            100% { background-color: #10b981; }
-        }
-
-        @keyframes pulse-red {
-            0% { background-color: #ef4444; }
-            50% { background-color: #dc2626; }
-            100% { background-color: #ef4444; }
-        }
-        */
         /* --- FIN NUEVOS ESTILOS --- */
 
 
@@ -1232,29 +1216,43 @@
 
         // Función para mostrar mensajes de estado (AHORA USA EL ELEMENTO GRANDE)
         function showStatusMessage(message, type = 'info') {
+            console.log(`showStatusMessage called: "${message}", type: "${type}"`); // Debugging
+
             // Clear any existing timeout and hide any visible message
             clearTimeout(largeStatusTimeout);
-            largeStatusMessage.classList.remove('show', 'success', 'error', 'info'); // Reset classes
-            largeStatusMessage.style.opacity = '0';
-            largeStatusMessage.style.transform = 'translate(-50%, -50%) scale(0.8)';
-            largeStatusMessage.style.visibility = 'hidden'; // Hide immediately
 
-            if (!message) return; // Don't show empty messages
+            // Reset classes and styles immediately before setting new ones
+            largeStatusMessage.className = ''; // Remove all classes
+            largeStatusMessage.style.opacity = '0';
+            largeStatusMessage.style.visibility = 'hidden'; // Hide immediately
+            largeStatusMessage.textContent = ''; // Clear text
+
+
+            if (!message) {
+                 console.log("showStatusMessage: Message is empty, not showing."); // Debugging
+                 return; // Don't show empty messages
+            }
 
             largeStatusMessage.textContent = message;
             largeStatusMessage.classList.add(type, 'show'); // Add type class and show class
             largeStatusMessage.style.visibility = 'visible'; // Make visible
+            largeStatusMessage.style.opacity = '1'; // Ensure opacity is 1 when showing
 
-            // Set timeout to hide the message after 4 seconds
+            console.log(`showStatusMessage: Added classes "${type}", "show". Visibility set to visible, opacity to 1.`); // Debugging
+
+
+            // Set timeout to hide the message after 5 seconds
             largeStatusTimeout = setTimeout(() => {
-                largeStatusMessage.classList.remove('show'); // Trigger fade out and scale down
-                 // Hide completely after the transition
+                console.log("showStatusMessage: Timeout reached, hiding message."); // Debugging
+                largeStatusMessage.classList.remove('show'); // Trigger fade out (opacity transition)
+                 // Hide completely after the transition duration
                  setTimeout(() => {
                       largeStatusMessage.style.visibility = 'hidden';
                       largeStatusMessage.className = ''; // Clean up classes
                       largeStatusMessage.textContent = ''; // Clear text
-                 }, 400); // Match CSS transition duration
-            }, 4000); // Show for 4 seconds
+                      console.log("showStatusMessage: Message hidden and cleaned up."); // Debugging
+                 }, 500); // Match CSS transition duration (0.5s)
+            }, 5000); // Show for 5 seconds
         }
 
 
@@ -2541,7 +2539,7 @@
                      (asesorNombre.toLowerCase().includes(filterText)) ||
                      (arlMap.get(user.arlId) || '').toLowerCase().includes(filterText) || // Incluir ARL nombre en búsqueda
                      (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
-                     (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) ||
+                     (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) || // Incluir EPS nombre en búsqueda
                      (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) ||
                      (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText) ||
                      (user.ibc !== undefined && user.ibc !== null && String(user.ibc).toLowerCase().includes(filterText)); // Incluir IBC en búsqueda
@@ -2635,7 +2633,8 @@
 
         // Listeners para cerrar el modal de importación
         closeImportModalButton.addEventListener('click', hideImportUsersModal);
-        cancelImportButton.addEventListener('click', hideImportUsersModal);
+        cancelImportButton.addEventListener('click', hideImportUsersModal); // Corregido: usar hideImportUsersModal
+
         importUsersModal.addEventListener('click', (e) => {
             if (e.target === importUsersModal) {
                 hideImportUsersModal();
