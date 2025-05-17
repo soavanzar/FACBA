@@ -157,7 +157,7 @@
         }
 
         .user-table td {
-            font-size: 0.95rem;
+            font-size: 0.95rem; /* Tamaño de fuente por defecto para escritorio */
             color: #374151; /* Texto gris oscuro */
         }
 
@@ -434,9 +434,10 @@
             .user-table td {
                 text-align: right; /* Alinear contenido de celda a la derecha */
                 padding: 8px 15px; /* Espaciado interno para las celdas */
-                padding-left: 145px; /* <<-- MODIFICACION AQUI: Añadir padding izquierdo para el título */
+                padding-left: 145px; /* Añadir padding izquierdo para el título */
                 position: relative; /* Para posicionar la etiqueta */
                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
+                font-size: 0.9rem; /* <<-- MODIFICACION AQUI: Reducir tamaño de fuente para móviles */
             }
 
              .user-table td:last-child {
@@ -450,23 +451,23 @@
                 content: attr(data-label); /* Mostrar el contenido del atributo data-label */
                 position: absolute;
                 left: 15px; /* Posición a la izquierda */
-                width: 120px; /* <<-- MODIFICACION AQUI: Ancho fijo para el título */
+                width: 120px; /* Ancho fijo para el título */
                 padding-right: 10px; /* Espacio entre etiqueta y contenido */
-                box-sizing: border-box; /* <<-- MODIFICACION AQUI: Incluir padding en el ancho */
+                box-sizing: border-box; /* Incluir padding en el ancho */
                 white-space: nowrap; /* Evitar que la etiqueta se rompa en varias líneas */
                 font-weight: 600; /* Peso de fuente semibold para la etiqueta */
                 color: #4b5563; /* Color gris oscuro para la etiqueta */
                 text-align: left; /* Alinear etiqueta a la izquierda */
                 overflow: hidden; /* Ocultar texto si es demasiado largo */
                 text-overflow: ellipsis; /* Mostrar puntos suspensivos si se trunca */
-                top: 50%; /* <<-- MODIFICACION AQUI: Centrar verticalmente */
-                transform: translateY(-50%); /* <<-- MODIFICACION AQUI: Ajustar para centrado vertical */
+                top: 50%; /* Centrar verticalmente */
+                transform: translateY(-50%); /* Ajustar para centrado vertical */
             }
 
             /* Ajuste específico para la celda de acciones */
             .action-cell {
                  text-align: center; /* Centrar el contenido en la celda de acciones */
-                 padding-left: 15px; /* <<-- MODIFICACION AQUI: Resetear padding-left para la celda de acciones */
+                 padding-left: 15px; /* Resetear padding-left para la celda de acciones */
             }
 
              .action-cell::before {
@@ -1868,7 +1869,7 @@
                      }
                     editValorAPagarInput.value = valorAPagarNumeric || ''; // Poner el valor numérico o vacío
 
-                    // --- MODIFICACION AQUI: Cargar valor de IBC ---
+                    // Cargar valor de IBC
                     let ibcNumeric = userData.ibc;
                     if (typeof userData.ibc === 'string') {
                          const cleanedString = userData.ibc.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
@@ -2600,7 +2601,7 @@
                         if (asesorName && !Array.from(asesoresMap.values()).some(name => name.toLowerCase() === asesorName.toLowerCase())) {
                             newAsesoresToCreate.add(asesorName);
                         }
-                         // --- MODIFICACION AQUI: Check for empty string or "N/A" before adding to set ---
+                         // Check for empty string or "N/A" before adding to set
                          if (arlName && arlName.toUpperCase() !== 'N/A' && !Array.from(arlMap.values()).some(name => name.toLowerCase() === arlName.toLowerCase())) {
                              newArlToCreate.add(arlName);
                          }
@@ -2761,7 +2762,7 @@
                                         }
                                  } else if (firestoreField === 'arl') { // Map ARL name to ID
                                        const arlName = String(value).trim();
-                                       // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                       // Check for empty string or "N/A"
                                        if (arlName && arlName.toUpperCase() !== 'N/A') {
                                             const arlEntry = Array.from(arlMap.entries()).find(([id, name]) => name.toLowerCase() === arlName.toLowerCase());
                                             if (arlEntry) {
@@ -2776,7 +2777,7 @@
                                        }
                                   } else if (firestoreField === 'eps') { // Map EPS name to ID
                                        const epsName = String(value).trim();
-                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                        // Check for empty string or "N/A"
                                        if (epsName && epsName.toUpperCase() !== 'N/A') {
                                             const epsEntry = Array.from(epsMap.entries()).find(([id, name]) => name.toLowerCase() === epsName.toLowerCase());
                                             if (epsEntry) {
@@ -2791,7 +2792,7 @@
                                        }
                                   } else if (firestoreField === 'ccf') { // Map CCF name to ID
                                        const ccfName = String(value).trim();
-                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                        // Check for empty string or "N/A"
                                         if (ccfName && ccfName.toUpperCase() !== 'N/A') {
                                              const ccfEntry = Array.from(ccfMap.entries()).find(([id, name]) => name.toLowerCase() === ccfName.toLowerCase());
                                              if (ccfEntry) {
@@ -2806,7 +2807,7 @@
                                         }
                                   } else if (firestoreField === 'afp') { // Map AFP name to ID
                                        const afpName = String(value).trim();
-                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                        // Check for empty string or "N/A"
                                         if (afpName && afpName.toUpperCase() !== 'N/A') {
                                              const afpEntry = Array.from(afpMap.entries()).find(([id, name]) => name.toLowerCase() === afpName.toLowerCase());
                                              if (afpEntry) {
@@ -2832,7 +2833,7 @@
                                            const adjustedValue = value > 60 ? value - 1 : value;
                                            dateValue = new Date(excelEpoch.getTime() + adjustedValue * 24 * 60 * 60 * 1000);
 
-                                      } else if (typeof value === 'string' && value.trim() !== '' && value.trim().toUpperCase() !== 'N/A') { // MODIFICACION AQUI: Ignore "N/A" for dates
+                                      } else if (typeof value === 'string' && value.trim() !== '' && value.trim().toUpperCase() !== 'N/A') { // Ignore "N/A" for dates
                                            // Try to parse date string (YYYY-MM-DD, MM/DD/YYYY, etc.)
                                            try {
                                                 // PreferYYYY-MM-DD if possible
@@ -2857,7 +2858,7 @@
                                           userData[firestoreField] = dateValue; // Store as Date object
                                       } else if (firestoreField === 'fecha') { // Fecha de ingreso is required
                                            isValidRow = false;
-                                           rowErrors.push(`Fecha de Ingreso inválida, vacía o "N/A": "${value}"`); // MODIFICACION AQUI: Updated error message
+                                           rowErrors.push(`Fecha de Ingreso inválida, vacía o "N/A": "${value}"`); // Updated error message
                                       }
                                       // Fecha de retiro is optional, don't mark error if empty/invalid/N/A
                                  } else if (firestoreField === 'valorAPagar' || firestoreField === 'ibc') { // Handle IBC as number
