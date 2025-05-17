@@ -124,433 +124,250 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
-        /* --- Estilos de Tabla con CSS Grid (Vista de Escritorio) --- */
+        /* --- Estilos para la Vista de Escritorio con CSS Grid (por defecto) --- */
 
-        .user-table {
-            width: 100%;
-            border-collapse: collapse; /* Elimina el espacio entre bordes */
+        .user-grid-container {
+            display: grid; /* Usar Grid para el contenedor principal */
+            /* Definir 9 columnas: Nombre, Empresa, Valor, IBC, EPS, ARL, AFP, CCF, Acciones */
+            /* Ajusta los anchos según necesites. minmax permite flexibilidad pero con un mínimo */
+            grid-template-columns: 2fr 1.5fr minmax(100px, 1fr) minmax(100px, 1fr) 0.8fr 0.8fr 0.8fr 0.8fr 100px;
             margin-top: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
-            display: grid; /* <<-- MODIFICACION AQUI: Usar Grid para la tabla */
-            grid-template-columns: repeat(9, 1fr); /* <<-- MODIFICACION AQUI: 9 columnas flexibles */
-            /* Definir áreas para thead y tbody */
-            grid-template-areas:
-                "header header header header header header header header header"
-                "body body body body body body body body body";
-            /* Asegurar que las filas no creen sus propios contextos de grid/flex */
-             grid-auto-rows: auto; /* Ajustar altura de filas automáticamente */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px; /* Bordes redondeados para el contenedor */
+            overflow: hidden; /* Ocultar contenido que se desborde de los bordes redondeados */
+            /* Gap entre items del grid (columnas y filas) */
+            gap: 0; /* Eliminar gap por defecto para simular bordes de tabla */
+            width: 100%; /* Asegurar que ocupe el ancho completo */
         }
 
-        .user-table thead {
-            display: contents; /* <<-- MODIFICACION AQUI: Permite que los th sean items del grid de la tabla */
-             grid-area: header; /* Asignar a la área de encabezado */
+        .user-grid-header {
+            display: contents; /* Permite que los hijos (header items) sean items del grid del contenedor */
         }
 
-        .user-table tbody {
-            display: contents; /* <<-- MODIFICACION AQUI: Permite que los td sean items del grid de la tabla */
-             grid-area: body; /* Asignar a la área del cuerpo */
-        }
-
-        .user-table tr {
-             display: contents; /* <<-- MODIFICACION AQUI: Permite que los th/td sean items del grid de thead/tbody */
-        }
-
-
-        .user-table th,
-        .user-table td {
-            padding: 12px 15px; /* Espaciado interno */
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb; /* Borde inferior para filas */
-            /* Eliminar estilos de tabla nativos que no aplican a grid items */
-            display: block; /* Asegura que sean bloques dentro del grid */
-        }
-
-        .user-table th {
-            background-color: #eef2ff; /* Fondo azul/morado muy claro para encabezados */
-            color: #1f2937; /* Texto oscuro */
+        .user-grid-header-item {
+            background-color: #eef2ff;
+            color: #1f2937;
             font-weight: 600;
-            text-transform: uppercase; /* Texto en mayúsculas */
+            text-transform: uppercase;
             font-size: 0.9rem;
-             /* Asegurar que los th se alineen con las columnas del grid */
-             grid-column: span 1;
-             /* Añadir borde derecho a los encabezados */
-             border-right: 1px solid #d1d5db; /* Borde derecho */
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #d1d5db; /* Borde inferior */
+            border-right: 1px solid #d1d5db; /* Borde derecho */
+            /* Asegurar que ocupe una columna en la primera fila */
+            grid-row: 1;
         }
-         .user-table th:last-child {
+         .user-grid-header-item:last-child {
              border-right: none; /* Sin borde derecho en el último encabezado */
          }
+         /* Bordes redondeados en las esquinas superiores del encabezado */
+         .user-grid-header-item:first-child { border-top-left-radius: 8px; }
+         .user-grid-header-item:last-child { border-top-right-radius: 8px; }
 
 
-        .user-table tbody tr:nth-child(even) {
-            background-color: #f9fafb; /* Fondo ligeramente diferente para filas pares (efecto cebra) */
+        .user-grid-body {
+            display: contents; /* Permite que los hijos (rows) sean items del grid del contenedor */
         }
 
-        .user-table tbody tr:hover {
-            background-color: #e5e7eb; /* Fondo gris claro al pasar el ratón */
+        .user-grid-row {
+            display: grid; /* Cada "fila" lógica de usuario es su propio grid */
+            /* Usar subgrid para heredar las columnas del contenedor principal */
+            grid-template-columns: subgrid;
+            /* Definir dos filas dentro de esta "fila" lógica */
+            grid-template-rows: auto auto; /* Dos filas internas: una para datos principales, otra para entidades */
+            /* Asegurar que esta "fila" lógica ocupe las 9 columnas del contenedor */
+            grid-column: 1 / -1; /* Ocupa desde la primera hasta la última columna */
+            border-bottom: 1px solid #e5e7eb; /* Separador entre "filas" lógicas de usuario */
+        }
+        .user-grid-row:last-child {
+             border-bottom: none; /* Sin borde inferior en la última "fila" */
+             /* Bordes redondeados en las esquinas inferiores de la última fila */
+             border-bottom-left-radius: 8px;
+             border-bottom-right-radius: 8px;
+             overflow: hidden; /* Asegurar que el contenido respete los bordes redondeados */
+        }
+
+        /* Efecto hover en la "fila" lógica completa */
+        .user-grid-row:hover {
+            background-color: #e5e7eb;
             transition: background-color 0.2s ease-in-out;
         }
-
-        .user-table td {
-            font-size: 0.95rem; /* Tamaño de fuente por defecto para escritorio */
-            color: #374151; /* Texto gris oscuro */
-             /* Asegurar que los td se alineen con las columnas del grid */
-             grid-column: span 1;
-             /* Añadir borde derecho a las celdas */
-             border-right: 1px solid #e5e7eb; /* Borde derecho */
+        /* Efecto cebra en las "filas" lógicas */
+        .user-grid-body .user-grid-row:nth-child(even) {
+            background-color: #f9fafb;
         }
-         .user-table td:last-child {
-             border-right: none; /* Sin borde derecho en la última celda */
+         /* Ajustar hover/zebra background para aplicar a la row div */
+         .user-grid-body .user-grid-row:hover {
+             background-color: #e5e7eb;
+         }
+         .user-grid-body .user-grid-row:nth-child(even):hover {
+              background-color: #d1d3d6; /* Fondo de hover ligeramente diferente para filas pares */
          }
 
 
-        /* Estilos para las celdas de acciones */
-        .action-cell {
-            text-align: center; /* Centra el contenido en la celda de acciones */
-            position: relative; /* Necesario para posicionar los botones de acción */
-        }
-
-        .action-cell .action-buttons-container {
-             display: none; /* Oculto por defecto */
-             position: absolute; /* Posicionamiento absoluto */
-             top: 50%; /* Centrar verticalmente */
-             left: 50%; /* Centrar horizontalmente */
-             transform: translate(-50%, -50%); /* Ajustar para centrado exacto */
-             background-color: #ffffff; /* Fondo blanco */
-             padding: 8px; /* Espaciado interno */
-             border-radius: 8px; /* Bordes redondeados */
-             box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Sombra */
-             z-index: 20; /* Asegura que esté por encima de otros elementos de la tabla */
-             white-space: nowrap; /* Evita que los botones se rompan */
-             gap: 8px; /* Espacio entre botones */
-             align-items: center; /* Centra los botones verticalmente */
-        }
-
-         .action-cell .action-buttons-container.show {
-             display: flex; /* Mostrar cuando tiene la clase 'show' */
-         }
-
-        .action-button {
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
-            border: none; /* Sin borde por defecto */
-        }
-
-        .action-button i {
-             margin-right: 4px; /* Espacio entre icono y texto */
-        }
-
-        .edit-button {
-            background-color: #60a5fa; /* Azul */
-            color: white;
-        }
-        .edit-button:hover {
-            background-color: #3b82f6; /* Azul más oscuro */
-        }
-
-        .delete-button {
-            background-color: #f87171; /* Rojo */
-            color: white;
-        }
-        .delete-button:hover {
-            background-color: #ef4444; /* Rojo más oscuro */
-        }
-
-        .status-button {
-            background-color: #a78bfa; /* Morado */
-            color: white;
-        }
-        .status-button:hover {
-            background-color: #8b5cf6; /* Morado más oscuro */
-        }
-
-         /* Estilo para el icono de tuerca */
-         .gear-icon {
-             font-size: 1.2rem; /* Tamaño del icono */
-             color: #6b7280; /* Color gris */
-             cursor: pointer;
-             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-         }
-
-         .gear-icon:hover {
-             color: #1f2937; /* Gris más oscuro al pasar el ratón */
-             transform: rotate(90deg); /* Rotar al pasar el ratón */
-         }
-
-         /* Estilos para los iconos de estado (chulo/cruz) */
-         .status-icon {
-             font-size: 1.2rem; /* Tamaño del icono */
-             vertical-align: middle; /* Alinea verticalmente con el texto si lo hay */
-             margin: 0 auto; /* Centra si la celda lo permite */
-             display: block; /* Asegura que ocupe su propio espacio para centrar */
-             width: fit-content; /* Ajusta el ancho al contenido */
-             cursor: pointer; /* Add cursor pointer to indicate it's clickable */
-         }
-
-         .text-green-500 { color: #10b981; /* Verde */ }
-         .text-red-500 { color: #ef4444; /* Rojo */ }
-
-
-        /* Estilos para los modales */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente más oscuro */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            visibility: hidden;
-            opacity: 0;
-            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-
-        .modal-overlay.show {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 500px; /* Ancho máximo del modal */
-            position: relative;
-            max-height: 90vh; /* Altura máxima para scroll */
-            overflow-y: auto; /* Habilita scroll si el contenido es largo */
-        }
-
-        .modal-close-button {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #9ca3af; /* Gris */
-            transition: color 0.2s ease-in-out;
-        }
-
-        .modal-close-button:hover {
-            color: #6b7280; /* Gris más oscuro */
-        }
-
-        .modal-content h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 25px;
-            color: #1f2937;
-        }
-
-        .modal-form-group {
-            margin-bottom: 18px;
-        }
-
-        .modal-form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
+        .user-grid-cell {
+            padding: 8px 15px; /* Espaciado interno */
+            font-size: 0.95rem;
             color: #374151;
-            font-size: 0.9rem;
+            border-right: 1px solid #e5e7eb; /* Borde derecho */
+            /* No hay borde inferior aquí, el borde está en .user-grid-row */
+            display: flex; /* Usar flexbox para centrar contenido verticalmente si es necesario */
+            align-items: center;
+        }
+        .user-grid-cell:last-child {
+             border-right: none; /* Sin borde derecho en la última celda */
         }
 
-        .modal-form-group input[type="text"],
-        .modal-form-group input[type="number"],
-        .modal-form-group input[type="date"],
-        .modal-form-group select {
+        /* Posicionar las celdas dentro del grid de la "fila" lógica (user-grid-row) */
+        /* grid-area: start-row / start-column / end-row / end-column; */
+        .user-grid-cell-nombre    { grid-area: 1 / 1 / 2 / 2; } /* Fila interna 1, Col 1 */
+        .user-grid-cell-empresa   { grid-area: 1 / 2 / 2 / 3; } /* Fila interna 1, Col 2 */
+        .user-grid-cell-valor     { grid-area: 1 / 3 / 2 / 4; text-align: right; justify-content: flex-end;} /* Fila interna 1, Col 3 - Alinear derecha para moneda */
+        .user-grid-cell-ibc       { grid-area: 1 / 4 / 2 / 5; text-align: right; justify-content: flex-end;} /* Fila interna 1, Col 4 - Alinear derecha para moneda */
+
+        .user-grid-cell-eps       { grid-area: 2 / 5 / 3 / 6; text-align: center; justify-content: center; border-top: 1px solid #e5e7eb;} /* Fila interna 2, Col 5 - Centrar iconos, borde superior */
+        .user-grid-cell-arl       { grid-area: 2 / 6 / 3 / 7; text-align: center; justify-content: center; border-top: 1px solid #e5e7eb;} /* Fila interna 2, Col 6 - Centrar iconos, borde superior */
+        .user-grid-cell-afp       { grid-area: 2 / 7 / 3 / 8; text-align: center; justify-content: center; border-top: 1px solid #e5e7eb;} /* Fila interna 2, Col 7 - Centrar iconos, borde superior */
+        .user-grid-cell-ccf       { grid-area: 2 / 8 / 3 / 9; text-align: center; justify-content: center; border-top: 1px solid #e5e7eb;} /* Fila interna 2, Col 8 - Centrar iconos, borde superior */
+
+        /* Celdas de la segunda fila que necesitan abarcar columnas de la primera fila */
+        .user-grid-cell-eps,
+        .user-grid-cell-arl,
+        .user-grid-cell-afp,
+        .user-grid-cell-ccf {
+            /* Estos elementos ya están posicionados en la segunda fila interna */
+             /* Añadir borde superior para separarlos visualmente de la primera fila */
+        }
+
+        /* La celda de acciones ocupa la última columna y abarca las dos filas internas */
+        .user-grid-cell-actions   { grid-area: 1 / 9 / 3 / 10; text-align: center; justify-content: center; position: relative;} /* Abarca Fila interna 1 y 2, Col 9 */
+
+
+        /* Ajustar padding para celdas en la primera fila para alinear con encabezado si es necesario */
+        .user-grid-cell-nombre,
+        .user-grid-cell-empresa,
+        .user-grid-cell-valor,
+        .user-grid-cell-ibc {
+             padding-top: 12px;
+             padding-bottom: 8px; /* Menos padding abajo en la primera fila */
+        }
+
+        /* Ajustar padding para celdas en la segunda fila */
+        .user-grid-cell-eps,
+        .user-grid-cell-arl,
+        .user-grid-cell-afp,
+        .user-grid-cell-ccf {
+             padding-top: 8px; /* Menos padding arriba en la segunda fila */
+             padding-bottom: 12px; /* Más padding abajo en la segunda fila */
+        }
+
+        /* Ajustar padding de la celda de acciones para que el contenido esté centrado verticalmente */
+        .user-grid-cell-actions {
+            padding-top: 12px; /* Match header/first row padding */
+            padding-bottom: 12px; /* Match header/first row padding */
+        }
+
+
+        /* --- Estilos para la Vista Móvil (Oculta por defecto) --- */
+
+        .user-table-mobile {
+            display: none; /* Ocultar la tabla móvil por defecto */
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            box-sizing: border-box;
-        }
-
-         .modal-form-group input:focus,
-         .modal-form-group select:focus {
-             outline: none;
-             border-color: #4f46e5;
-             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
-         }
-
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 25px;
-        }
-
-        .modal-buttons button {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: none;
-        }
-
-        .save-changes-button {
-            background-color: #10b981; /* Verde */
-            color: white;
-        }
-        .save-changes-button:hover {
-            background-color: #059669; /* Verde más oscuro */
-        }
-
-        .cancel-button {
-            background-color: #9ca3af; /* Gris */
-            color: white;
-        }
-        .cancel-button:hover {
-            background-color: #6b7280; /* Gris más oscuro */
-        }
-
-        /* Estilos para mensajes de estado */
-        #status-message {
+            border-collapse: collapse;
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s ease-out, transform 0.4s ease-in-out;
+            box-shadow: none; /* Sin sombra exterior en móvil */
         }
 
-        #status-message.success {
-            background-color: #d4edda; /* Verde claro */
-            color: #155724; /* Verde oscuro */
-            border: 1px solid #c3e6cb;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #status-message.error {
-            background-color: #f8d7da; /* Rojo claro */
-            color: #721c24; /* Rojo oscuro */
-            border: 1px solid #f5c6cb;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #status-message.info {
-            background-color: #cce5ff; /* Azul claro */
-            color: #004085; /* Azul oscuro */
-            border: 1px solid #b8daff;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* --- Estilos Responsivos para la Tabla (Vista de Tarjeta en Móviles) --- */
-
-        /* Aplicar estilos solo en pantallas pequeñas (menos de 768px, breakpoint 'md' de Tailwind) */
+        /* Media Query para pantallas pequeñas (menos de 768px) */
         @media (max-width: 767px) {
-            .user-table {
-                 display: block; /* <<-- MODIFICACION AQUI: Volver a block en móvil */
-                 grid-template-columns: none; /* <<-- MODIFICACION AQUI: Eliminar columnas de grid */
-                 grid-template-areas: none; /* <<-- MODIFICACION AQUI: Eliminar áreas de grid */
-                 box-shadow: none; /* <<-- MODIFICACION AQUI: Eliminar sombra de tabla en móvil */
+            /* Ocultar la vista de Grid en móvil */
+            .user-grid-container {
+                display: none;
+            }
+            /* Mostrar la vista de Tabla móvil en móvil */
+            .user-table-mobile {
+                 display: block; /* Mostrar la tabla móvil */
             }
 
-            .user-table thead {
-                display: none; /* Ocultar encabezados de tabla */
+            /* Estilos de tarjeta para la tabla móvil (existente) */
+            .user-table-mobile thead { display: none; }
+            .user-table-mobile tbody { display: block; }
+            .user-table-mobile tr {
+                display: block;
+                width: 100%;
+                margin-bottom: 20px;
+                border: 1px solid #d1d5db;
+                border-radius: 10px;
+                background-color: #ffffff;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+                padding: 15px;
             }
-
-            .user-table tbody {
-                 display: block; /* <<-- MODIFICACION AQUI: Volver a block en móvil */
+            .user-table-mobile td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 15px;
+                position: relative;
+                border-bottom: 1px dashed #e5e7eb;
+                font-size: 0.9rem;
+                border-right: none; /* Eliminar borde derecho en móvil */
             }
-
-            .user-table tr {
-                display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
-                width: 100%; /* Ocupar todo el ancho */
-                margin-bottom: 20px; /* Más espacio entre filas apiladas (tarjetas) */
-                border: 1px solid #d1d5db; /* Borde alrededor de cada "tarjeta" de fila */
-                border-radius: 10px; /* Bordes más redondeados */
-                background-color: #ffffff; /* Fondo blanco para cada fila */
-                box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra suave */
-                padding: 15px; /* Espaciado interno dentro de la tarjeta */
+            .user-table-mobile td:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+                margin-top: 15px;
             }
-
-            .user-table td {
-                display: flex; /* Usar Flexbox para cada celda */
-                justify-content: space-between; /* Espacio entre la etiqueta y el valor */
-                align-items: center; /* Alinear elementos verticalmente */
-                padding: 8px 15px; /* Espaciado interno para las celdas */
-                position: relative; /* Para posicionar la etiqueta */
-                border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
-                font-size: 0.9rem; /* Reducir tamaño de fuente para móviles */
-                border-right: none; /* <<-- MODIFICACION AQUI: Eliminar borde derecho en móvil */
+            .user-table-mobile td::before {
+                content: attr(data-label);
+                flex-basis: 120px;
+                flex-shrink: 0;
+                padding-right: 10px;
+                font-weight: 600;
+                color: #4b5563;
+                text-align: left;
+                position: static;
+                transform: none;
             }
-
-             .user-table td:last-child {
-                 border-bottom: none; /* No borde inferior en la última celda */
-                 padding-bottom: 0; /* Eliminar padding inferior en la última celda */
-                 margin-top: 15px; /* Espacio encima de los botones de acción */
-             }
-
-
-            .user-table td::before {
-                content: attr(data-label); /* Mostrar el contenido del atributo data-label */
-                flex-basis: 120px; /* Base inicial de 120px */
-                flex-shrink: 0; /* Evitar que se encoja */
-                padding-right: 10px; /* Espacio entre etiqueta y contenido */
-                font-weight: 600; /* Peso de fuente semibold para la etiqueta */
-                color: #4b5563; /* Color gris oscuro para la etiqueta */
-                text-align: left; /* Alinear etiqueta a la izquierda */
-                position: static; /* Posicionamiento estático */
-                transform: none; /* Eliminar transformación */
+            .user-table-mobile .action-cell {
+                display: block;
+                text-align: center;
+                padding-left: 15px;
             }
-
-            /* Ajuste específico para la celda de acciones */
-            .action-cell {
-                 display: block; /* Volver a block para la celda de acciones */
-                 text-align: center; /* Centrar el contenido en la celda de acciones */
-                 padding-left: 15px; /* Mantener padding izquierdo */
+            .user-table-mobile .action-cell::before {
+                content: '';
+                display: none;
             }
-
-             .action-cell::before {
-                 content: ''; /* No mostrar etiqueta para la celda de acciones */
-                 display: none; /* Ocultar el before en la celda de acciones */
-             }
-
-             /* Asegurar que los botones de acción estén bien espaciados en la vista de tarjeta */
-             .action-cell .action-buttons-container {
-                 position: static; /* Posicionamiento estático en móvil */
-                 transform: none; /* Eliminar transformación */
-                 display: flex; /* Mostrar siempre en móvil si la tuerca se clickea */
-                 justify-content: center; /* Centrar los botones */
-                 gap: 10px; /* Espacio entre botones */
-                 background-color: transparent; /* Fondo transparente */
-                 box-shadow: none; /* Sin sombra */
-                 padding: 0; /* Sin padding */
-                 margin-top: 10px; /* Espacio encima de los botones */
-             }
-             /* En móvil, la tuerca se ocultará y los botones se mostrarán directamente */
-             .action-cell .gear-icon {
-                 display: none; /* Ocultar la tuerca en móvil cuando se activa */
-             }
-             .action-cell .action-buttons-container.show + .gear-icon {
-                 display: none; /* Ocultar la tuerca cuando los botones se muestran */
-             }
-             .action-cell .action-buttons-container:not(.show) {
-                 display: none; /* Asegurar que los botones estén ocultos por defecto en móvil */
-             }
-             .action-cell .action-buttons-container:not(.show) + .gear-icon {
-                 display: inline-block; /* Mostrar la tuerca en móvil por defecto */
-             }
-
+            .user-table-mobile .action-cell .action-buttons-container {
+                position: static;
+                transform: none;
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                background-color: transparent;
+                box-shadow: none;
+                padding: 0;
+                margin-top: 10px;
+            }
+            /* Ocultar la tuerca en móvil */
+            .user-table-mobile .action-cell .gear-icon { display: none; }
+            .user-table-mobile .action-cell .action-buttons-container.show + .gear-icon { display: none; }
+            .user-table-mobile .action-cell .action-buttons-container:not(.show) { display: none; }
+            .user-table-mobile .action-cell .action-buttons-container:not(.show) + .gear-icon { display: inline-block; }
 
         }
+
+        /* Media Query para pantallas grandes (768px y más) */
+        @media (min-width: 768px) {
+            /* Mostrar la vista de Grid en escritorio */
+            .user-grid-container {
+                 display: grid; /* Mostrar el contenedor Grid */
+            }
+            /* Ocultar la vista de Tabla móvil en escritorio */
+            .user-table-mobile {
+                display: none;
+            }
+        }
+
 
          /* Asegurar que los modales se vean bien en pantallas pequeñas */
          @media (max-width: 600px) {
@@ -760,7 +577,23 @@
         </div>
 
         <div class="table-container">
-            <table class="user-table">
+            <div class="user-grid-container">
+                <div class="user-grid-header">
+                    <div class="user-grid-header-item">Nombre</div>
+                    <div class="user-grid-header-item">Empresa</div>
+                    <div class="user-grid-header-item">Valor a Pagar</div>
+                    <div class="user-grid-header-item">IBC</div>
+                    <div class="user-grid-header-item">EPS</div>
+                    <div class="user-grid-header-item">ARL</div>
+                    <div class="user-grid-header-item">AFP</div>
+                    <div class="user-grid-header-item">CCF</div>
+                    <div class="user-grid-header-item">Acciones</div>
+                </div>
+                <div class="user-grid-body" id="user-grid-body">
+                    </div>
+            </div>
+
+            <table class="user-table-mobile">
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -774,7 +607,7 @@
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="user-table-body">
+                <tbody id="user-table-body-mobile">
                     </tbody>
             </table>
         </div>
@@ -1027,7 +860,7 @@
             apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
             authDomain: "facba-69d41.firebaseapp.com",
             projectId: "facba-69d41",
-            storageBucket: "facba-69d41.firebasestorage.app",
+            storageBucket: "facba-69d41.firebaseapp.com", // Corregido el dominio de storageBucket
             messagingSenderId: "264089433073",
             appId: "1:264089433073:web:968551648758972eb74a50",
             measurementId: "G-NL7Y6NDH99"
@@ -1049,7 +882,8 @@
 
 
         // Obtener elementos del DOM
-        const userTableBody = document.getElementById('user-table-body');
+        const userGridBody = document.getElementById('user-grid-body'); // Contenedor para la vista Grid (Desktop)
+        const userTableBodyMobile = document.getElementById('user-table-body-mobile'); // Contenedor para la vista Tabla (Mobile)
         const searchInput = document.getElementById('search-input');
         const statusMessage = document.getElementById('status-message');
         const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
@@ -1445,11 +1279,10 @@
         };
 
 
-        // Renderizar una fila de usuario en la tabla (ahora adaptada para Grid)
-        function renderUserRow(userDoc) {
+        // Renderizar las estructuras de Grid (Desktop) y Tabla (Mobile) para un usuario
+        function renderUserElements(userDoc) {
             const user = userDoc.data();
-            const row = document.createElement('tr');
-            row.dataset.id = userDoc.id; // Guardar el ID del documento en la fila
+            const userId = userDoc.id;
 
             // Obtener nombres de entidades usando los mapas
             const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
@@ -1495,8 +1328,40 @@
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + ccfTooltip + '"></i>';
 
 
-            // Añadir data-label para la responsividad de la tabla
-            row.innerHTML = `
+            // --- Create Grid View Structure (for Desktop) ---
+            const gridRow = document.createElement('div');
+            gridRow.classList.add('user-grid-row');
+            gridRow.dataset.id = userId;
+
+            // Structure the grid row with two internal rows
+            gridRow.innerHTML = `
+                <div class="user-grid-cell user-grid-cell-nombre" data-label="Nombre">${user.nombre || 'Sin Nombre'}</div>
+                <div class="user-grid-cell user-grid-cell-empresa" data-label="Empresa">${empresaNombre}</div>
+                <div class="user-grid-cell user-grid-cell-valor" data-label="Valor a Pagar">${valorAPagarFormatted}</div>
+                <div class="user-grid-cell user-grid-cell-ibc" data-label="IBC">${ibcFormatted}</div>
+
+                <div class="user-grid-cell user-grid-cell-eps" data-label="EPS">${epsIcon}</div>
+                <div class="user-grid-cell user-grid-cell-arl" data-label="ARL">${arlIcon}</div>
+                <div class="user-grid-cell user-grid-cell-afp" data-label="AFP">${afpIcon}</div>
+                <div class="user-grid-cell user-grid-cell-ccf" data-label="CCF">${ccfIcon}</div>
+
+                <div class="user-grid-cell user-grid-cell-actions" data-label="Acciones">
+                    <div class="action-buttons-container">
+                        <button class="action-button edit-button" data-id="${userId}" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-button delete-button" data-id="${userId}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-button status-button" data-id="${userId}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
+                             <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
+                        </button>
+                    </div>
+                    <i class="fas fa-cog gear-icon" data-id="${userId}" title="Mostrar Acciones"></i>
+                </div>
+            `;
+
+            // --- Create Mobile View Structure (using Table) ---
+            const mobileRow = document.createElement('tr');
+            mobileRow.dataset.id = userId;
+
+            mobileRow.innerHTML = `
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
@@ -1507,21 +1372,29 @@
                 <td data-label="CCF">${ccfIcon}</td>
                 <td class="action-cell" data-label="Acciones">
                     <div class="action-buttons-container">
-                        <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                        <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
+                        <button class="action-button edit-button" data-id="${userId}" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-button delete-button" data-id="${userId}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-button status-button" data-id="${userId}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
                              <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
                         </button>
                     </div>
-                    <i class="fas fa-cog gear-icon" data-id="${userDoc.id}" title="Mostrar Acciones"></i>
+                    <i class="fas fa-cog gear-icon" data-id="${userId}" title="Mostrar Acciones"></i>
                 </td>
             `;
-            return row;
+
+            // Devolver ambos elementos
+            return { grid: gridRow, mobile: mobileRow };
         }
 
         // Función para renderizar la tabla con los usuarios filtrados
         function renderFilteredUsers() {
-            userTableBody.innerHTML = ''; // Limpiar tabla actual
+            // Obtener referencias a ambos contenedores
+            const userGridBody = document.getElementById('user-grid-body'); // Contenedor para la vista Grid
+            const userTableBodyMobile = document.getElementById('user-table-body-mobile'); // Contenedor para la vista Tabla móvil
+
+            userGridBody.innerHTML = ''; // Limpiar la vista Grid
+            userTableBodyMobile.innerHTML = ''; // Limpiar la vista Tabla móvil
+
             const filterText = searchInput.value.toLowerCase();
 
             let filteredDocs = allUserDocs.filter(userDoc => {
@@ -1550,10 +1423,10 @@
                  const matchesEpsFilter = currentEpsFilterId === '' || user.epsId === currentEpsFilterId;
 
                  // Aplicar filtro de CCF
-                 const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
+                 const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfId;
 
                  // Aplicar filtro de AFP
-                 const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
+                 const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpId;
 
 
                 // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, Riesgo, EPS, CCF, AFP, IBC)
@@ -1578,17 +1451,25 @@
             // Renderizar las filas filtradas
             if (filteredDocs.length > 0) {
                 filteredDocs.forEach(doc => {
-                    const row = renderUserRow(doc);
-                    userTableBody.appendChild(row);
+                    const userElements = renderUserElements(doc); // Obtener ambos elementos (Grid y Mobile)
+                    userGridBody.appendChild(userElements.grid); // Añadir a la vista Grid
+                    userTableBodyMobile.appendChild(userElements.mobile); // Añadir a la vista Tabla móvil
                 });
             } else {
-                const noDataRow = document.createElement('tr');
-                // Actualizar colspan a 9 para que ocupe todo el ancho de las 9 columnas visibles (8 + 1 IBC)
-                noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
-                userTableBody.appendChild(noDataRow);
+                // Manejar caso sin resultados para ambas vistas
+                const noDataGrid = document.createElement('div');
+                noDataGrid.classList.add('user-grid-row'); // Usar clase de fila Grid para estructura
+                 // Crear una celda que abarque todas las columnas y filas para el mensaje
+                noDataGrid.innerHTML = `<div class="user-grid-cell" style="grid-area: 1 / 1 / 3 / 10; text-align: center; color: #6b7280;">No hay usuarios que coincidan con los filtros.</div>`; // Abarca 2 filas internas, 9 columnas principales
+                userGridBody.appendChild(noDataGrid);
+
+                const noDataTable = document.createElement('tr');
+                // Usar colspan 9 para la tabla móvil (8 columnas de datos + 1 de acciones)
+                noDataTable.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`; // Mantener celda de tabla existente para móvil
+                userTableBodyMobile.appendChild(noDataTable);
             }
 
-             console.log(`Tabla de usuarios renderizada. ${filteredDocs.length} usuarios mostrados.`); // Debugging
+             console.log(`Usuarios renderizados. ${filteredDocs.length} usuarios mostrados.`); // Debugging
         }
 
 
@@ -1689,13 +1570,13 @@
                            filterModalTitle.textContent = 'Filtrar por CCF';
                            filterCcfGroup.style.display = 'block';
                            await populateSelects(); // Asegurarse de que los selectores estén poblados
-                           filterCcfSelect.value = currentCcfFilterId; // Seleccionar filtro actual si existe
+                           filterCcfSelect.value = currentCcfId; // Seleccionar filtro actual si existe
                            break;
                       case 'afp':
                            filterModalTitle.textContent = 'Filtrar por AFP';
                            filterAfpGroup.style.display = 'block';
                            await populateSelects(); // Asegurarse de que los selectores estén poblados
-                           filterAfpSelect.value = currentAfpFilterId; // Seleccionar filtro actual si existe
+                           filterAfpSelect.value = currentAfpId; // Seleccionar filtro actual si existe
                            break;
                  }
 
@@ -1755,11 +1636,11 @@
                   currentEpsFilterId = filterEpsSelect.value;
                   console.log("Filtro de EPS aplicado:", currentEpsFilterId);
              } else if (filterCcfGroup.style.display !== 'none') {
-                  currentCcfFilterId = filterCcfSelect.value;
-                  console.log("Filtro de CCF aplicado:", currentCcfFilterId);
+                  currentCcfId = filterCcfSelect.value;
+                  console.log("Filtro de CCF aplicado:", currentCcfId);
              } else if (filterAfpGroup.style.display !== 'none') {
-                  currentAfpFilterId = filterAfpSelect.value;
-                  console.log("Filtro de AFP aplicado:", currentAfpFilterId);
+                  currentAfpId = filterAfpSelect.value;
+                  console.log("Filtro de AFP aplicado:", currentAfpId);
              }
 
              // Asegurarse de que el filtro de estado sea 'todos' cuando se aplica filtro de ID
@@ -1775,8 +1656,8 @@
 
         // --- Funcionalidad de Edición, Eliminación y Cambio de Estado de Usuarios ---
 
-        // Listener para los botones de acción y iconos de estado en la tabla (usando delegación de eventos)
-        userTableBody.addEventListener('click', async (e) => {
+        // Handler común para clicks en las áreas de usuario (Grid y Mobile Table)
+        async function handleUserActionClick(e) {
             const target = e.target;
 
             // Check if the clicked element or its parent is a status icon
@@ -1787,8 +1668,9 @@
                 return; // Stop further processing for status icon clicks
             }
 
-
-            const userId = target.dataset.id || target.closest('.action-button, .gear-icon')?.dataset.id;
+            // Encontrar el elemento de "fila" de usuario más cercano (div.user-grid-row o tr)
+            const userRowElement = target.closest('.user-grid-row, tr');
+            const userId = userRowElement?.dataset.id;
 
             if (!userId) return; // No hay ID de usuario asociado al clic
 
@@ -1799,7 +1681,8 @@
                 return;
             }
 
-            const actionCell = target.closest('.action-cell');
+            // Encontrar la celda de acciones y el contenedor de botones dentro del elemento de fila
+            const actionCell = userRowElement.querySelector('.action-cell, .user-grid-cell-actions'); // Buscar en ambas estructuras
             const actionButtonsContainer = actionCell ? actionCell.querySelector('.action-buttons-container') : null;
             const gearIcon = actionCell ? actionCell.querySelector('.gear-icon') : null;
 
@@ -1807,13 +1690,14 @@
             if (target.classList.contains('gear-icon')) {
                 // Acción de mostrar/ocultar botones al hacer clic en la tuerca
                 console.log("Gear icon clicked for user:", userId);
-                // Ocultar todos los contenedores de botones de acción abiertos
+                // Ocultar TODOS los contenedores de botones de acción abiertos en AMBAS vistas
                 document.querySelectorAll('.action-buttons-container.show').forEach(container => {
                     container.classList.remove('show');
-                    // Mostrar la tuerca correspondiente
-                    const parentCell = container.closest('.action-cell');
+                    // Encontrar la celda de acción padre (en cualquiera de las estructuras) y mostrar su icono de tuerca
+                    const parentCell = container.closest('.action-cell, .user-grid-cell-actions');
                     if (parentCell) {
-                         parentCell.querySelector('.gear-icon').style.display = 'inline-block';
+                         const gear = parentCell.querySelector('.gear-icon');
+                         if (gear) gear.style.display = 'inline-block';
                     }
                 });
 
@@ -1856,35 +1740,33 @@
                     changeUserStatus(userId, newStatus);
                 }
             }
-        });
+        }
+
+        // Listeners para los clicks en los contenedores de usuarios (Grid y Mobile Table)
+        userGridBody.addEventListener('click', handleUserActionClick); // Listener para la vista Grid
+        userTableBodyMobile.addEventListener('click', handleUserActionClick); // Listener para la vista Tabla móvil
+
 
          // Ocultar los botones de acción si se hace clic en cualquier otro lugar del documento
          document.addEventListener('click', (e) => {
-             // Verificar si el clic fue fuera de una celda de acción o dentro de un botón de acción
-             const isClickInsideActionCell = e.target.closest('.action-cell');
-             const isActionButton = e.target.closest('.action-button');
-             const isGearIcon = e.target.closest('.gear-icon');
-             const isStatusIcon = e.target.closest('.status-icon'); // Also check for status icons
+             // Verificar si el clic fue dentro de un elemento relacionado con acciones (celda de acción, botón, tuerca, icono de estado)
+             const isClickInsideActionRelated = e.target.closest('.action-cell, .user-grid-cell-actions, .action-button, .gear-icon, .status-icon');
 
-             // If the click was not inside an action cell, or if it was on an action button/gear/status icon
-             // within an action cell, we don't hide the buttons for that specific cell.
-             // But we want to hide ANY other open action button containers.
-
-             if (!isClickInsideActionCell || isActionButton || isGearIcon || isStatusIcon) {
+             // Si el clic NO fue dentro de ningún elemento relacionado con acciones
+             if (!isClickInsideActionRelated) {
+                 // Ocultar TODOS los contenedores de botones de acción visibles en AMBAS vistas
                  document.querySelectorAll('.action-buttons-container.show').forEach(container => {
-                      const parentCell = container.closest('.action-cell');
-                      // Hide only if the click was NOT on the gear icon of *this* cell
-                      if (!isGearIcon || (isGearIcon && parentCell !== isClickInsideActionCell)) {
-                            container.classList.remove('show');
-                            // Show the corresponding gear icon
-                            if (parentCell) {
-                                parentCell.querySelector('.gear-icon').style.display = 'inline-block';
-                            }
-                      }
+                     container.classList.remove('show');
+                     // Encontrar la celda de acción padre (en cualquiera de las estructuras) y mostrar su icono de tuerca
+                     const parentCell = container.closest('.action-cell, .user-grid-cell-actions');
+                     if (parentCell) {
+                          const gear = parentCell.querySelector('.gear-icon');
+                          if (gear) gear.style.display = 'inline-block';
+                     }
                  });
              }
-             // If the click was on the gear icon, the logic to show/hide was already handled in the userTableBody listener
-             // If the click was on a status icon, the tooltip message was handled, no action buttons to hide here.
+             // Si el clic fue dentro de un elemento relacionado con acciones, el handler específico (handleUserActionClick)
+             // ya ha manejado la lógica de mostrar/ocultar para ese elemento.
          });
 
 
@@ -1932,7 +1814,10 @@
                     // Mostrar/ocultar campo fechaRetiro basado en el estado
                     if (editEstadoSelect.value === 'retirado') {
                         editFechaRetiroGroup.style.display = 'block';
-                        editFechaRetiroInput.value = formatDate(userData.fechaRetiro);
+                        // Opcional: establecer la fecha actual por defecto si se cambia a retirado
+                        if (!editFechaRetiroInput.value) {
+                             editFechaRetiroInput.valueAsDate = new Date();
+                        }
                     } else {
                         editFechaRetiroGroup.style.display = 'none';
                         editFechaRetiroInput.value = ''; // Limpiar si no está retirado
@@ -2419,11 +2304,11 @@
 
                  const matchesStatusFilter = currentStatusFilter === 'todos' || estado === currentStatusFilter;
                  const matchesEmpresaFilter = currentEmpresaFilterId === '' || user.empresaId === currentEmpresaFilterId;
-                 const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorFilterId;
+                 const matchesAsesorFilter = currentAsesorFilterId === '' || user.asesorId === currentAsesorId;
                  const matchesArlFilter = currentArlFilterId === '' || user.arlId === currentArlFilterId; // Aplicar filtro de ARL
                  const matchesEpsFilter = currentEpsFilterId === '' || user.epsId === currentEpsFilterId;
-                 const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
-                 const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
+                 const matchesCcfFilter = currentCcfId === '' || user.ccfId === currentCcfId;
+                 const matchesAfpFilter = currentAfpId === '' || user.afpId === currentAfpId;
 
                  const matchesSearch = filterText === '' ||
                      (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
