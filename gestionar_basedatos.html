@@ -415,7 +415,7 @@
             background-color: #6b7280; /* Gris más oscuro */
         }
 
-        /* Estilos para mensajes de estado */
+        /* Estilos para mensajes de estado (el pequeño, si se sigue usando) */
         #status-message {
             margin-top: 20px;
             padding: 15px;
@@ -450,6 +450,66 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* --- NUEVOS ESTILOS PARA EL MENSAJE GRANDE Y ANIMADO --- */
+        #large-status-message {
+            position: fixed; /* Posición fija para estar siempre visible */
+            top: 50%; /* Centrar verticalmente */
+            left: 50%; /* Centrar horizontalmente */
+            transform: translate(-50%, -50%) scale(0.8); /* Centrar y empezar un poco más pequeño */
+            padding: 30px 40px; /* Espaciado interno generoso */
+            border-radius: 15px; /* Bordes muy redondeados */
+            font-size: 1.8rem; /* Tamaño de fuente grande */
+            font-weight: 700; /* Peso de fuente negrita */
+            color: white; /* Texto blanco */
+            text-align: center; /* Centrar texto */
+            z-index: 2000; /* Asegurar que esté por encima de todo lo demás */
+            opacity: 0; /* Empezar invisible */
+            visibility: hidden; /* Ocultar completamente cuando no está visible */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out, background-color 0.4s ease-in-out; /* Transiciones suaves */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); /* Sombra pronunciada */
+            min-width: 300px; /* Ancho mínimo */
+            max-width: 90%; /* Ancho máximo en pantallas pequeñas */
+        }
+
+        #large-status-message.show {
+            opacity: 1; /* Mostrar */
+            visibility: visible; /* Hacer visible */
+            transform: translate(-50%, -50%) scale(1); /* Volver a tamaño normal */
+        }
+
+        #large-status-message.success {
+            background-color: #10b981; /* Verde */
+            /* Opcional: Añadir animación de color o pulso si se desea */
+            /* animation: pulse-green 2s infinite; */
+        }
+
+        #large-status-message.error {
+            background-color: #ef4444; /* Rojo */
+            /* Opcional: Añadir animación de color o pulso si se desea */
+            /* animation: pulse-red 2s infinite; */
+        }
+
+        #large-status-message.info {
+             background-color: #3b82f6; /* Azul para info */
+        }
+
+        /* Opcional: Keyframes para animación de pulso */
+        /*
+        @keyframes pulse-green {
+            0% { background-color: #10b981; }
+            50% { background-color: #059669; }
+            100% { background-color: #10b981; }
+        }
+
+        @keyframes pulse-red {
+            0% { background-color: #ef4444; }
+            50% { background-color: #dc2626; }
+            100% { background-color: #ef4444; }
+        }
+        */
+        /* --- FIN NUEVOS ESTILOS --- */
+
 
         /* --- Estilos Responsivos para la Tabla (Vista de Tarjeta en Móviles) --- */
 
@@ -779,8 +839,7 @@
             </table>
         </div>
 
-        <div id="status-message"></div>
-    </div>
+        </div>
 
     <div id="edit-user-modal" class="modal-overlay">
         <div class="modal-content">
@@ -1020,7 +1079,7 @@
 
     <div id="click-tooltip-message" class="click-tooltip-message"></div>
 
-
+    <div id="large-status-message"></div>
     <script>
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -1051,11 +1110,16 @@
         // Obtener elementos del DOM
         const userTableBody = document.getElementById('user-table-body');
         const searchInput = document.getElementById('search-input');
-        const statusMessage = document.getElementById('status-message');
+        // const statusMessage = document.getElementById('status-message'); // El pequeño ya no se usa para mensajes principales
         const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
         const filterButtons = document.querySelectorAll('.filter-button'); // Botones de filtro
         const settingsButton = document.getElementById('settings-button'); // Botón de configuración
         const clickTooltipMessage = document.getElementById('click-tooltip-message'); // Elemento para el tooltip en click
+
+        // --- NUEVO ELEMENTO: Mensaje grande y animado ---
+        const largeStatusMessage = document.getElementById('large-status-message');
+        let largeStatusTimeout; // Variable para controlar el timeout del mensaje grande
+        // --- FIN NUEVO ELEMENTO ---
 
 
         // Modal de Edición DOM elements
@@ -1166,38 +1230,49 @@
 
         // --- Funciones de Utilidad ---
 
-        // Función para mostrar mensajes de estado (en la parte inferior de la tabla)
+        // Función para mostrar mensajes de estado (AHORA USA EL ELEMENTO GRANDE)
         function showStatusMessage(message, type = 'info') {
-            statusMessage.textContent = message;
-            statusMessage.className = ''; // Reset classes
-            statusMessage.classList.add(type);
-            // Fade in
-            statusMessage.style.opacity = '1';
-            statusMessage.style.transform = 'translateY(0)';
+            // Clear any existing timeout and hide any visible message
+            clearTimeout(largeStatusTimeout);
+            largeStatusMessage.classList.remove('show', 'success', 'error', 'info'); // Reset classes
+            largeStatusMessage.style.opacity = '0';
+            largeStatusMessage.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            largeStatusMessage.style.visibility = 'hidden'; // Hide immediately
 
-            // Fade out after 5 seconds
-            setTimeout(() => {
-                statusMessage.style.opacity = '0';
-                statusMessage.style.transform = 'translateY(10px)';
-                 // Clear text after transition
-                setTimeout(() => {
-                     statusMessage.textContent = '';
-                }, 400); // Match the transition duration
-            }, 5000);
+            if (!message) return; // Don't show empty messages
+
+            largeStatusMessage.textContent = message;
+            largeStatusMessage.classList.add(type, 'show'); // Add type class and show class
+            largeStatusMessage.style.visibility = 'visible'; // Make visible
+
+            // Set timeout to hide the message after 4 seconds
+            largeStatusTimeout = setTimeout(() => {
+                largeStatusMessage.classList.remove('show'); // Trigger fade out and scale down
+                 // Hide completely after the transition
+                 setTimeout(() => {
+                      largeStatusMessage.style.visibility = 'hidden';
+                      largeStatusMessage.className = ''; // Clean up classes
+                      largeStatusMessage.textContent = ''; // Clear text
+                 }, 400); // Match CSS transition duration
+            }, 4000); // Show for 4 seconds
         }
 
-         // Función para mostrar mensajes de estado en el modal de importación
+
+         // Función para mostrar mensajes de estado en el modal de importación (mantiene el elemento pequeño)
          function showImportStatusMessage(message, type = 'info') {
-             importStatusMessage.textContent = message;
-             importStatusMessage.className = 'mt-4 text-center text-sm'; // Reset classes and apply base styles
+             const importStatusElement = document.getElementById('import-status-message'); // Get the specific import status element
+             importStatusElement.textContent = message;
+             importStatusElement.className = 'mt-4 text-center text-sm'; // Reset classes and apply base styles
              if (type === 'success') {
-                 importStatusMessage.classList.add('text-green-600');
+                 importStatusElement.classList.add('text-green-600');
              } else if (type === 'error') {
-                 importStatusMessage.classList.add('text-red-600');
+                 importStatusElement.classList.add('text-red-600');
              } else {
-                 importStatusMessage.classList.add('text-gray-600');
+                 importStatusElement.classList.add('text-gray-600');
              }
+             // No fade out for import status message, it stays until the modal is closed or a new message appears
          }
+
 
         // --- NUEVA FUNCION: Mostrar mensaje temporal de tooltip al hacer click ---
         let tooltipTimeout; // Variable para almacenar el timeout del tooltip
@@ -1225,7 +1300,7 @@
         }
 
 
-        // Función para formatear fechas (Firestore Timestamp a YYYY-MM-DD)
+        // Función para formatear fechas (Firestore Timestamp aYYYY-MM-DD)
         function formatDate(timestamp) {
             if (!timestamp) return '';
             let date;
