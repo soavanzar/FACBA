@@ -712,7 +712,7 @@
                         <th>Nombre</th>
                         <th>Empresa</th>
                         <th>Valor a Pagar</th>
-                        <th>EPS</th>
+                        <th>IBC</th> <th>EPS</th>
                         <th>ARL</th>
                         <th>AFP</th>
                         <th>CCF</th>
@@ -815,6 +815,11 @@
                     <label for="edit-valor-a-pagar">Valor a Pagar (COP):</label>
                     <input type="number" id="edit-valor-a-pagar" name="valorAPagar" step="0.01">
                 </div>
+
+                 <div class="modal-form-group">
+                    <label for="edit-ibc">IBC (COP):</label> <input type="number" id="edit-ibc" name="ibc" step="0.01">
+                </div>
+
 
                  <div class="modal-form-group">
                     <label for="edit-estado">Estado:</label>
@@ -945,8 +950,7 @@
              <h2>Importar Usuarios desde Excel</h2>
              <div class="import-instructions">
                  Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga **exactamente** las siguientes columnas en la primera fila (el orden no importa):<br>
-                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong> <br>
-                 Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente. Para indicar que un usuario no tiene una entidad asignada (como EPS, ARL, etc.), deja la celda correspondiente **vacía** o escribe **N/A**.
+                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR, IBC</strong> <br> Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente. Para indicar que un usuario no tiene una entidad asignada (como EPS, ARL, etc.), deja la celda correspondiente **vacía** o escribe **N/A**.
              </div>
              <input type="file" id="excel-file-input" accept=".xlsx, .xls">
              <div class="modal-buttons">
@@ -1018,6 +1022,7 @@
         const editFechaRegistroInput = document.getElementById('edit-fecha-registro');
         const editAsesorSelect = document.getElementById('edit-asesor');
         const editValorAPagarInput = document.getElementById('edit-valor-a-pagar');
+        const editIbcInput = document.getElementById('edit-ibc'); // Nuevo input para IBC
         const editEstadoSelect = document.getElementById('edit-estado');
         const editFechaRetiroGroup = document.getElementById('edit-fecha-retiro-group');
         const editFechaRetiroInput = document.getElementById('edit-fecha-retiro');
@@ -1392,6 +1397,7 @@
             // Obtener nombres de entidades usando los mapas
             const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
+            const ibcFormatted = formatCurrency(user.ibc); // Formatear IBC
             const estado = user.estado || 'activo'; // Estado por defecto para el botón de estado
 
             // --- Determinar iconos y tooltips usando isNotAssignedOrUnknown ---
@@ -1437,7 +1443,7 @@
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
-                <td data-label="EPS">${epsIcon}</td>
+                <td data-label="IBC">${ibcFormatted}</td> <td data-label="EPS">${epsIcon}</td>
                 <td data-label="ARL">${arlIcon}</td>
                 <td data-label="AFP">${afpIcon}</td>
                 <td data-label="CCF">${ccfIcon}</td>
@@ -1492,7 +1498,7 @@
                  const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
 
 
-                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, Riesgo, EPS, CCF, AFP)
+                // Aplicar filtro de búsqueda (en nombre, identificación, empresa, estado, asesor, ARL, Riesgo, EPS, CCF, AFP, IBC)
                 const matchesSearch = filterText === '' ||
                     (user.nombre && user.nombre.toLowerCase().includes(filterText)) ||
                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
@@ -1503,7 +1509,8 @@
                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
                     (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) || // Incluir EPS nombre en búsqueda
                     (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) || // Incluir CCF nombre en búsqueda
-                    (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText); // Incluir AFP nombre en búsqueda
+                    (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText) || // Incluir AFP nombre en búsqueda
+                     (user.ibc !== undefined && user.ibc !== null && String(user.ibc).toLowerCase().includes(filterText)); // Incluir IBC en búsqueda
 
 
                 // Retornar true si coincide con TODOS los filtros
@@ -1518,8 +1525,8 @@
                 });
             } else {
                 const noDataRow = document.createElement('tr');
-                // Actualizar colspan a 8 para que ocupe todo el ancho de las 8 columnas visibles
-                noDataRow.innerHTML = `<td colspan="8" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
+                // Actualizar colspan a 9 para que ocupe todo el ancho de las 9 columnas visibles (8 + 1 IBC)
+                noDataRow.innerHTML = `<td colspan="9" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
                 userTableBody.appendChild(noDataRow);
             }
 
@@ -1853,6 +1860,15 @@
                      }
                     editValorAPagarInput.value = valorAPagarNumeric || ''; // Poner el valor numérico o vacío
 
+                    // --- MODIFICACION AQUI: Cargar valor de IBC ---
+                    let ibcNumeric = userData.ibc;
+                    if (typeof userData.ibc === 'string') {
+                         const cleanedString = userData.ibc.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+                         ibcNumeric = parseFloat(cleanedString);
+                    }
+                    editIbcInput.value = ibcNumeric || ''; // Poner el valor numérico o vacío para IBC
+
+
                     editEstadoSelect.value = userData.estado || 'activo'; // Estado por defecto
 
                     // Mostrar/ocultar campo fechaRetiro basado en el estado
@@ -1935,6 +1951,7 @@
                 ingreso: editFechaRegistroInput.value, // Guardar como stringYYYY-MM-DD
                 asesorId: editAsesorSelect.value || null, // Guardar ID o null
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
+                ibc: parseFloat(editIbcInput.value) || 0, // --- MODIFICACION AQUI: Guardar IBC como número ---
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -2360,7 +2377,8 @@
                      (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
                      (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) ||
                      (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) ||
-                     (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText);
+                     (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText) ||
+                     (user.ibc !== undefined && user.ibc !== null && String(user.ibc).toLowerCase().includes(filterText)); // Incluir IBC en búsqueda
 
 
                  return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesArlFilter && matchesEpsFilter && matchesCcfFilter && matchesAfpFilter && matchesSearch;
@@ -2375,7 +2393,7 @@
              // Definir los encabezados del CSV
              const headers = [
                  "NOMBRE", "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA", "ARL", "RIESGO",
-                 "EPS", "CCF", "AFP", "FECHA INGRESO", "ASESOR", "VALOR A PAGAR", "ESTADO", "FECHA RETIRO"
+                 "EPS", "CCF", "AFP", "FECHA INGRESO", "ASESOR", "VALOR A PAGAR", "IBC", "ESTADO", "FECHA RETIRO" // Added IBC here
              ];
 
              // Crear las filas del CSV
@@ -2404,6 +2422,7 @@
                      formatDate(user.fecha), // Formatear fecha de ingreso
                      asesorNombre, // Usar el nombre del asesor
                      user.valorAPagar !== undefined && user.valorAPagar !== null ? user.valorAPagar : '', // Exportar valor numérico
+                     user.ibc !== undefined && user.ibc !== null ? user.ibc : '', // --- MODIFICACION AQUI: Exportar valor numérico de IBC ---
                      estado,
                      fechaRetiro // Incluir fecha de retiro
                  ].map(field => {
@@ -2512,13 +2531,14 @@
                         "FECHA INGRESO": "fecha", // Fecha
                         "ASESOR": "asesor", // Nombre del Asesor (para buscar/crear ID)
                         "VALOR A PAGAR": "valorAPagar", // Número
+                        "IBC": "ibc", // --- MODIFICACION AQUI: Mapeo para IBC ---
                          "ESTADO": "estado", // Opcional: Si el estado viene en el Excel
                          "FECHA RETIRO": "fechaRetiro" // Opcional: Si la fecha de retiro viene en el Excel
                     };
 
                     const requiredColumns = [
                         "NOMBRE", "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA",
-                        "FECHA INGRESO", "ASESOR", "VALOR A PAGAR" // Columnas mínimas requeridas
+                        "FECHA INGRESO", "ASESOR", "VALOR A PAGAR" // Columnas mínimas requeridas (IBC no es requerido aquí por defecto)
                     ];
 
                     // Crear un mapeo dinámico de índice de columna a campo de Firestore
@@ -2832,8 +2852,8 @@
                                            rowErrors.push(`Fecha de Ingreso inválida, vacía o "N/A": "${value}"`); // MODIFICACION AQUI: Updated error message
                                       }
                                       // Fecha de retiro is optional, don't mark error if empty/invalid/N/A
-                                 } else if (firestoreField === 'valorAPagar') {
-                                      // Parse value to pay to number
+                                 } else if (firestoreField === 'valorAPagar' || firestoreField === 'ibc') { // --- MODIFICACION AQUI: Handle IBC as number ---
+                                      // Parse value to pay or IBC to number
                                       const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Clean non-numbers except . and -
                                       userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Store as number, 0 if invalid
                                  } else if (firestoreField === 'estado') {
@@ -2875,6 +2895,10 @@
                          if (!userData.hasOwnProperty('epsId')) userData.epsId = null;
                          if (!userData.hasOwnProperty('ccfId')) userData.ccfId = null;
                          if (!userData.hasOwnProperty('afpId')) userData.afpId = null;
+                         // --- MODIFICACION AQUI: Ensure ibc is 0 if not set during mapping or invalid ---
+                         if (!userData.hasOwnProperty('ibc') || userData.ibc === undefined || userData.ibc === null || isNaN(userData.ibc)) {
+                             userData.ibc = 0;
+                         }
 
 
                          // fechaRetiro is handled when parsing the date or deleted if not retired
