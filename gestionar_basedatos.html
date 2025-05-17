@@ -245,6 +245,7 @@
              margin: 0 auto; /* Centra si la celda lo permite */
              display: block; /* Asegura que ocupe su propio espacio para centrar */
              width: fit-content; /* Ajusta el ancho al contenido */
+             cursor: pointer; /* Add cursor pointer to indicate it's clickable */
          }
 
          .text-green-500 { color: #10b981; /* Verde */ }
@@ -650,6 +651,30 @@
              color: #1f2937;
          }
 
+         /* Estilos para el mensaje temporal de tooltip en click */
+         .click-tooltip-message {
+             position: fixed; /* Fixed position to float over content */
+             top: 20px; /* Position from the top */
+             left: 50%; /* Center horizontally */
+             transform: translateX(-50%); /* Adjust for exact centering */
+             background-color: rgba(0, 0, 0, 0.8); /* Dark background */
+             color: white; /* White text */
+             padding: 10px 15px;
+             border-radius: 8px;
+             font-size: 0.9rem;
+             z-index: 1001; /* Ensure it's above modals */
+             opacity: 0; /* Start hidden */
+             visibility: hidden;
+             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+             max-width: 90%; /* Max width on small screens */
+             text-align: center;
+         }
+
+         .click-tooltip-message.show {
+             opacity: 1;
+             visibility: visible;
+         }
+
 
     </style>
 </head>
@@ -932,6 +957,8 @@
          </div>
     </div>
 
+    <div id="click-tooltip-message" class="click-tooltip-message"></div>
+
 
     <script>
         // Your web app's Firebase configuration
@@ -967,6 +994,7 @@
         const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
         const filterButtons = document.querySelectorAll('.filter-button'); // Botones de filtro
         const settingsButton = document.getElementById('settings-button'); // Botón de configuración
+        const clickTooltipMessage = document.getElementById('click-tooltip-message'); // Elemento para el tooltip en click
 
 
         // Modal de Edición DOM elements
@@ -1108,6 +1136,31 @@
                  importStatusMessage.classList.add('text-gray-600');
              }
          }
+
+        // --- NUEVA FUNCION: Mostrar mensaje temporal de tooltip al hacer click ---
+        let tooltipTimeout; // Variable para almacenar el timeout del tooltip
+        function showClickTooltipMessage(message) {
+            // Clear any existing timeout and hide any visible message
+            clearTimeout(tooltipTimeout);
+            clickTooltipMessage.classList.remove('show'); // Start fade out if visible
+             // Wait for fade out before showing new message if needed, or just hide immediately
+            clickTooltipMessage.style.visibility = 'hidden'; // Hide immediately
+
+            if (!message) return; // Don't show empty messages
+
+            clickTooltipMessage.textContent = message;
+            clickTooltipMessage.classList.add('show');
+            clickTooltipMessage.style.visibility = 'visible';
+
+            // Hide the message after 3 seconds
+            tooltipTimeout = setTimeout(() => {
+                clickTooltipMessage.classList.remove('show'); // Trigger fade out
+                 // Hide completely after the transition
+                 setTimeout(() => {
+                      clickTooltipMessage.style.visibility = 'hidden';
+                 }, 300); // Match CSS transition duration
+            }, 3000); // Show for 3 seconds
+        }
 
 
         // Función para formatear fechas (Firestore Timestamp aYYYY-MM-DD)
@@ -1318,7 +1371,6 @@
              }
         }
 
-        // --- MODIFICACION AQUI: Nueva función para verificar si una entidad no está asignada o es desconocida, incluyendo el nombre "N/A" ---
         // Function to check if a value indicates "not assigned" OR the corresponding lookup name is missing/unknown/N/A
         const isNotAssignedOrUnknown = (entityId, entityMap) => {
             // Check if the ID itself is null, empty string, or "N/A" (case-insensitive)
@@ -1342,15 +1394,15 @@
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
             const estado = user.estado || 'activo'; // Estado por defecto para el botón de estado
 
-            // --- MODIFICACION AQUI: Determinar iconos y tooltips usando isNotAssignedOrUnknown ---
+            // --- Determinar iconos y tooltips usando isNotAssignedOrUnknown ---
 
             // Determine EPS Info
             const epsName = epsMap.get(user.epsId); // Get the name from the map
             const isEpsAssigned = !isNotAssignedOrUnknown(user.epsId, epsMap); // Check if it's considered assigned
             const epsTooltip = isEpsAssigned ? (epsName || 'EPS Asignada (Nombre Desconocido)') : 'EPS No Asignada';
             const epsIcon = isEpsAssigned ?
-                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
-                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + epsTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + epsTooltip + '"></i>';
 
 
             // Determine ARL Info (including Risk in tooltip)
@@ -1358,8 +1410,8 @@
             const isArlAssigned = !isNotAssignedOrUnknown(user.arlId, arlMap); // Check if it's considered assigned
             const arlTooltip = isArlAssigned ? `${(arlName || 'ARL Asignada (Nombre Desconocido)')}${user.riesgo ? ' - ' + user.riesgo : ''}` : 'ARL No Asignada';
             const arlIcon = isArlAssigned ?
-                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
-                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + arlTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + arlTooltip + '"></i>';
 
 
             // Determine AFP Info
@@ -1367,8 +1419,8 @@
             const isAfpAssigned = !isNotAssignedOrUnknown(user.afpId, afpMap); // Check if it's considered assigned
             const afpTooltip = isAfpAssigned ? (afpName || 'AFP Asignada (Nombre Desconocido)') : 'AFP No Asignada';
             const afpIcon = isAfpAssigned ?
-                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
-                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + afpTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + afpTooltip + '"></i>';
 
 
             // Determine CCF Info
@@ -1376,8 +1428,8 @@
             const isCcfAssigned = !isNotAssignedOrUnknown(user.ccfId, ccfMap); // Check if it's considered assigned
             const ccfTooltip = isCcfAssigned ? (ccfName || 'CCF Asignada (Nombre Desconocido)') : 'CCF No Asignada';
             const ccfIcon = isCcfAssigned ?
-                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
-                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + ccfTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + ccfTooltip + '"></i>';
 
 
             // Añadir data-label para la responsividad de la tabla
@@ -1385,10 +1437,10 @@
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
-                <td data-label="EPS" title="${epsTooltip}">${epsIcon}</td>
-                <td data-label="ARL" title="${arlTooltip}">${arlIcon}</td>
-                <td data-label="AFP" title="${afpTooltip}">${afpIcon}</td>
-                <td data-label="CCF" title="${ccfTooltip}">${ccfIcon}</td>
+                <td data-label="EPS">${epsIcon}</td>
+                <td data-label="ARL">${arlIcon}</td>
+                <td data-label="AFP">${afpIcon}</td>
+                <td data-label="CCF">${ccfIcon}</td>
                 <td class="action-cell" data-label="Acciones">
                     <div class="action-buttons-container">
                         <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
@@ -1658,9 +1710,19 @@
 
         // --- Funcionalidad de Edición, Eliminación y Cambio de Estado de Usuarios ---
 
-        // Listener para los botones de acción en la tabla (usando delegación de eventos)
+        // Listener para los botones de acción y iconos de estado en la tabla (usando delegación de eventos)
         userTableBody.addEventListener('click', async (e) => {
             const target = e.target;
+
+            // Check if the clicked element or its parent is a status icon
+            if (target.classList.contains('status-icon') || target.parentElement.classList.contains('status-icon')) {
+                const iconElement = target.classList.contains('status-icon') ? target : target.parentElement;
+                const tooltipText = iconElement.title; // Get the tooltip text from the title attribute
+                showClickTooltipMessage(tooltipText); // Show the temporary message
+                return; // Stop further processing for status icon clicks
+            }
+
+
             const userId = target.dataset.id || target.closest('.action-button, .gear-icon')?.dataset.id;
 
             if (!userId) return; // No hay ID de usuario asociado al clic
@@ -1737,26 +1799,27 @@
              const isClickInsideActionCell = e.target.closest('.action-cell');
              const isActionButton = e.target.closest('.action-button');
              const isGearIcon = e.target.closest('.gear-icon');
+             const isStatusIcon = e.target.closest('.status-icon'); // Also check for status icons
 
+             // If the click was not inside an action cell, or if it was on an action button/gear/status icon
+             // within an action cell, we don't hide the buttons for that specific cell.
+             // But we want to hide ANY other open action button containers.
 
-             if (!isClickInsideActionCell || isActionButton || isGearIcon) {
-                 // Si el clic no fue dentro de una celda de acción, o si fue en un botón/tuerca dentro de ella,
-                 // no ocultamos los botones de la celda específica que se clickeó.
-                 // Pero queremos ocultar CUALQUIER otro contenedor de botones que esté abierto.
-
+             if (!isClickInsideActionCell || isActionButton || isGearIcon || isStatusIcon) {
                  document.querySelectorAll('.action-buttons-container.show').forEach(container => {
                       const parentCell = container.closest('.action-cell');
-                      // Ocultar solo si el clic no fue en la tuerca de esta celda
+                      // Hide only if the click was NOT on the gear icon of *this* cell
                       if (!isGearIcon || (isGearIcon && parentCell !== isClickInsideActionCell)) {
                             container.classList.remove('show');
-                            // Mostrar la tuerca correspondiente
+                            // Show the corresponding gear icon
                             if (parentCell) {
                                 parentCell.querySelector('.gear-icon').style.display = 'inline-block';
                             }
                       }
                  });
              }
-             // Si el clic fue en la tuerca, la lógica de mostrar ya se manejó en el listener de userTableBody
+             // If the click was on the gear icon, the logic to show/hide was already handled in the userTableBody listener
+             // If the click was on a status icon, the tooltip message was handled, no action buttons to hide here.
          });
 
 
