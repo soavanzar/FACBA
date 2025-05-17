@@ -1225,7 +1225,7 @@
         }
 
 
-        // Función para formatear fechas (Firestore Timestamp aYYYY-MM-DD)
+        // Función para formatear fechas (Firestore Timestamp a YYYY-MM-DD)
         function formatDate(timestamp) {
             if (!timestamp) return '';
             let date;
@@ -1995,6 +1995,26 @@
             e.preventDefault(); // Prevenir envío por defecto
 
             const userId = editUserIdInput.value;
+
+            // --- Inicio de modificación para manejar fechas como Timestamp ---
+            // Obtener valores de fecha como strings del input date
+            const fechaIngresoString = editFechaIngresoInput.value;
+            const fechaRegistroString = editFechaRegistroInput.value;
+            const fechaRetiroString = editFechaRetiroInput.value;
+
+            // Convertir strings de fecha a objetos Date (considerando zona horaria para evitar problemas)
+            // Añadimos 'T00:00:00' y 'Z' para asegurar que se interprete como UTC y evitar desfases por zona horaria local
+            const fechaIngresoDate = fechaIngresoString ? new Date(fechaIngresoString + 'T00:00:00Z') : null;
+            const fechaRegistroDate = fechaRegistroString ? new Date(fechaRegistroString + 'T00:00:00Z') : null;
+            const fechaRetiroDate = fechaRetiroString ? new Date(fechaRetiroString + 'T00:00:00Z') : null;
+
+            // Validar si las fechas son válidas Date objects
+            const fechaIngresoTimestamp = fechaIngresoDate && !isNaN(fechaIngresoDate.getTime()) ? firebase.firestore.Timestamp.fromDate(fechaIngresoDate) : null;
+            const fechaRegistroTimestamp = fechaRegistroDate && !isNaN(fechaRegistroDate.getTime()) ? firebase.firestore.Timestamp.fromDate(fechaRegistroDate) : null;
+            let fechaRetiroTimestamp = fechaRetiroDate && !isNaN(fechaRetiroDate.getTime()) ? firebase.firestore.Timestamp.fromDate(fechaRetiroDate) : null;
+            // --- Fin de modificación para manejar fechas como Timestamp ---
+
+
             const updatedData = {
                 nombre: editNombreInput.value,
                 tipoIdentificacion: editTipoIdentificacionSelect.value,
@@ -2005,8 +2025,10 @@
                 epsId: editEpsSelect.value || null, // Guardar ID de EPS o null
                 ccfId: editCcfSelect.value || null, // Guardar ID de CCF o null
                 afpId: editAfpSelect.value || null, // Guardar ID de AFP o null
-                fecha: editFechaIngresoInput.value, // Guardar como stringYYYY-MM-DD
-                ingreso: editFechaRegistroInput.value, // Guardar como stringYYYY-MM-DD
+                // --- Usar los Timestamps generados ---
+                fecha: fechaIngresoTimestamp, // Guardar como Timestamp
+                ingreso: fechaRegistroTimestamp, // Guardar como Timestamp
+                // --- Fin de uso de Timestamps ---
                 asesorId: editAsesorSelect.value || null, // Guardar ID o null
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
                 ibc: parseFloat(editIbcInput.value) || 0, // Guardar IBC como número
@@ -2014,18 +2036,30 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // Añadir fechaRetiro solo si el estado es 'retirado' y el campo tiene valor
-            if (updatedData.estado === 'retirado' && editFechaRetiroInput.value) {
-                updatedData.fechaRetiro = editFechaRetiroInput.value; // Guardar como stringYYYY-MM-DD
+            // Añadir fechaRetiro solo si el estado es 'retirado' y el Timestamp es válido
+            if (updatedData.estado === 'retirado' && fechaRetiroTimestamp) {
+                updatedData.fechaRetiro = fechaRetiroTimestamp; // Guardar como Timestamp
             } else {
-                 // Si el estado no es retirado o el campo está vacío, eliminar el campo fechaRetiro
+                 // Si el estado no es retirado o el Timestamp de fechaRetiro no es válido, eliminar el campo
                  updatedData.fechaRetiro = firebase.firestore.FieldValue.delete();
             }
+
+            // --- Debugging: Log para verificar el ID y los datos antes de guardar ---
+            console.log("Intentando guardar usuario con ID:", userId);
+            console.log("Datos a enviar a Firestore:", updatedData);
+            // --- Fin de Debugging ---
 
 
             showStatusMessage('Guardando cambios...', 'info');
 
             try {
+                // Asegurarse de que el userId no esté vacío antes de intentar guardar
+                if (!userId) {
+                    console.error("Error: userId está vacío. No se puede guardar el documento.");
+                    showStatusMessage('Error al guardar cambios: ID de usuario no válido.', 'error');
+                    return; // Detener la ejecución si no hay ID
+                }
+
                 await usersCollection.doc(userId).update(updatedData);
                 showStatusMessage('Cambios guardados con éxito!', 'success');
                 hideEditModal(); // Cerrar modal después de guardar
@@ -2058,9 +2092,8 @@
 
              // Añadir/eliminar fechaRetiro según el nuevo estado
              if (newStatus === 'retirado') {
-                  // Si se cambia a retirado, añadir la fecha actual si no existe una
-                  // En este caso, al cambiar desde la tabla, siempre pondremos la fecha actual
-                  updateData.fechaRetiro = formatDate(new Date()); // Usar fecha actual en formatoYYYY-MM-DD
+                  // Si se cambia a retirado, añadir la fecha actual como Timestamp
+                  updateData.fechaRetiro = firebase.firestore.Timestamp.fromDate(new Date());
              } else {
                   // Si se cambia a activo, eliminar el campo fechaRetiro
                   updateData.fechaRetiro = firebase.firestore.FieldValue.delete();
@@ -2130,7 +2163,7 @@
             e.preventDefault(); // Prevenir envío por defecto
 
             const entityType = addEntityTypeInput.value;
-            const entityName = entityName.value.trim();
+            const entityName = entityNameInput.value.trim(); // Corregido: usar entityNameInput
 
             if (!entityName) {
                 alert("Por favor, ingresa el nombre.");
@@ -2932,13 +2965,13 @@
 
                         // Perform additional validations for required fields not covered above
                         // Check if required fields are present and valid AFTER mapping
-                        if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha)) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
+                        if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha.getTime())) || userData.valorAPagar === undefined || userData.valorAPagar === null) { // Validar fecha como Date object
                             if (!userData.nombre) rowErrors.push("Nombre vacío");
                             if (!userData.tipoIdentificacion) rowErrors.push("Tipo de Identificación vacío");
                             if (!userData.identificacion) rowErrors.push("Identificación vacía");
                             if (!userData.hasOwnProperty('empresaId') || userData.empresaId === null) rowErrors.push("Empresa no válida o vacía"); // Check for null ID
                             if (!userData.hasOwnProperty('asesorId') || userData.asesorId === null) rowErrors.push("Asesor no válido o vacío"); // Check for null ID
-                             if (!(userData.fecha instanceof Date && !isNaN(userData.fecha))) rowErrors.push("Fecha de Ingreso inválida o vacía");
+                             if (!(userData.fecha instanceof Date && !isNaN(userData.fecha.getTime()))) rowErrors.push("Fecha de Ingreso inválida o vacía"); // Validar fecha como Date object
                              if (userData.valorAPagar === undefined || userData.valorAPagar === null) rowErrors.push("Valor a Pagar inválido o vacío");
                              isValidRow = false; // Mark row as invalid if any required field is missing/invalid
                         }
@@ -2960,7 +2993,7 @@
 
 
                          // fechaRetiro is handled when parsing the date or deleted if not retired
-                         if (userData.hasOwnProperty('fechaRetiro') && !(userData.fechaRetiro instanceof Date && !isNaN(userData.fechaRetiro))) {
+                         if (userData.hasOwnProperty('fechaRetiro') && !(userData.fechaRetiro instanceof Date && !isNaN(userData.fechaRetiro.getTime()))) { // Validar fecha como Date object
                              // If fechaRetiro was in Excel but invalid or empty, delete it
                              userData.fechaRetiro = firebase.firestore.FieldValue.delete();
                          } else if (userData.hasOwnProperty('fechaRetiro') && userData.estado !== 'retirado') {
