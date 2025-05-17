@@ -415,7 +415,7 @@
              <div class="form-group ibc-group">
                  <label for="ibc-automatico-check">
                      <input type="checkbox" id="ibc-automatico-check">
-                     Ingresar IBC automático
+                     Ingresar IBC automático (SMMLV)
                  </label>
                  <input type="number" id="ibc" name="ibc" step="0.01" placeholder="Salario del trabajador (IBC)">
                  <div class="loading-indicator" id="ibc-loading">
@@ -534,7 +534,7 @@
             }, 5000);
         }
 
-        // Function to format date (Firestore Timestamp to YYYY-MM-DD)
+        // Function to format date (Firestore Timestamp to-MM-DD)
         function formatDate(timestamp) {
             if (!timestamp) return '';
             let date;
@@ -672,8 +672,8 @@
                 epsId: epsSelect.value || null, // Store EPS ID or null
                 ccfId: ccfSelect.value || null, // Store CCF ID or null
                 afpId: afpSelect.value || null, // Store AFP ID or null
-                fecha: fechaIngresoInput.value, // Store as YYYY-MM-DD string
-                ingreso: fechaRegistroInput.value, // Store as YYYY-MM-DD string
+                fecha: fechaIngresoInput.value, // Store as-MM-DD string
+                ingreso: fechaRegistroInput.value, // Store as-MM-DD string
                 asesorId: asesorSelect.value || null, // Store ID or null
                 valorAPagar: parseFloat(valorAPagarInput.value) || 0, // Convert to number, default to 0 if empty/invalid
                 ibc: parseFloat(ibcInput.value) || 0, // Store IBC as number, default to 0
@@ -809,7 +809,7 @@
         ibcAutomaticoCheck.addEventListener('change', async (e) => {
             if (e.target.checked) {
                 // Checkbox is checked, attempt to find IBC automatically
-                showStatusMessage('Buscando IBC del año actual...', 'info');
+                showStatusMessage('Buscando IBC (SMMLV) del año actual...', 'info');
                 ibcLoadingIndicator.style.display = 'inline-block'; // Show loading indicator
                 ibcInput.disabled = true; // Disable input while loading
                 ibcAutomaticoCheck.disabled = true; // Disable checkbox while loading
@@ -820,10 +820,10 @@
                     // The tool code will be injected and executed by the environment
                     // The result will be available in the `toolResult` variable
 
-                    // Construct the search query in both Spanish and English
+                    // Construct the search query in both Spanish and English, explicitly mentioning SMMLV
                     const currentYear = new Date().getFullYear();
-                    const searchQueryEs = `Salario Mínimo Legal Mensual Vigente Colombia ${currentYear}`; // More specific query
-                    const searchQueryEn = `Minimum Legal Monthly Wage Colombia ${currentYear}`;
+                    const searchQueryEs = `Salario Mínimo Legal Mensual Vigente SMMLV Colombia ${currentYear}`; // More specific query
+                    const searchQueryEn = `Minimum Legal Monthly Wage SMMLV Colombia ${currentYear}`;
 
                     // Execute the search using the tool
                     const toolResult = await google_search([searchQueryEs, searchQueryEn]);
@@ -879,9 +879,9 @@
 
                     if (ibcValue !== null && ibcValue > 0) {
                         ibcInput.value = ibcValue; // Set the raw numeric value
-                        showStatusMessage(`IBC ${formatCurrency(ibcValue)} encontrado para el año ${currentYear}.`, 'success'); // Display formatted value
+                        showStatusMessage(`IBC (SMMLV) ${formatCurrency(ibcValue)} encontrado para el año ${currentYear}.`, 'success'); // Display formatted value
                     } else {
-                        showStatusMessage('No se pudo encontrar el IBC automático para el año actual. Por favor, ingrésalo manualmente.', 'error');
+                        showStatusMessage('No se pudo encontrar el IBC automático (SMMLV) para el año actual. Por favor, ingrésalo manualmente.', 'error');
                         ibcInput.value = ''; // Clear input if not found
                     }
 
