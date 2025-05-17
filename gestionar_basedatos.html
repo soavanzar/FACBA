@@ -434,6 +434,7 @@
             .user-table td {
                 text-align: right; /* Alinear contenido de celda a la derecha */
                 padding: 8px 15px; /* Espaciado interno para las celdas */
+                padding-left: 145px; /* <<-- MODIFICACION AQUI: Añadir padding izquierdo para el título */
                 position: relative; /* Para posicionar la etiqueta */
                 border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
             }
@@ -449,20 +450,23 @@
                 content: attr(data-label); /* Mostrar el contenido del atributo data-label */
                 position: absolute;
                 left: 15px; /* Posición a la izquierda */
-                width: calc(50% - 30px); /* Ancho de la etiqueta */
+                width: 120px; /* <<-- MODIFICACION AQUI: Ancho fijo para el título */
                 padding-right: 10px; /* Espacio entre etiqueta y contenido */
+                box-sizing: border-box; /* <<-- MODIFICACION AQUI: Incluir padding en el ancho */
                 white-space: nowrap; /* Evitar que la etiqueta se rompa en varias líneas */
                 font-weight: 600; /* Peso de fuente semibold para la etiqueta */
                 color: #4b5563; /* Color gris oscuro para la etiqueta */
                 text-align: left; /* Alinear etiqueta a la izquierda */
                 overflow: hidden; /* Ocultar texto si es demasiado largo */
                 text-overflow: ellipsis; /* Mostrar puntos suspensivos si se trunca */
+                top: 50%; /* <<-- MODIFICACION AQUI: Centrar verticalmente */
+                transform: translateY(-50%); /* <<-- MODIFICACION AQUI: Ajustar para centrado vertical */
             }
 
             /* Ajuste específico para la celda de acciones */
             .action-cell {
                  text-align: center; /* Centrar el contenido en la celda de acciones */
-                 padding-left: 15px; /* Ajustar padding para que no haya espacio extra a la izquierda */
+                 padding-left: 15px; /* <<-- MODIFICACION AQUI: Resetear padding-left para la celda de acciones */
             }
 
              .action-cell::before {
@@ -712,7 +716,8 @@
                         <th>Nombre</th>
                         <th>Empresa</th>
                         <th>Valor a Pagar</th>
-                        <th>IBC</th> <th>EPS</th>
+                        <th>IBC</th>
+                        <th>EPS</th>
                         <th>ARL</th>
                         <th>AFP</th>
                         <th>CCF</th>
@@ -817,7 +822,8 @@
                 </div>
 
                  <div class="modal-form-group">
-                    <label for="edit-ibc">IBC (COP):</label> <input type="number" id="edit-ibc" name="ibc" step="0.01">
+                    <label for="edit-ibc">IBC (COP):</label>
+                    <input type="number" id="edit-ibc" name="ibc" step="0.01">
                 </div>
 
 
@@ -950,7 +956,8 @@
              <h2>Importar Usuarios desde Excel</h2>
              <div class="import-instructions">
                  Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga **exactamente** las siguientes columnas en la primera fila (el orden no importa):<br>
-                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR, IBC</strong> <br> Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente. Para indicar que un usuario no tiene una entidad asignada (como EPS, ARL, etc.), deja la celda correspondiente **vacía** o escribe **N/A**.
+                 <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR, IBC</strong> <br>
+                 Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente. Para indicar que un usuario no tiene una entidad asignada (como EPS, ARL, etc.), deja la celda correspondiente **vacía** o escribe **N/A**.
              </div>
              <input type="file" id="excel-file-input" accept=".xlsx, .xls">
              <div class="modal-buttons">
@@ -1443,7 +1450,8 @@
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
-                <td data-label="IBC">${ibcFormatted}</td> <td data-label="EPS">${epsIcon}</td>
+                <td data-label="IBC">${ibcFormatted}</td>
+                <td data-label="EPS">${epsIcon}</td>
                 <td data-label="ARL">${arlIcon}</td>
                 <td data-label="AFP">${afpIcon}</td>
                 <td data-label="CCF">${ccfIcon}</td>
@@ -1951,7 +1959,7 @@
                 ingreso: editFechaRegistroInput.value, // Guardar como stringYYYY-MM-DD
                 asesorId: editAsesorSelect.value || null, // Guardar ID o null
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0, // Convertir a número antes de guardar
-                ibc: parseFloat(editIbcInput.value) || 0, // --- MODIFICACION AQUI: Guardar IBC como número ---
+                ibc: parseFloat(editIbcInput.value) || 0, // Guardar IBC como número
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -2393,7 +2401,7 @@
              // Definir los encabezados del CSV
              const headers = [
                  "NOMBRE", "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA", "ARL", "RIESGO",
-                 "EPS", "CCF", "AFP", "FECHA INGRESO", "ASESOR", "VALOR A PAGAR", "IBC", "ESTADO", "FECHA RETIRO" // Added IBC here
+                 "EPS", "CCF", "AFP", "FECHA INGRESO", "ASESOR", "VALOR A PAGAR", "IBC", "ESTADO", "FECHA RETIRO"
              ];
 
              // Crear las filas del CSV
@@ -2422,7 +2430,7 @@
                      formatDate(user.fecha), // Formatear fecha de ingreso
                      asesorNombre, // Usar el nombre del asesor
                      user.valorAPagar !== undefined && user.valorAPagar !== null ? user.valorAPagar : '', // Exportar valor numérico
-                     user.ibc !== undefined && user.ibc !== null ? user.ibc : '', // --- MODIFICACION AQUI: Exportar valor numérico de IBC ---
+                     user.ibc !== undefined && user.ibc !== null ? user.ibc : '', // Exportar valor numérico de IBC
                      estado,
                      fechaRetiro // Incluir fecha de retiro
                  ].map(field => {
@@ -2531,7 +2539,7 @@
                         "FECHA INGRESO": "fecha", // Fecha
                         "ASESOR": "asesor", // Nombre del Asesor (para buscar/crear ID)
                         "VALOR A PAGAR": "valorAPagar", // Número
-                        "IBC": "ibc", // --- MODIFICACION AQUI: Mapeo para IBC ---
+                        "IBC": "ibc", // Mapeo para IBC
                          "ESTADO": "estado", // Opcional: Si el estado viene en el Excel
                          "FECHA RETIRO": "fechaRetiro" // Opcional: Si la fecha de retiro viene en el Excel
                     };
@@ -2852,7 +2860,7 @@
                                            rowErrors.push(`Fecha de Ingreso inválida, vacía o "N/A": "${value}"`); // MODIFICACION AQUI: Updated error message
                                       }
                                       // Fecha de retiro is optional, don't mark error if empty/invalid/N/A
-                                 } else if (firestoreField === 'valorAPagar' || firestoreField === 'ibc') { // --- MODIFICACION AQUI: Handle IBC as number ---
+                                 } else if (firestoreField === 'valorAPagar' || firestoreField === 'ibc') { // Handle IBC as number
                                       // Parse value to pay or IBC to number
                                       const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Clean non-numbers except . and -
                                       userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Store as number, 0 if invalid
@@ -2895,7 +2903,7 @@
                          if (!userData.hasOwnProperty('epsId')) userData.epsId = null;
                          if (!userData.hasOwnProperty('ccfId')) userData.ccfId = null;
                          if (!userData.hasOwnProperty('afpId')) userData.afpId = null;
-                         // --- MODIFICACION AQUI: Ensure ibc is 0 if not set during mapping or invalid ---
+                         // Ensure ibc is 0 if not set during mapping or invalid
                          if (!userData.hasOwnProperty('ibc') || userData.ibc === undefined || userData.ibc === null || isNaN(userData.ibc)) {
                              userData.ibc = 0;
                          }
