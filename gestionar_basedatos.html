@@ -162,11 +162,30 @@
         }
 
         /* Estilos para las celdas de acciones */
-        .action-buttons {
-            display: flex;
-            gap: 8px; /* Espacio entre botones */
-            justify-content: center; /* Centra los botones en la celda */
+        .action-cell {
+            text-align: center; /* Centra el contenido en la celda de acciones */
+            position: relative; /* Necesario para posicionar los botones de acción */
         }
+
+        .action-cell .action-buttons-container {
+             display: none; /* Oculto por defecto */
+             position: absolute; /* Posicionamiento absoluto */
+             top: 50%; /* Centrar verticalmente */
+             left: 50%; /* Centrar horizontalmente */
+             transform: translate(-50%, -50%); /* Ajustar para centrado exacto */
+             background-color: #ffffff; /* Fondo blanco */
+             padding: 8px; /* Espaciado interno */
+             border-radius: 8px; /* Bordes redondeados */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Sombra */
+             z-index: 20; /* Asegura que esté por encima de otros elementos de la tabla */
+             white-space: nowrap; /* Evita que los botones se rompan */
+             gap: 8px; /* Espacio entre botones */
+             align-items: center; /* Centra los botones verticalmente */
+        }
+
+         .action-cell .action-buttons-container.show {
+             display: flex; /* Mostrar cuando tiene la clase 'show' */
+         }
 
         .action-button {
             padding: 6px 10px;
@@ -205,6 +224,32 @@
         .status-button:hover {
             background-color: #8b5cf6; /* Morado más oscuro */
         }
+
+         /* Estilo para el icono de tuerca */
+         .gear-icon {
+             font-size: 1.2rem; /* Tamaño del icono */
+             color: #6b7280; /* Color gris */
+             cursor: pointer;
+             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+         }
+
+         .gear-icon:hover {
+             color: #1f2937; /* Gris más oscuro al pasar el ratón */
+             transform: rotate(90deg); /* Rotar al pasar el ratón */
+         }
+
+         /* Estilos para los iconos de estado (chulo/cruz) */
+         .status-icon {
+             font-size: 1.2rem; /* Tamaño del icono */
+             vertical-align: middle; /* Alinea verticalmente con el texto si lo hay */
+             margin: 0 auto; /* Centra si la celda lo permite */
+             display: block; /* Asegura que ocupe su propio espacio para centrar */
+             width: fit-content; /* Ajusta el ancho al contenido */
+         }
+
+         .text-green-500 { color: #10b981; /* Verde */ }
+         .text-red-500 { color: #ef4444; /* Rojo */ }
+
 
         /* Estilos para los modales */
         .modal-overlay {
@@ -414,20 +459,42 @@
             }
 
             /* Ajuste específico para la celda de acciones */
-            .user-table td:last-child {
-                 text-align: center; /* Centrar los botones de acción */
+            .action-cell {
+                 text-align: center; /* Centrar el contenido en la celda de acciones */
                  padding-left: 15px; /* Ajustar padding para que no haya espacio extra a la izquierda */
             }
 
-             .user-table td:last-child::before {
+             .action-cell::before {
                  content: ''; /* No mostrar etiqueta para la celda de acciones */
              }
 
              /* Asegurar que los botones de acción estén bien espaciados en la vista de tarjeta */
-             .user-table .action-buttons {
+             .action-cell .action-buttons-container {
+                 position: static; /* Posicionamiento estático en móvil */
+                 transform: none; /* Eliminar transformación */
+                 display: flex; /* Mostrar siempre en móvil si la tuerca se clickea */
                  justify-content: center; /* Centrar los botones */
                  gap: 10px; /* Espacio entre botones */
+                 background-color: transparent; /* Fondo transparente */
+                 box-shadow: none; /* Sin sombra */
+                 padding: 0; /* Sin padding */
+                 margin-top: 10px; /* Espacio encima de los botones */
              }
+             /* En móvil, la tuerca se ocultará y los botones se mostrarán directamente */
+             .action-cell .gear-icon {
+                 display: none; /* Ocultar la tuerca en móvil cuando se activa */
+             }
+             .action-cell .action-buttons-container.show + .gear-icon {
+                 display: none; /* Ocultar la tuerca cuando los botones se muestran */
+             }
+             .action-cell .action-buttons-container:not(.show) {
+                 display: none; /* Asegurar que los botones estén ocultos por defecto en móvil */
+             }
+             .action-cell .action-buttons-container:not(.show) + .gear-icon {
+                 display: inline-block; /* Mostrar la tuerca en móvil por defecto */
+             }
+
+
         }
 
          /* Asegurar que los modales se vean bien en pantallas pequeñas */
@@ -620,6 +687,10 @@
                         <th>Nombre</th>
                         <th>Empresa</th>
                         <th>Valor a Pagar</th>
+                        <th>EPS</th>
+                        <th>ARL</th>
+                        <th>AFP</th>
+                        <th>CCF</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -850,7 +921,7 @@
              <div class="import-instructions">
                  Por favor, asegúrate de que tu archivo Excel (.xlsx) tenga **exactamente** las siguientes columnas en la primera fila (el orden no importa):<br>
                  <strong>NOMBRE, TIPO DE IDENTIFICACION, IDENTIFICACION, EMPRESA, ARL, RIESGO, EPS, CCF, AFP, FECHA INGRESO, ASESOR, VALOR A PAGAR</strong> <br>
-                 Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente.
+                 Si una Empresa, Asesor, ARL, EPS, CCF o AFP no existe, se creará automáticamente. Para indicar que un usuario no tiene una entidad asignada (como EPS, ARL, etc.), deja la celda correspondiente **vacía** o escribe **N/A**.
              </div>
              <input type="file" id="excel-file-input" accept=".xlsx, .xls">
              <div class="modal-buttons">
@@ -1128,6 +1199,12 @@
 
 
                  console.log("Mapas de Empresas, Asesores, ARL, EPS, CCF, AFP cargados."); // Debugging
+                 console.log("ARL Map:", Array.from(arlMap.entries()));
+                 console.log("EPS Map:", Array.from(epsMap.entries()));
+                 console.log("CCF Map:", Array.from(ccfMap.entries()));
+                 console.log("AFP Map:", Array.from(afpMap.entries()));
+
+
             } catch (error) {
                 console.error("Error al cargar mapas:", error);
                 showStatusMessage('Error al cargar datos de referencia (empresas, asesores, ARL, EPS, CCF, AFP).', 'error');
@@ -1241,6 +1318,18 @@
              }
         }
 
+        // --- MODIFICACION AQUI: Nueva función para verificar si una entidad no está asignada o es desconocida, incluyendo el nombre "N/A" ---
+        // Function to check if a value indicates "not assigned" OR the corresponding lookup name is missing/unknown/N/A
+        const isNotAssignedOrUnknown = (entityId, entityMap) => {
+            // Check if the ID itself is null, empty string, or "N/A" (case-insensitive)
+            if (entityId === null || entityId === '' || (typeof entityId === 'string' && entityId.trim().toUpperCase() === 'N/A')) {
+                return true;
+            }
+            // If the ID exists, check if the corresponding name in the map is missing, indicates unknown, or is "N/A"
+            const entityName = entityMap.get(entityId);
+            return entityName === undefined || entityName === null || entityName === '' || entityName === 'Nombre Desconocido' || (typeof entityName === 'string' && entityName.trim().toUpperCase() === 'N/A');
+        };
+
 
         // Renderizar una fila de usuario en la tabla
         function renderUserRow(userDoc) {
@@ -1253,17 +1342,62 @@
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
             const estado = user.estado || 'activo'; // Estado por defecto para el botón de estado
 
-            // Añadir data-label para la responsividad de la tabla (manteniendo los originales para compatibilidad con CSS)
+            // --- MODIFICACION AQUI: Determinar iconos y tooltips usando isNotAssignedOrUnknown ---
+
+            // Determine EPS Info
+            const epsName = epsMap.get(user.epsId); // Get the name from the map
+            const isEpsAssigned = !isNotAssignedOrUnknown(user.epsId, epsMap); // Check if it's considered assigned
+            const epsTooltip = isEpsAssigned ? (epsName || 'EPS Asignada (Nombre Desconocido)') : 'EPS No Asignada';
+            const epsIcon = isEpsAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+
+
+            // Determine ARL Info (including Risk in tooltip)
+            const arlName = arlMap.get(user.arlId); // Get the name from the map
+            const isArlAssigned = !isNotAssignedOrUnknown(user.arlId, arlMap); // Check if it's considered assigned
+            const arlTooltip = isArlAssigned ? `${(arlName || 'ARL Asignada (Nombre Desconocido)')}${user.riesgo ? ' - ' + user.riesgo : ''}` : 'ARL No Asignada';
+            const arlIcon = isArlAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+
+
+            // Determine AFP Info
+            const afpName = afpMap.get(user.afpId); // Get the name from the map
+            const isAfpAssigned = !isNotAssignedOrUnknown(user.afpId, afpMap); // Check if it's considered assigned
+            const afpTooltip = isAfpAssigned ? (afpName || 'AFP Asignada (Nombre Desconocido)') : 'AFP No Asignada';
+            const afpIcon = isAfpAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+
+
+            // Determine CCF Info
+            const ccfName = ccfMap.get(user.ccfId); // Get the name from the map
+            const isCcfAssigned = !isNotAssignedOrUnknown(user.ccfId, ccfMap); // Check if it's considered assigned
+            const ccfTooltip = isCcfAssigned ? (ccfName || 'CCF Asignada (Nombre Desconocido)') : 'CCF No Asignada';
+            const ccfIcon = isCcfAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon"></i>';
+
+
+            // Añadir data-label para la responsividad de la tabla
             row.innerHTML = `
                 <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
                 <td data-label="Empresa">${empresaNombre}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted}</td>
-                <td class="action-buttons" data-label="Acciones">
-                    <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
-                    <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                    <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
-                         <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
-                    </button>
+                <td data-label="EPS" title="${epsTooltip}">${epsIcon}</td>
+                <td data-label="ARL" title="${arlTooltip}">${arlIcon}</td>
+                <td data-label="AFP" title="${afpTooltip}">${afpIcon}</td>
+                <td data-label="CCF" title="${ccfTooltip}">${ccfIcon}</td>
+                <td class="action-cell" data-label="Acciones">
+                    <div class="action-buttons-container">
+                        <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
+                             <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
+                        </button>
+                    </div>
+                    <i class="fas fa-cog gear-icon" data-id="${userDoc.id}" title="Mostrar Acciones"></i>
                 </td>
             `;
             return row;
@@ -1313,11 +1447,11 @@
                     (empresaNombre.toLowerCase().includes(filterText)) ||
                     (estado.toLowerCase().includes(filterText)) ||
                     (asesorNombre.toLowerCase().includes(filterText)) ||
-                    (arlNombre.toLowerCase().includes(filterText)) || // Incluir ARL en búsqueda
+                    (arlMap.get(user.arlId) || '').toLowerCase().includes(filterText) || // Incluir ARL nombre en búsqueda
                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
-                    (epsNombre.toLowerCase().includes(filterText)) || // Incluir EPS en búsqueda
-                    (ccfNombre.toLowerCase().includes(filterText)) || // Incluir CCF en búsqueda
-                    (afpNombre.toLowerCase().includes(filterText)); // Incluir AFP en búsqueda
+                    (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) || // Incluir EPS nombre en búsqueda
+                    (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) || // Incluir CCF nombre en búsqueda
+                    (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText); // Incluir AFP nombre en búsqueda
 
 
                 // Retornar true si coincide con TODOS los filtros
@@ -1332,8 +1466,8 @@
                 });
             } else {
                 const noDataRow = document.createElement('tr');
-                // Actualizar colspan a 4 para que ocupe todo el ancho de las 4 columnas visibles
-                noDataRow.innerHTML = `<td colspan="4" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
+                // Actualizar colspan a 8 para que ocupe todo el ancho de las 8 columnas visibles
+                noDataRow.innerHTML = `<td colspan="8" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td>`;
                 userTableBody.appendChild(noDataRow);
             }
 
@@ -1460,7 +1594,7 @@
 
         function hideFilterModal() {
             filterModal.classList.remove('show');
-            // Resetear la visualización de los grupos al cerrar el modal
+            // Resetear la visualización de todos los grupos de filtro de modal
             filterEmpresaGroup.style.display = 'none';
             filterAsesorGroup.style.display = 'none';
             filterArlGroup.style.display = 'none'; // Ocultar grupo de ARL
@@ -1526,33 +1660,106 @@
 
         // Listener para los botones de acción en la tabla (usando delegación de eventos)
         userTableBody.addEventListener('click', async (e) => {
-            const targetButton = e.target.closest('.action-button');
-            if (!targetButton) return; // No es un botón de acción
+            const target = e.target;
+            const userId = target.dataset.id || target.closest('.action-button, .gear-icon')?.dataset.id;
 
-            const userId = targetButton.dataset.id;
+            if (!userId) return; // No hay ID de usuario asociado al clic
 
-            if (targetButton.classList.contains('edit-button')) {
-                // Acción de Editar
-                console.log("Botón Editar clickeado para usuario:", userId);
-                await populateSelects(); // Asegurarse de que los selectores estén poblados con las últimas entidades
-                await loadUserDataForEdit(userId);
-                showEditModal();
+            const userDoc = allUserDocs.find(doc => doc.id === userId);
+            if (!userDoc) {
+                console.error("Documento de usuario no encontrado para ID:", userId);
+                showStatusMessage('Error: Datos de usuario no encontrados.', 'error');
+                return;
+            }
 
-            } else if (targetButton.classList.contains('delete-button')) {
-                // Acción de Eliminar
-                console.log("Botón Eliminar clickeado para usuario:", userId);
-                if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.')) {
-                    deleteUser(userId);
+            const actionCell = target.closest('.action-cell');
+            const actionButtonsContainer = actionCell ? actionCell.querySelector('.action-buttons-container') : null;
+            const gearIcon = actionCell ? actionCell.querySelector('.gear-icon') : null;
+
+
+            if (target.classList.contains('gear-icon')) {
+                // Acción de mostrar/ocultar botones al hacer clic en la tuerca
+                console.log("Gear icon clicked for user:", userId);
+                // Ocultar todos los contenedores de botones de acción abiertos
+                document.querySelectorAll('.action-buttons-container.show').forEach(container => {
+                    container.classList.remove('show');
+                    // Mostrar la tuerca correspondiente
+                    const parentCell = container.closest('.action-cell');
+                    if (parentCell) {
+                         parentCell.querySelector('.gear-icon').style.display = 'inline-block';
+                    }
+                });
+
+                // Mostrar el contenedor de botones de acción para esta fila
+                if (actionButtonsContainer && gearIcon) {
+                     actionButtonsContainer.classList.add('show');
+                     gearIcon.style.display = 'none'; // Ocultar la tuerca
                 }
 
-            } else if (targetButton.classList.contains('status-button')) {
-                // Acción de Cambiar Estado
-                console.log("Botón Cambiar Estado clickeado para usuario:", userId);
-                const currentStatus = targetButton.dataset.currentStatus;
-                const newStatus = currentStatus === 'activo' ? 'retirado' : 'activo';
-                changeUserStatus(userId, newStatus);
+            } else if (target.closest('.action-button')) {
+                // Es un botón de acción (Editar, Eliminar, Estado)
+                const actionButton = target.closest('.action-button');
+
+                // Ocultar los botones de acción después de la acción
+                if (actionButtonsContainer && gearIcon) {
+                     actionButtonsContainer.classList.remove('show');
+                     gearIcon.style.display = 'inline-block'; // Mostrar la tuerca de nuevo
+                }
+
+
+                if (actionButton.classList.contains('edit-button')) {
+                    // Acción de Editar
+                    console.log("Botón Editar clickeado para usuario:", userId);
+                    await populateSelects(); // Asegurarse de que los selectores estén poblados con las últimas entidades
+                    await loadUserDataForEdit(userId);
+                    showEditModal();
+
+                } else if (actionButton.classList.contains('delete-button')) {
+                    // Acción de Eliminar
+                    console.log("Botón Eliminar clickeado para usuario:", userId);
+                    if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.')) {
+                        deleteUser(userId);
+                    }
+
+                } else if (actionButton.classList.contains('status-button')) {
+                    // Acción de Cambiar Estado
+                    console.log("Botón Cambiar Estado clickeado para usuario:", userId);
+                    const currentStatus = actionButton.dataset.currentStatus;
+                    const newStatus = currentStatus === 'activo' ? 'retirado' : 'activo';
+                    changeUserStatus(userId, newStatus);
+                }
             }
         });
+
+         // Ocultar los botones de acción si se hace clic en cualquier otro lugar del documento
+         document.addEventListener('click', (e) => {
+             // Verificar si el clic fue fuera de una celda de acción o dentro de un botón de acción
+             const isClickInsideActionCell = e.target.closest('.action-cell');
+             const isActionButton = e.target.closest('.action-button');
+             const isGearIcon = e.target.closest('.gear-icon');
+
+
+             if (!isClickInsideActionCell || isActionButton || isGearIcon) {
+                 // Si el clic no fue dentro de una celda de acción, o si fue en un botón/tuerca dentro de ella,
+                 // no ocultamos los botones de la celda específica que se clickeó.
+                 // Pero queremos ocultar CUALQUIER otro contenedor de botones que esté abierto.
+
+                 document.querySelectorAll('.action-buttons-container.show').forEach(container => {
+                      const parentCell = container.closest('.action-cell');
+                      // Ocultar solo si el clic no fue en la tuerca de esta celda
+                      if (!isGearIcon || (isGearIcon && parentCell !== isClickInsideActionCell)) {
+                            container.classList.remove('show');
+                            // Mostrar la tuerca correspondiente
+                            if (parentCell) {
+                                parentCell.querySelector('.gear-icon').style.display = 'inline-block';
+                            }
+                      }
+                 });
+             }
+             // Si el clic fue en la tuerca, la lógica de mostrar ya se manejó en el listener de userTableBody
+         });
+
+
 
         // Cargar datos de un usuario en el modal de edición
         async function loadUserDataForEdit(userId) {
@@ -1785,7 +1992,7 @@
             e.preventDefault(); // Prevenir envío por defecto
 
             const entityType = addEntityTypeInput.value;
-            const entityName = entityNameInput.value.trim();
+            const entityName = entityName.value.trim();
 
             if (!entityName) {
                 alert("Por favor, ingresa el nombre.");
@@ -2086,11 +2293,11 @@
                      (empresaNombre.toLowerCase().includes(filterText)) ||
                      (estado.toLowerCase().includes(filterText)) ||
                      (asesorNombre.toLowerCase().includes(filterText)) ||
-                     (arlNombre.toLowerCase().includes(filterText)) || // Incluir ARL en búsqueda
+                     (arlMap.get(user.arlId) || '').toLowerCase().includes(filterText) || // Incluir ARL nombre en búsqueda
                      (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
-                     (epsNombre.toLowerCase().includes(filterText)) ||
-                     (ccfNombre.toLowerCase().includes(filterText)) ||
-                     (afpNombre.toLowerCase().includes(filterText));
+                     (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) ||
+                     (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) ||
+                     (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText);
 
 
                  return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesArlFilter && matchesEpsFilter && matchesCcfFilter && matchesAfpFilter && matchesSearch;
@@ -2302,16 +2509,17 @@
                         if (asesorName && !Array.from(asesoresMap.values()).some(name => name.toLowerCase() === asesorName.toLowerCase())) {
                             newAsesoresToCreate.add(asesorName);
                         }
-                         if (arlName && !Array.from(arlMap.values()).some(name => name.toLowerCase() === arlName.toLowerCase())) { // Identificar ARL faltantes
+                         // --- MODIFICACION AQUI: Check for empty string or "N/A" before adding to set ---
+                         if (arlName && arlName.toUpperCase() !== 'N/A' && !Array.from(arlMap.values()).some(name => name.toLowerCase() === arlName.toLowerCase())) {
                              newArlToCreate.add(arlName);
                          }
-                         if (epsName && !Array.from(epsMap.values()).some(name => name.toLowerCase() === epsName.toLowerCase())) { // Identificar EPS faltantes
+                         if (epsName && epsName.toUpperCase() !== 'N/A' && !Array.from(epsMap.values()).some(name => name.toLowerCase() === epsName.toLowerCase())) {
                              newEpsToCreate.add(epsName);
                          }
-                         if (ccfName && !Array.from(ccfMap.values()).some(name => name.toLowerCase() === ccfName.toLowerCase())) { // Identificar CCF faltantes
+                         if (ccfName && ccfName.toUpperCase() !== 'N/A' && !Array.from(ccfMap.values()).some(name => name.toLowerCase() === ccfName.toLowerCase())) {
                              newCcfToCreate.add(ccfName);
                          }
-                         if (afpName && !Array.from(afpMap.values()).some(name => name.toLowerCase() === afpName.toLowerCase())) { // Identificar AFP faltantes
+                         if (afpName && afpName.toUpperCase() !== 'N/A' && !Array.from(afpMap.values()).some(name => name.toLowerCase() === afpName.toLowerCase())) {
                              newAfpToCreate.add(afpName);
                          }
                     }
@@ -2430,98 +2638,102 @@
                                  value = value === undefined || value === null ? '' : value;
 
 
-                                 // Validaciones y transformaciones específicas por campo
+                                 // Validations and transformations specific to each field
                                  if (firestoreField === 'identificacion') {
-                                      // Asegurar que la identificación sea un string o número válido
+                                      // Ensure identification is a valid string or number
                                       userData[firestoreField] = String(value).trim();
                                       if (!userData[firestoreField]) {
                                            isValidRow = false;
                                            rowErrors.push("Identificación vacía");
                                       }
                                  } else if (firestoreField === 'empresa') {
-                                       // Mapear nombre de empresa a ID (ahora garantizado que existe en mapas)
+                                       // Map company name to ID (now guaranteed to exist in maps)
                                       const empresaName = String(value).trim();
                                       const empresaEntry = Array.from(empresasMap.entries()).find(([id, name]) => name.toLowerCase() === empresaName.toLowerCase());
                                       if (empresaEntry) {
-                                           userData['empresaId'] = empresaEntry[0]; // Guardar el ID
+                                           userData['empresaId'] = empresaEntry[0]; // Store the ID
                                       } else {
-                                           // Esto no debería ocurrir si el paso 1 fue exitoso, pero como fallback
+                                           // This shouldn't happen if step 1 was successful, but as a fallback
                                            isValidRow = false;
                                            rowErrors.push(`Error interno: Empresa "${empresaName}" no encontrada después de la creación.`);
                                       }
                                  } else if (firestoreField === 'asesor') {
-                                      // Mapear nombre de asesor a ID (ahora garantizado que existe en mapas)
+                                      // Map advisor name to ID (now guaranteed to exist in maps)
                                       const asesorName = String(value).trim();
                                        const asesorEntry = Array.from(asesoresMap.entries()).find(([id, name]) => name.toLowerCase() === asesorName.toLowerCase());
                                         if (asesorEntry) {
-                                             userData['asesorId'] = asesorEntry[0]; // Guardar el ID
+                                             userData['asesorId'] = asesorEntry[0]; // Store the ID
                                         } else {
-                                             // Esto no debería ocurrir si el paso 1 fue exitoso, pero como fallback
+                                             // This shouldn't happen if step 1 was successful, but as a fallback
                                              isValidRow = false;
                                              rowErrors.push(`Error interno: Asesor "${asesorName}" no encontrado después de la creación.`);
                                         }
-                                 } else if (firestoreField === 'arl') { // Mapear nombre de ARL a ID
+                                 } else if (firestoreField === 'arl') { // Map ARL name to ID
                                        const arlName = String(value).trim();
-                                       if (arlName) { // Only try to map if the name is not empty
+                                       // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                       if (arlName && arlName.toUpperCase() !== 'N/A') {
                                             const arlEntry = Array.from(arlMap.entries()).find(([id, name]) => name.toLowerCase() === arlName.toLowerCase());
                                             if (arlEntry) {
-                                                 userData['arlId'] = arlEntry[0]; // Guardar el ID
+                                                 userData['arlId'] = arlEntry[0]; // Store the ID
                                             } else {
                                                  // This shouldn't happen if step 1 was successful, but as a fallback
                                                  isValidRow = false;
-                                                 rowErrors.push(`Error interno: ARL "${arlName}" no encontrada después de la creación.`);
+                                                 rowErrors.push(`Error interno: ARL "${arlName}" not found after creation.`);
                                             }
                                        } else {
-                                            userData['arlId'] = null; // Store null if ARL name is empty in Excel
+                                            userData['arlId'] = null; // Store null if ARL name is empty or "N/A"
                                        }
-                                  } else if (firestoreField === 'eps') { // Mapear nombre de EPS a ID
+                                  } else if (firestoreField === 'eps') { // Map EPS name to ID
                                        const epsName = String(value).trim();
-                                       if (epsName) { // Only try to map if the name is not empty
+                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                       if (epsName && epsName.toUpperCase() !== 'N/A') {
                                             const epsEntry = Array.from(epsMap.entries()).find(([id, name]) => name.toLowerCase() === epsName.toLowerCase());
                                             if (epsEntry) {
-                                                 userData['epsId'] = epsEntry[0]; // Guardar el ID
+                                                 userData['epsId'] = epsEntry[0]; // Store the ID
                                             } else {
                                                  // This shouldn't happen if step 1 was successful, but as a fallback
                                                  isValidRow = false;
-                                                 rowErrors.push(`Error interno: EPS "${epsName}" no encontrada después de la creación.`);
+                                                 rowErrors.push(`Error interno: EPS "${epsName}" not found after creation.`);
                                             }
                                        } else {
-                                            userData['epsId'] = null; // Store null if EPS name is empty in Excel
+                                            userData['epsId'] = null; // Store null if EPS name is empty or "N/A"
                                        }
-                                  } else if (firestoreField === 'ccf') { // Mapear nombre de CCF a ID
+                                  } else if (firestoreField === 'ccf') { // Map CCF name to ID
                                        const ccfName = String(value).trim();
-                                        if (ccfName) { // Only try to map if the name is not empty
+                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                        if (ccfName && ccfName.toUpperCase() !== 'N/A') {
                                              const ccfEntry = Array.from(ccfMap.entries()).find(([id, name]) => name.toLowerCase() === ccfName.toLowerCase());
                                              if (ccfEntry) {
-                                                  userData['ccfId'] = ccfEntry[0]; // Guardar el ID
+                                                  userData['ccfId'] = ccfEntry[0]; // Store the ID
                                              } else {
                                                   // This shouldn't happen if step 1 was successful, but as a fallback
                                                   isValidRow = false;
-                                                  rowErrors.push(`Error interno: CCF "${ccfName}" no encontrada después de la creación.`);
+                                                  rowErrors.push(`Error interno: CCF "${ccfName}" not found after creation.`);
                                              }
                                         } else {
-                                             userData['ccfId'] = null; // Store null if CCF name is empty in Excel
+                                             userData['ccfId'] = null; // Store null if CCF name is empty or "N/A"
                                         }
-                                  } else if (firestoreField === 'afp') { // Mapear nombre de AFP a ID
+                                  } else if (firestoreField === 'afp') { // Map AFP name to ID
                                        const afpName = String(value).trim();
-                                        if (afpName) { // Only try to map if the name is not empty
+                                        // --- MODIFICACION AQUI: Check for empty string or "N/A" ---
+                                        if (afpName && afpName.toUpperCase() !== 'N/A') {
                                              const afpEntry = Array.from(afpMap.entries()).find(([id, name]) => name.toLowerCase() === afpName.toLowerCase());
                                              if (afpEntry) {
-                                                  userData['afpId'] = afpEntry[0]; // Guardar el ID
+                                                  userData['afpId'] = afpEntry[0]; // Store the ID
                                              } else {
                                                   // This shouldn't happen if step 1 was successful, but as a fallback
                                                   isValidRow = false;
-                                                  rowErrors.push(`Error interno: AFP "${afpName}" no encontrada después de la creación.`);
+                                                  rowErrors.push(`Error interno: AFP "${afpName}" not found after creation.`);
                                             }
                                         } else {
-                                             userData['afpId'] = null; // Store null if AFP name is empty in Excel
+                                             userData['afpId'] = null; // Store null if AFP name is empty or "N/A"
                                         }
                                   }
                                   else if (firestoreField === 'fecha' || firestoreField === 'fechaRetiro') {
-                                      // Parsear fechas. XLSX puede devolver números (serial) o strings.
+                                      // Parse dates. XLSX can return numbers (serial) or strings.
                                       let dateValue = null;
                                       if (typeof value === 'number') {
-                                           // Asumir que es un número serial de Excel y convertir a fecha
+                                           // Assume it's an Excel serial number and convert to date
                                            // Need to adjust for the difference between Excel epoch (1899-12-30) and JS epoch (1970-01-01)
                                            // and Excel's leap year bug prior to 1900 (handle date > 60)
                                            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
@@ -2529,8 +2741,8 @@
                                            const adjustedValue = value > 60 ? value - 1 : value;
                                            dateValue = new Date(excelEpoch.getTime() + adjustedValue * 24 * 60 * 60 * 1000);
 
-                                      } else if (typeof value === 'string' && value.trim() !== '') {
-                                           // Intentar parsear string de fecha (YYYY-MM-DD, MM/DD/YYYY, etc.)
+                                      } else if (typeof value === 'string' && value.trim() !== '' && value.trim().toUpperCase() !== 'N/A') { // MODIFICACION AQUI: Ignore "N/A" for dates
+                                           // Try to parse date string (YYYY-MM-DD, MM/DD/YYYY, etc.)
                                            try {
                                                 // PreferYYYY-MM-DD if possible
                                                 if (/^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
@@ -2551,33 +2763,33 @@
                                       }
 
                                       if (dateValue) {
-                                          userData[firestoreField] = dateValue; // Guardar como objeto Date
-                                      } else if (firestoreField === 'fecha') { // Fecha de ingreso es requerida
+                                          userData[firestoreField] = dateValue; // Store as Date object
+                                      } else if (firestoreField === 'fecha') { // Fecha de ingreso is required
                                            isValidRow = false;
-                                           rowErrors.push(`Fecha de Ingreso inválida o vacía: "${value}"`);
+                                           rowErrors.push(`Fecha de Ingreso inválida, vacía o "N/A": "${value}"`); // MODIFICACION AQUI: Updated error message
                                       }
-                                      // Fecha de retiro es opcional, no marcar error si está vacía/inválida
+                                      // Fecha de retiro is optional, don't mark error if empty/invalid/N/A
                                  } else if (firestoreField === 'valorAPagar') {
-                                      // Parsear valor a pagar a número
-                                      const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Limpiar no-números excepto . y -
-                                      userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Guardar como número, 0 si no es válido
+                                      // Parse value to pay to number
+                                      const numericValue = parseFloat(String(value).replace(/[^0-9.-]+/g,"")); // Clean non-numbers except . and -
+                                      userData[firestoreField] = isNaN(numericValue) ? 0 : numericValue; // Store as number, 0 if invalid
                                  } else if (firestoreField === 'estado') {
-                                      // Validar estado (opcional, si viene en el Excel)
+                                      // Validate status (optional, if present in Excel)
                                       const estadoValue = String(value).trim().toLowerCase();
                                       if (estadoValue === 'activo' || estadoValue === 'retirado') {
                                            userData[firestoreField] = estadoValue;
                                       } else {
-                                           userData[firestoreField] = 'activo'; // Estado por defecto si no es válido
+                                           userData[firestoreField] = 'activo'; // Default status if invalid
                                        }
                                  }
                                  else {
-                                      // Otros campos de texto (RIESGO, NOMBRE, TIPO DE IDENTIFICACION)
+                                      // Other text fields (RIESGO, NOMBRE, TIPO DE IDENTIFICACION)
                                       userData[firestoreField] = String(value || '').trim();
                                  }
                             }
                         }
 
-                        // Realizar validaciones adicionales para campos requeridos no cubiertos arriba
+                        // Perform additional validations for required fields not covered above
                         // Check if required fields are present and valid AFTER mapping
                         if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha)) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
                             if (!userData.nombre) rowErrors.push("Nombre vacío");
@@ -2591,9 +2803,9 @@
                         }
 
 
-                        // Añadir campos obligatorios que podrían no estar en el Excel o estar vacíos
+                        // Add mandatory fields that might not be in Excel or might be empty
                          if (!userData.hasOwnProperty('estado')) {
-                             userData.estado = 'activo'; // Estado por defecto si no viene en Excel
+                             userData.estado = 'activo'; // Default status if not in Excel
                          }
                          // Ensure arlId, epsId, ccfId, afpId are null if not set during mapping
                          if (!userData.hasOwnProperty('arlId')) userData.arlId = null;
@@ -2602,7 +2814,7 @@
                          if (!userData.hasOwnProperty('afpId')) userData.afpId = null;
 
 
-                         // fechaRetiro se maneja al parsear la fecha o se elimina si no es retirado
+                         // fechaRetiro is handled when parsing the date or deleted if not retired
                          if (userData.hasOwnProperty('fechaRetiro') && !(userData.fechaRetiro instanceof Date && !isNaN(userData.fechaRetiro))) {
                              // If fechaRetiro was in Excel but invalid or empty, delete it
                              userData.fechaRetiro = firebase.firestore.FieldValue.delete();
@@ -2615,9 +2827,9 @@
                          }
 
 
-                        // Si la fila es válida, prepararla para el batch
+                        // If the row is valid, prepare it for the batch
                         if (isValidRow) {
-                            // Convertir Date objects to Firestore Timestamps
+                            // Convert Date objects to Firestore Timestamps
                              if (userData.fecha instanceof Date) {
                                  userData.fecha = firebase.firestore.Timestamp.fromDate(userData.fecha);
                              }
@@ -2626,24 +2838,30 @@
                              }
 
 
-                            // Añadir campos de metadatos
+                            // Add mandatory fields that might not be in Excel or might be empty
+                             if (!userData.hasOwnProperty('estado')) {
+                                 userData.estado = 'activo'; // Default status if not in Excel
+                             }
+
+
+                            // Add metadata fields
                             userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                             userData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
-                             console.log(`Datos preparados para Firestore (Fila ${rowNumber}):`, userData); // Log data before saving
+                             console.log(`Data prepared for Firestore (Row ${rowNumber}):`, userData); // Log data before saving
 
-                            // Crear una nueva referencia de documento y añadir la operación al batch
+                            // Create a new document reference and add the operation to the batch
                             const newUserRef = usersCollection.doc();
                             userBatch.set(newUserRef, userData);
                             importedCount++;
                         } else {
                             errorCount++;
                             importErrors.push(`Fila ${rowNumber}: ${rowErrors.join(', ')}`);
-                             console.error(`Errores de validación en Fila ${rowNumber}:`, rowErrors); // Log row errors
+                             console.error(`Validation errors in Row ${rowNumber}:`, rowErrors); // Log row errors
                         }
                     }
 
-                    // Ejecutar el batch de usuarios
+                    // Execute the user batch
                     if (importedCount > 0) {
                         showImportStatusMessage(`Guardando ${importedCount} usuarios...`, 'info');
                         try {
@@ -2651,22 +2869,22 @@
                             let finalMessage = `Importación completada. ${importedCount} usuarios agregados con éxito.`;
                             if (errorCount > 0) {
                                 finalMessage += ` ${errorCount} filas con errores.`;
-                                console.error("Resumen de Errores de importación:", importErrors);
-                                // Podrías mostrar los errores en un área de texto o modal adicional si son muchos
-                                alert("Errores de importación:\n" + importErrors.join('\n')); // Alerta simple por ahora
+                                console.error("Import Errors Summary:", importErrors);
+                                // You could show errors in a text area or additional modal if there are many
+                                alert("Errores de importación:\n" + importErrors.join('\n')); // Simple alert for now
                             }
                             showImportStatusMessage(finalMessage, errorCount === 0 ? 'success' : 'info');
 
-                            // Opcional: Recargar la tabla después de la importación (onSnapshot debería manejarlo)
+                            // Optional: Reload the table after import (onSnapshot should handle it)
                              // loadUsersTable();
 
                         } catch (batchError) {
-                            console.error("Error al guardar batch de usuarios en Firestore:", batchError);
+                            console.error("Error saving user batch to Firestore:", batchError);
                             showImportStatusMessage('Error al guardar datos de usuarios en la base de datos: ' + batchError.message, 'error');
                         }
                     } else if (errorCount > 0) {
                          showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
-                         console.error("Resumen de Errores de importación:", importErrors);
+                         console.error("Import Errors Summary:", importErrors);
                          alert("Errores de importación:\n" + importErrors.join('\n'));
                     }
                     else {
@@ -2675,22 +2893,22 @@
 
 
                 } catch (parseError) {
-                    console.error("Error al leer o parsear el archivo Excel:", parseError);
+                    console.error("Error reading or parsing the Excel file:", parseError);
                     showImportStatusMessage('Error al leer o procesar el archivo: ' + parseError.message, 'error');
                 } finally {
-                    processImportButton.disabled = false; // Habilitar botón nuevamente
-                    excelFileInput.value = null; // Limpiar el input de archivo
+                    processImportButton.disabled = false; // Enable button again
+                    excelFileInput.value = null; // Clear the file input
                 }
             };
 
             reader.onerror = (error) => {
-                console.error("Error al leer el archivo:", error);
+                console.error("Error reading the file:", error);
                 showImportStatusMessage('Error al leer el archivo.', 'error');
                 processImportButton.disabled = false;
-                 excelFileInput.value = null; // Limpiar el input de archivo
+                 excelFileInput.value = null; // Clear the file input
             };
 
-            reader.readAsArrayBuffer(file); // Leer el archivo como ArrayBuffer
+            reader.readAsArrayBuffer(file); // Read the file as ArrayBuffer
         });
 
 
