@@ -985,7 +985,43 @@
          .history-item-actions .action-button {
              padding: 4px 8px; /* Padding más pequeño para botones en lista */
              font-size: 0.75rem; /* Tamaño de fuente más pequeño */
+             /* Asegurar que el color del texto sea visible */
+             color: white; /* Mantener blanco por defecto, pero asegurar contraste con background */
          }
+
+         /* Estilos específicos para los botones de editar y eliminar en las listas de historial */
+         .history-item-actions .edit-payment-button,
+         .history-item-actions .edit-invoice-button {
+              background-color: #60a5fa; /* Azul */
+         }
+         .history-item-actions .edit-payment-button:hover,
+         .history-item-actions .edit-invoice-button:hover {
+              background-color: #3b82f6; /* Azul más oscuro */
+         }
+
+         .history-item-actions .delete-payment-button,
+         .history-item-actions .delete-invoice-button {
+              background-color: #f87171; /* Rojo */
+         }
+         .history-item-actions .delete-payment-button:hover,
+         .history-item-actions .delete-invoice-button:hover {
+              background-color: #ef4444; /* Rojo más oscuro */
+         }
+
+         .history-item-actions .view-invoice-details-button {
+              background-color: #6366f1; /* Indigo */
+         }
+         .history-item-actions .view-invoice-details-button:hover {
+              background-color: #4f46e5; /* Indigo más oscuro */
+         }
+
+         .history-item-actions .generate-invoice-pdf-button {
+             background-color: #ef4444; /* Rojo */
+         }
+         .history-item-actions .generate-invoice-pdf-button:hover {
+             background-color: #dc2626; /* Rojo más oscuro */
+         }
+
 
          /* Ajuste para que los detalles del pago/factura y los botones de acción estén en la misma línea si hay espacio */
          #payment-history-list li,
@@ -1025,6 +1061,24 @@
                   justify-content: flex-end; /* Alinear botones a la derecha */
                   margin-top: 10px; /* Espacio encima de los botones */
               }
+
+              /* Asegurar que los elementos de la factura se apilen correctamente en móvil */
+              #invoice-history-list li,
+              #full-invoice-history-list li {
+                  flex-direction: column; /* Apilar */
+                  align-items: flex-start; /* Alinear a la izquierda */
+              }
+               #invoice-history-list li .invoice-summary,
+               #full-invoice-history-list li .invoice-summary {
+                    margin-bottom: 10px; /* Espacio debajo del resumen */
+               }
+              #invoice-history-list li .invoice-actions,
+              #full-invoice-history-list li .invoice-actions {
+                   width: 100%; /* Ocupa todo el ancho */
+                   justify-content: flex-end; /* Alinear botones a la derecha */
+                   margin-top: 10px; /* Espacio encima de los botones */
+              }
+
          }
 
     </style>
