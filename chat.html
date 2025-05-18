@@ -331,7 +331,7 @@
         .message-input-area button {
             padding: 10px; /* Padding uniforme para botones de icono */
             background-color: #e5e5ea; /* Fondo gris claro para botones de icono */
-            color: #007aff; /* Color azul para iconos */
+            color: #007aff; /* Azul para iconos */
             border: none;
             border-radius: 50%; /* Botones redondos */
             cursor: pointer;
@@ -607,6 +607,9 @@
 
 
             #chat-header { /* Ajustes de header para PC */
+                display: flex; /* Asegurar flexbox */
+                justify-content: space-between;
+                align-items: center; /* Alinear verticalmente */
                 padding: 15px 25px; /* Padding en PC */
                 background: linear-gradient(to right, #007bff, #0056b3); /* Degradado azul en PC */
                 color: white; /* Texto blanco en PC */
@@ -624,25 +627,38 @@
 
             /* Estilos para el botón de configuración (PC) */
              #settings-button {
-                 width: 35px; /* Tamaño en PC */
-                 height: 35px; /* Tamaño en PC */
-                 font-size: 1.6em; /* Tamaño del icono en PC */
+                 width: 45px; /* Tamaño en PC (ajustado) */
+                 height: 45px; /* Tamaño en PC (ajustado) */
+                 padding: 0; /* Sin padding */
+                 display: flex; /* Usar flexbox */
+                 justify-content: center; /* Centrar contenido horizontalmente */
+                 align-items: center; /* Centrar contenido verticalmente */
+                 background-color: transparent; /* Fondo transparente */
+                 border: none; /* Sin borde */
+                 border-radius: 50%; /* Botón redondo */
+                 cursor: pointer;
+                 font-size: 2em; /* Tamaño del icono en PC (ajustado) */
                  color: white; /* Color blanco en PC */
+                 transition: background-color 0.2s ease-in-out;
              }
               #settings-button:hover {
                   background-color: rgba(255, 255, 255, 0.15); /* Hover en PC */
               }
-              #settings-button svg { /* Asegurar color del icono SVG en PC */
+              #settings-button svg { /* Asegurar color y tamaño del icono SVG en PC */
                   fill: white;
-                  width: 22px; /* Tamaño del SVG en PC */
-                  height: 22px; /* Tamaño del SVG en PC */
+                  width: 30px; /* Tamaño del SVG en PC (ajustado) */
+                  height: 30px; /* Tamaño del SVG en PC (ajustado) */
+                  /* Eliminar posibles márgenes o paddings internos del SVG */
+                  margin: 0;
+                  padding: 0;
+                  display: block; /* Prevenir problemas de inline-block */
               }
 
 
             /* Estilos para el menú desplegable de configuración (PC) */
             #settings-dropdown {
                 top: 55px; /* Posicionar debajo del encabezado en PC */
-                right: 15px; /* Alinear a la derecha en PC */
+                right: 20px; /* Alinear a la derecha en PC (ajustado) */
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra en PC */
                 border-radius: 8px;
                 min-width: 180px; /* Ancho mínimo en PC */
@@ -664,7 +680,14 @@
 
             /* Estilos para la caja de chat (mensajes) (PC) */
             #chat-box {
-                padding: 15px 20px; /* Padding en PC */
+                flex-grow: 1; /* Permite que la caja de chat ocupe el espacio restante */
+                padding: 15px 20px; /* Padding superior/lateral en PC */
+                /* Ajuste clave: Reducir el padding inferior para que los mensajes se acerquen a la barra de input */
+                padding-bottom: 150px; /* Aumentado el padding inferior para dar más espacio */
+                overflow-y: auto; /* Habilita el scroll vertical si los mensajes exceden la altura */
+                border-bottom: 1px solid #eee;
+                display: flex;
+                flex-direction: column;
                 gap: 10px; /* Espacio entre mensajes en PC */
                 background-image: url('https://www.transparenttextures.com/patterns/always-grey.png'); /* Textura sutil en PC */
                 background-color: #e5ddd5; /* Fondo de chat similar a WhatsApp en PC */
@@ -713,6 +736,10 @@
             }
 
              .message-footer {
+                 display: flex;
+                 align-items: center; /* Alinear verticalmente */
+                 justify-content: flex-end; /* Alinear a la derecha */
+                 flex-wrap: wrap; /* Permitir que los elementos se envuelvan si no hay espacio */
                  gap: 4px; /* Espacio en PC */
                  margin-top: 3px;
              }
@@ -725,7 +752,7 @@
 
              .message .checkmarks {
                  font-size: 0.8em;
-                 color: #007bff; /* Azul en PC */
+                 color: #4fc3f7 !important; /* Azul claro para checkmarks en PC */
                  margin-left: 4px; /* Espacio a la izquierda en PC */
              }
 
@@ -746,10 +773,13 @@
 
 
              .reply-content {
+                 background-color: rgba(0, 0, 0, 0.05); /* Fondo ligeramente oscuro */
                  border-left: 4px solid #007bff; /* Azul en PC */
-                 padding-left: 8px; /* Padding en PC */
+                 padding: 8px 12px; /* Padding en PC */
+                 border-radius: 6px;
                  margin-bottom: 6px; /* Espacio debajo en PC */
                  font-size: 0.9em;
+                 word-wrap: break-word;
              }
              .message.sent .reply-content {
                   border-left-color: rgba(255, 255, 255, 0.5); /* Barra blanca semi-transparente en mensajes enviados en PC */
@@ -792,6 +822,9 @@
              }
 
              #reply-preview {
+                 display: flex; /* Asegurar flexbox para alinear contenido y botón de cerrar */
+                 align-items: center; /* Alinear verticalmente */
+                 justify-content: space-between; /* Espacio entre contenido y botón */
                  padding: 8px 12px; /* Padding en PC */
                  margin-bottom: 8px; /* Espacio debajo en PC */
                  border-radius: 6px;
@@ -799,43 +832,69 @@
                  color: #444; /* Color ligeramente más oscuro en PC */
                  background-color: #e9ecef; /* Gris muy claro en PC */
                  border-left: 4px solid #007bff; /* Azul en PC */
+                 position: relative; /* Para posicionar el botón de cerrar */
              }
 
              #reply-preview .reply-name {
+                 font-weight: 600;
                  margin-right: 8px;
+                 flex-shrink: 0; /* Evitar que se encoja */
              }
 
              #reply-preview .reply-text {
-                 margin-right: 15px;
+                 flex-grow: 1; /* Permitir que el texto ocupe espacio */
+                 white-space: nowrap;
+                 overflow: hidden;
+                 text-overflow: ellipsis;
+                 margin-right: 15px; /* Espacio antes del botón de cerrar */
              }
 
              #reply-preview #cancel-reply-button {
+                 position: static; /* Cambiar a static para que participe en el flexbox */
+                 background-color: transparent; /* Fondo transparente */
+                 border: none;
                  font-size: 1.1em;
+                 cursor: pointer;
                  color: #777;
+                 padding: 0;
+                 line-height: 1;
+                 flex-shrink: 0; /* Evitar que se encoja */
              }
 
              #reply-preview #cancel-reply-button:hover {
                  color: #333;
              }
 
+
              .message-input-area {
-                 gap: 8px; /* Espacio en PC */
+                 display: flex; /* Asegurar flexbox */
                  align-items: flex-end; /* Alinear al final */
+                 gap: 8px; /* Espacio en PC */
+                 flex-shrink: 0;
              }
 
-             .message-input-area .input-buttons {
-                 gap: 6px; /* Espacio en PC */
+             .message-input-area .input-container {
+                 display: flex; /* Asegurar flexbox */
                  align-items: flex-end; /* Alinear al final */
+                 gap: 6px; /* Espacio en PC */
+                 width: 100%;
              }
 
              /* Ajuste para textarea en PC */
              .message-input-area textarea {
+                 flex-grow: 1; /* Permite que el textarea ocupe el espacio restante */
                  padding: 10px 15px; /* Padding en PC */
                  border: 1px solid #ccc;
                  border-radius: 22px; /* Bordes redondeados en PC */
                  font-size: 1em;
+                 line-height: 1.5;
+                 resize: none;
                  min-height: 45px; /* Altura mínima en PC */
                  max-height: 120px; /* Altura máxima en PC */
+                 overflow-y: auto;
+                 box-sizing: border-box;
+                 outline: none;
+                 transition: border-color 0.2s ease-in-out;
              }
              .message-input-area textarea:focus {
                  border-color: #007bff; /* Azul al enfocar en PC */
@@ -851,7 +910,11 @@
                  border-radius: 22px; /* Bordes redondeados en PC */
                  background-color: #e9ecef; /* Gris muy claro en PC */
                  flex-shrink: 0;
-                 align-self: center; /* Centrar verticalmente */
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+                 cursor: pointer;
+                 transition: background-color 0.2s ease-in-out;
              }
 
              #emoji-button {
@@ -867,6 +930,9 @@
                  width: 20px; /* Tamaño del SVG en PC */
                  height: 20px; /* Tamaño del SVG en PC */
                  fill: #666; /* Color en PC */
+                 margin: 0;
+                 padding: 0;
+                 display: block;
              }
 
              #send-button {
@@ -886,19 +952,31 @@
 
             /* Estilos para el selector de emojis (PC) */
              #emoji-picker {
+                 display: none; /* Oculto por defecto */
+                 position: absolute;
                  bottom: 60px; /* Ajustado por JS */
                  left: 25px; /* Alinear a la izquierda en PC */
-                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra en PC */
+                 background-color: #fff;
+                 border: 1px solid #d1d1d6;
                  border-radius: 8px;
                  padding: 10px;
-                 gap: 6px; /* Espacio en PC */
-                 max-width: 300px; /* Ancho máximo en PC */
+                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra en PC */
+                 z-index: 10;
                  max-height: 200px;
+                 overflow-y: auto;
+                 width: calc(100% - 50px); /* Ocupar el ancho del contenedor con padding (ajustado) */
+                 max-width: 300px; /* Ancho máximo en PC */
+                 box-sizing: border-box;
+                 flex-wrap: wrap;
+                 gap: 6px; /* Espacio en PC */
              }
 
              #emoji-picker span {
+                 cursor: pointer;
                  font-size: 1.6em; /* Tamaño en PC */
                  padding: 5px; /* Padding en PC */
+                 border-radius: 4px;
+                 transition: background-color 0.1s ease-in-out;
              }
 
              #emoji-picker span:hover {
@@ -944,7 +1022,7 @@
                      <h2>FACBA</h2>
                      <div id="online-users"></div> </div>
                  <button id="settings-button" title="Configuración">
-                      ⚙️
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 13.616v-3.232c-1.651-.587-2.694-2.671-1.069-4.3l2.819-2.819c1.177-1.177.236-3.242-1.518-3.242-.703 0-1.374.345-1.887.858l-2.844 2.844c-1.479 1.479-3.514.976-4.32-.973c-.591-1.429-2.079-2.161-3.536-1.62l-3.232-6.278c-.587-1.651-2.671-2.694-4.3-.1069l-2.819 2.819c-1.177 1.177-3.242.236-3.242-1.518 0-.703.345-1.374.858-1.887l2.844-2.844c1.479-1.479.976-3.514-.973-4.32-1.429-.591-2.161-2.079-1.62-3.536z"/></svg>
                  </button>
                  <div id="settings-dropdown">
                      <button id="clear-chat-button">Limpiar Chat</button>
@@ -1046,6 +1124,7 @@
             const enteredName = nameInput.value.trim(); // Obtener el nombre y eliminar espacios en blanco
             if (enteredName) {
                 userName = enteredName;
+                console.log(`[${userName}] User name set to: ${userName}`); // Log
                 namePrompt.style.display = 'none'; // Ocultar la sección de nombre
                 chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
                 messageInput.focus(); // Poner el foco en el campo de mensaje
@@ -1053,22 +1132,22 @@
                 localStorage.setItem('chatName', userName);
                 initializeChat(); // Inicializar la carga de mensajes y listeners
             } else {
-                // Usar un mensaje en el DOM en lugar de alert()
-                // Podrías añadir un elemento div para mostrar errores
-                 console.log('Por favor, ingresa un nombre.'); // Usar console.log como alternativa simple
+                console.log('Por favor, ingresa un nombre.'); // Usar console.log como alternativa simple
+                 // Podrías añadir un elemento div para mostrar errores en el DOM
             }
         });
 
         // Permitir presionar Enter en el campo de nombre
         nameInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+                event.preventDefault(); // Prevenir el envío del formulario si está en un form
                 startChatButton.click(); // Simular clic en el botón
             }
         });
 
         // --- Función para inicializar la carga y los listeners del chat ---
         function initializeChat() {
-             console.log("initializeChat function called.");
+             console.log(`[${userName}] initializeChat function called.`); // Log
              setupMessageObserver(); // Configurar el Intersection Observer
              loadInitialMessages(); // Cargar mensajes existentes una vez
              setupRealtimeListeners(); // Configurar listeners en tiempo real una vez
@@ -1103,10 +1182,10 @@
 
         // Función para enviar un mensaje (texto o respuesta)
         function sendMessage() {
-            console.log("sendMessage function called."); // Debugging log
+            console.log(`[${userName}] sendMessage function called.`); // Log
             const messageText = messageInput.value.trim(); // Obtener el texto del mensaje y limpiar
-            console.log("Message text:", messageText); // Debugging log
-            console.log("User name:", userName); // Debugging log
+            console.log(`[${userName}] Message text: "${messageText}"`); // Log
+            console.log(`[${userName}] User name: "${userName}"`); // Log
 
             if (messageText && userName) { // Asegurarse de que haya texto y nombre de usuario
                 const newMessage = {
@@ -1123,27 +1202,30 @@
                         name: replyingToMessage.name,
                         content: replyingToMessage.text ? replyingToMessage.text.substring(0, 50) + (replyingToMessage.text.length > 50 ? '...' : '') : 'Archivo' // Fragmento del texto o indicar que es archivo
                     };
-                    console.log("Sending as a reply to:", replyingToMessage.id); // Debugging log
+                    console.log(`[${userName}] Sending as a reply to: ${replyingToMessage.id}`); // Log
                 }
 
-                console.log("Attempting to send message to Realtime Database:", newMessage); // Debugging log
+                console.log(`[${userName}] Attempting to send message to Realtime Database:`, newMessage); // Log
 
                 // Enviar el nuevo mensaje a la base de datos
                 messagesRef.push(newMessage)
                     .then(() => {
-                        console.log("Mensaje enviado exitosamente a Realtime Database!");
+                        console.log(`[${userName}] Mensaje enviado exitosamente a Realtime Database!`);
                         messageInput.value = ''; // Limpiar el campo de entrada
                         setTypingStatus(false); // Limpiar estado de escritura
                         cancelReply(); // Cancelar el estado de respuesta después de enviar
                         // Después de enviar, ajustar la altura del textarea a la mínima
                         messageInput.style.height = 'auto';
+                         // Disparar evento 'input' para re-ajustar altura del textarea
+                         const inputEvent = new Event('input');
+                         messageInput.dispatchEvent(inputEvent);
                     })
                     .catch((error) => {
-                        console.error("Error al enviar mensaje a Realtime Database:", error);
+                        console.error(`[${userName}] Error al enviar mensaje a Realtime Database:`, error);
                         // Mostrar mensaje de error al usuario
                     });
             } else {
-                 console.log("Message not sent: text or user name missing."); // Debugging log
+                 console.log(`[${userName}] Message not sent: text or user name missing.`); // Log
             }
         }
 
@@ -1160,22 +1242,38 @@
             // Si es Shift+Enter, permitir el salto de línea
         });
 
+         // Listener para el evento 'input' en el textarea para detectar escritura
+         messageInput.addEventListener('input', () => {
+             // Ajustar altura primero
+             adjustTextareaHeight();
+
+             // Luego manejar el estado de escritura
+             if (messageInput.value.trim().length > 0) {
+                 setTypingStatus(true); // El usuario está escribiendo
+             } else {
+                 setTypingStatus(false); // El usuario ha borrado el texto
+             }
+         });
+
 
          // --- Lógica de Ajuste de Altura del Textarea ---
 
         // Función para ajustar la altura del textarea automáticamente
         function adjustTextareaHeight() {
+             console.log(`[${userName}] adjustTextareaHeight function called.`); // Log
              // Restablecer la altura a 'auto' para que se recalcule correctamente
             messageInput.style.height = 'auto';
             // Establecer la altura al scrollHeight (altura necesaria para mostrar todo el contenido)
             // Limitar por max-height definido en CSS
             messageInput.style.height = messageInput.scrollHeight + 'px';
+            console.log(`[${userName}] Textarea height adjusted to: ${messageInput.style.height}`); // Log
             // Después de ajustar la altura del textarea, ajustar el padding inferior del chatBox
             adjustChatBoxPadding();
         }
 
         // Listener para el evento 'input' en el textarea para ajustar la altura
-        messageInput.addEventListener('input', adjustTextareaHeight);
+        // Este listener ya está combinado con la lógica del typing indicator arriba.
+        // messageInput.addEventListener('input', adjustTextareaHeight);
 
 
          // --- Lógica del Indicador de Escribiendo (Realtime Database) ---
@@ -1183,6 +1281,7 @@
         // Función para establecer el estado de escritura en Realtime Database
         function setTypingStatus(isTyping) {
             if (!userName) return; // No hacer nada si el nombre del usuario no está establecido
+             console.log(`[${userName}] setTypingStatus called with: ${isTyping}`); // Log
 
             const userTypingRef = typingRef.child(userName); // Referencia al estado del usuario actual en RTDB
 
@@ -1191,6 +1290,7 @@
                 // Limpiar el estado después de un tiempo si el usuario deja de escribir
                 if (typingTimeout) clearTimeout(typingTimeout);
                 typingTimeout = setTimeout(() => {
+                    console.log(`[${userName}] Typing timeout reached. Removing typing status.`); // Log
                     userTypingRef.remove(); // Eliminar el estado después de 1.5 segundos
                 }, 1500);
             } else {
@@ -1199,21 +1299,14 @@
                      clearTimeout(typingTimeout);
                      typingTimeout = null;
                  }
+                 console.log(`[${userName}] User stopped typing. Removing typing status.`); // Log
                  userTypingRef.remove(); // Eliminar el estado si ya no está escribiendo
             }
         }
 
-        // Listener para el campo de entrada de mensaje para detectar escritura
-        messageInput.addEventListener('input', () => {
-            if (messageInput.value.trim().length > 0) {
-                setTypingStatus(true); // El usuario está escribiendo
-            } else {
-                setTypingStatus(false); // El usuario ha borrado el texto
-            }
-        });
-
         // Configurar el listener para el estado de escritura de otros usuarios
         function setupTypingIndicator() {
+             console.log(`[${userName}] setupTypingIndicator function called.`); // Log
             typingRef.on('value', (snapshot) => { // Listener en RTDB
                 const typingUsers = snapshot.val();
                 const usersTyping = [];
@@ -1222,7 +1315,7 @@
                     // Iterar sobre los usuarios que están escribiendo
                     for (const name in typingUsers) {
                         // Asegurarse de que no sea el usuario actual
-                        if (name !== userName) {
+                        if (name !== userName && typingUsers[name] === true) { // Verificar que el valor sea true
                             usersTyping.push(name);
                         }
                     }
@@ -1234,6 +1327,7 @@
                 } else {
                     typingIndicator.textContent = ''; // Limpiar si nadie está escribiendo
                 }
+                 console.log(`[${userName}] Typing indicator updated: "${typingIndicator.textContent}"`); // Log
                 // Después de actualizar el indicador, ajustar el padding del chatBox
                 adjustChatBoxPadding();
             });
@@ -1242,11 +1336,11 @@
 
         // --- Lógica para Cargar Mensajes Iniciales (Realtime Database) ---
         function loadInitialMessages() {
-             console.log("loadInitialMessages function called."); // Debugging log
+             console.log(`[${userName}] loadInitialMessages function called.`); // Log
 
              // Cargar mensajes existentes una vez al inicio
              messagesRef.once('value', (snapshot) => {
-                 console.log("Initial message load from Realtime Database complete.");
+                 console.log(`[${userName}] Initial message load from Realtime Database complete.`); // Log
                  const messages = snapshot.val();
                  if (messages) {
                      // Convertir objeto de mensajes a array y ordenar por timestamp
@@ -1255,28 +1349,32 @@
 
                      // Limpiar el chatbox antes de cargar los mensajes existentes
                      chatBox.innerHTML = '';
+                     console.log(`[${userName}] chatBox cleared for initial load.`); // Log
 
                      messageList.forEach((msg) => {
                          displayMessage(msg, msg.id); // Pasar el ID a displayMessage
                      });
+                 } else {
+                     console.log(`[${userName}] No initial messages found in Realtime Database.`); // Log
                  }
                  chatBox.scrollTop = chatBox.scrollHeight; // Scroll al final
                  initialLoadComplete = true; // Marcar la carga inicial como completa
+                 console.log(`[${userName}] Initial load complete. initialLoadComplete = ${initialLoadComplete}`); // Log
              }, (error) => {
-                 console.error("Error fetching initial messages from Realtime Database:", error);
+                 console.error(`[${userName}] Error fetching initial messages from Realtime Database:`, error); // Log
              });
         }
 
         // --- Lógica para Configurar Listeners en Tiempo Real (Realtime Database) ---
         function setupRealtimeListeners() {
-            console.log("setupRealtimeListeners function called.");
+            console.log(`[${userName}] setupRealtimeListeners function called.`); // Log
 
              // Escuchar en tiempo real los mensajes nuevos desde Realtime Database
              // Este listener solo se adjunta UNA VEZ
              messagesRef.on('child_added', (data) => {
                  const newMessage = data.val();
                  const messageId = data.key; // Obtener el ID único del mensaje
-                 console.log(`[${userName}] child_added event:`, newMessage, "ID:", messageId); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] child_added event:`, newMessage, "ID:", messageId, `Initial load complete: ${initialLoadComplete}`); // Log
 
                  // Solo mostrar el mensaje si no es parte de la carga inicial
                  // La bandera initialLoadComplete ayuda a diferenciar
@@ -1290,18 +1388,18 @@
                  } else {
                      // Si aún no ha terminado la carga inicial, no hacemos nada con este evento
                      // porque ya se mostrará en loadInitialMessages
-                     console.log(`[${userName}] Ignoring child_added event during initial load.`); // Debugging log con nombre de usuario
+                     console.log(`[${userName}] Ignoring child_added event during initial load for message ${messageId}.`); // Log
                  }
 
              }, (error) => {
-                 console.error(`[${userName}] Error in realtime listener for messages (child_added):`, error); // Debugging log con nombre de usuario
+                 console.error(`[${userName}] Error in realtime listener for messages (child_added):`, error); // Log
              });
 
              // Listener para actualizar el estado de los mensajes (para doble check)
              messagesRef.on('child_changed', (data) => {
                  const changedMessage = data.val();
                  const messageId = data.key;
-                 console.log(`[${userName}] child_changed event: Message ${messageId} changed to:`, changedMessage); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] child_changed event: Message ${messageId} changed to:`, changedMessage); // Log
 
                  // Si el mensaje cambiado es del usuario actual y su estado es 'read', actualizar la UI
                  if (changedMessage.name === userName && changedMessage.status === 'read') {
@@ -1321,18 +1419,19 @@
                              checkmarksSpan.textContent = '✓✓'; // Doble checkmark Unicode
                              // Añadir los checkmarks al final del message-footer
                              messageFooter.appendChild(checkmarksSpan);
-                             console.log(`[${userName}] Updated message ${messageId} to double check.`); // Debugging log con nombre de usuario
+                             console.log(`[${userName}] Updated message ${messageId} to double check.`); // Log
                          }
                      }
                  }
              }, (error) => {
-                 console.error(`[${userName}] Error in realtime listener for message changes (child_changed):`, error); // Debugging log con nombre de usuario
+                 console.error(`[${userName}] Error in realtime listener for message changes (child_changed):`, error); // Log
              });
         }
 
 
         // --- Configurar Intersection Observer ---
         function setupMessageObserver() {
+             console.log(`[${userName}] setupMessageObserver function called.`); // Log
             const options = {
                 root: chatBox, // Observar dentro del chatBox
                 rootMargin: '0px',
@@ -1345,31 +1444,34 @@
                     if (entry.isIntersecting && entry.target.classList.contains('received')) {
                         const messageElement = entry.target;
                         const messageId = messageElement.dataset.messageId;
+                        console.log(`[${userName}] Message ${messageId} is intersecting.`); // Log
+
                         // Obtener el estado actual del mensaje de la base de datos para evitar escrituras innecesarias
                         messagesRef.child(messageId).once('value', (snapshot) => {
                             const messageData = snapshot.val();
                             // Mark as read only if the status is not already 'read'
                             if (messageData && messageData.status !== 'read') {
-                                console.log(`[${userName}] Message ${messageId} is now visible. Marking as read.`);
+                                console.log(`[${userName}] Message ${messageId} is now visible. Marking as read.`); // Log
                                 messagesRef.child(messageId).update({ status: 'read' })
-                                    .then(() => console.log(`[${userName}] Message ${messageId} marked as read successfully via Observer.`))
-                                    .catch(error => console.error(`[${userName}] Error marking message ${messageId} as read via Observer:`, error));
+                                    .then(() => console.log(`[${userName}] Message ${messageId} marked as read successfully via Observer.`)) // Log
+                                    .catch(error => console.error(`[${userName}] Error marking message ${messageId} as read via Observer:`, error)); // Log
                             } else {
-                                console.log(`[${userName}] Message ${messageId} is visible but already read or not found.`);
+                                console.log(`[${userName}] Message ${messageId} is visible but already read or not found.`); // Log
                             }
                         });
                         // Dejar de observar este mensaje una vez que se marca como leído
                         observer.unobserve(messageElement);
+                         console.log(`[${userName}] Unobserving message ${messageId}.`); // Log
                     }
                 });
             }, options);
-             console.log(`[${userName}] Intersection Observer configured.`);
+             console.log(`[${userName}] Intersection Observer configured.`); // Log
         }
 
 
         // Función para mostrar un mensaje en el DOM
         function displayMessage(msg, messageId) {
-            console.log(`[${userName}] Displaying message:`, msg, "ID:", messageId); // Debugging log con nombre de usuario
+            console.log(`[${userName}] Displaying message:`, msg, "ID:", messageId); // Log
 
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
@@ -1381,7 +1483,7 @@
                  console.log(`[${userName}] Message ${messageId} is SENT. Initial status: ${msg.status}`); // Log initial status for sent message
             } else {
                 messageElement.classList.add('received');
-                 console.log(`[${userName}] Message ${messageId} is RECEIVED from ${msg.name}.`); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] Message ${messageId} is RECEIVED from ${msg.name}.`); // Log
                 // La lógica para marcar como leído ahora está en el Intersection Observer
             }
 
@@ -1403,7 +1505,7 @@
             const textSpan = document.createElement('span');
             textSpan.classList.add('text');
             textSpan.textContent = msg.text;
-            console.log(`[${userName}] textSpan created for message ${messageId}. Content: "${textSpan.textContent}"`); // Debugging log: contenido del texto
+            console.log(`[${userName}] textSpan created for message ${messageId}. Content: "${textSpan.textContent}"`); // Log: contenido del texto
 
             // --- Aplicar estilos inline para asegurar visibilidad y color ---
             // Estos estilos inline tienen alta prioridad y deberían forzar la visibilidad y color.
@@ -1414,7 +1516,7 @@
             } else {
                 textSpan.style.color = '#1c1c1e'; // Color oscuro para mensajes recibidos
             }
-            console.log(`[${userName}] textSpan for message ${messageId} inline styles applied -> Color: ${textSpan.style.color}, Visibility: ${textSpan.style.visibility}, Display: ${textSpan.style.display}`); // Log inline styles
+            // console.log(`[${userName}] textSpan for message ${messageId} inline styles applied -> Color: ${textSpan.style.color}, Visibility: ${textSpan.style.visibility}, Display: ${textSpan.style.display}`); // Log inline styles
 
 
             const timestampSpan = document.createElement('span');
@@ -1458,12 +1560,12 @@
                 iframe.setAttribute('allowfullscreen', ''); // Permitir pantalla completa
                 iframe.setAttribute('loading', 'lazy'); // Carga diferida
                 contentElement = iframe;
-                console.log(`[${userName}] YouTube video detected for message ${messageId}. Video ID: ${videoId}`);
+                console.log(`[${userName}] YouTube video detected for message ${messageId}. Video ID: ${videoId}`); // Log
             } else {
                 // 2. Intentar detectar Facebook Video (regex mejorada, pero puede no ser exhaustiva)
                 const facebookUrlMatch = msg.text ? msg.text.match(/(?:https?:\/\/)?(?:www\.)?(?:facebook\.com)\/(?:watch\/)?(?:v=)?(?:videos\/)?([0-9]+)(?:\/)?/) : null;
                  if (facebookUrlMatch && facebookUrlMatch[1]) {
-                     const videoId = facebookUrlUrlMatch[1];
+                     const videoId = facebookUrlMatch[1];
                      const iframe = document.createElement('iframe');
                      // URL de incrustación básica de Facebook (puede requerir ajustes dependiendo de la configuración)
                      iframe.src = `https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D${videoId}&show_text=0&width=560`;
@@ -1473,7 +1575,7 @@
                      iframe.setAttribute('frameborder', '0');
                      iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
                      contentElement = iframe;
-                     console.log(`[${userName}] Facebook video detected for message ${messageId}. Video ID: ${videoId}`);
+                     console.log(`[${userName}] Facebook video detected for message ${messageId}. Video ID: ${videoId}`); // Log
                  } else {
                      // 3. Intentar detectar enlaces directos a archivos de video
                      const videoFileMatch = msg.text ? msg.text.match(/(https?:\/\/[^\s]+\.(mp4|webm|ogg))/) : null;
@@ -1484,7 +1586,7 @@
                          videoElement.setAttribute('controls', ''); // Mostrar controles de video
                          videoElement.setAttribute('preload', 'metadata'); // Cargar metadatos primero
                          contentElement = videoElement;
-                         console.log(`[${userName}] Direct video file detected for message ${messageId}. URL: ${videoUrl}`);
+                         console.log(`[${userName}] Direct video file detected for message ${messageId}. URL: ${videoUrl}`); // Log
                      } else {
                          // 4. Si no es un video soportado, mostrar el texto del mensaje con enlaces clicables
                          // Detectar URLs generales en el texto y convertirlas en enlaces clicables
@@ -1492,7 +1594,7 @@
                          const textWithLinks = msg.text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
                          textSpan.innerHTML = textWithLinks; // Usar innerHTML para renderizar el enlace
                          contentElement = textSpan; // El texto con enlaces es el contenido principal
-                         console.log(`[${userName}] No supported video detected for message ${messageId}. Displaying text with links.`);
+                         console.log(`[${userName}] No supported video detected for message ${messageId}. Displaying text with links.`); // Log
                      }
                  }
             }
@@ -1503,27 +1605,29 @@
                 videoPreviewContainer.classList.add('video-preview-container');
                 videoPreviewContainer.appendChild(contentElement);
                 messageElement.appendChild(videoPreviewContainer); // Añadir el contenedor de previsualización al messageElement
+                console.log(`[${userName}] Added video preview container for message ${messageId}.`); // Log
 
                 // Después de añadir la previsualización, añadir el texto original si no es solo la URL
                  if (msg.text && !youtubeUrlMatch && !facebookUrlMatch && !videoFileMatch) {
                      // Si el mensaje contenía texto además de la URL, añadir el textSpan original (ahora con enlaces clicables)
                      messageElement.appendChild(textSpan);
-                     console.log(`[${userName}] Adding original textSpan after video preview for message ${messageId}.`);
+                     console.log(`[${userName}] Adding original textSpan after video preview for message ${messageId}.`); // Log
                  } else if (msg.text && (youtubeUrlMatch || facebookUrlMatch || videoFileMatch)) {
                      // Si el mensaje es solo la URL del video, no es necesario añadir el textSpan de nuevo
-                     console.log(`[${userName}] Message is only a video URL, not adding textSpan again for message ${messageId}.`);
+                     console.log(`[${userName}] Message is only a video URL, not adding textSpan again for message ${messageId}.`); // Log
                  }
 
 
             } else if (contentElement && contentElement.classList.contains('text')) {
                  // Si el contenido principal es el textSpan (con enlaces clicables)
                  messageElement.appendChild(contentElement); // Añadir el textSpan (que ya tiene el contenido)
-                 console.log(`[${userName}] Adding textSpan as main content for message ${messageId}.`);
+                 console.log(`[${userName}] Adding textSpan as main content for message ${messageId}.`); // Log
             }
 
 
             // --- Añadir hora y checkmarks al footer ---
             messageFooter.appendChild(timestampSpan); // Añadir la hora
+            console.log(`[${userName}] Timestamp appended to messageFooter for message ${messageId}.`); // Log
 
             // Añadir checkmarks si es un mensaje enviado por el usuario actual
             if (msg.name === userName) {
@@ -1532,9 +1636,9 @@
                  // Mostrar un check simple si el estado es 'sent', doble si es 'read'
                  checkmarksSpan.textContent = msg.status === 'read' ? '✓✓' : '✓'; // Unicode checkmarks
                  messageFooter.appendChild(checkmarksSpan); // Añadir los checkmarks al footer
-                 console.log(`[${userName}] Displaying checkmarks for SENT message ${messageId}: ${checkmarksSpan.textContent}, based on status "${msg.status}"`); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] Displaying checkmarks for SENT message ${messageId}: ${checkmarksSpan.textContent}, based on status "${msg.status}"`); // Log
             } else {
-                 console.log(`[${userName}] Not displaying checkmarks for RECEIVED message ${messageId}.`); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] Not displaying checkmarks for RECEIVED message ${messageId}.`); // Log
             }
 
             messageElement.appendChild(messageFooter); // Asegurarse de que el footer se añade al messageElement
@@ -1542,7 +1646,7 @@
 
             chatBox.appendChild(messageElement);
             console.log(`[${userName}] messageElement appended to chatBox for message ${messageId}.`); // Log after appending messageElement
-            console.log(`[${userName}] chatBox after appending message ${messageId}:`, chatBox.innerHTML); // Log chatBox content
+            // console.log(`[${userName}] chatBox after appending message ${messageId}:`, chatBox.innerHTML); // Log chatBox content
 
 
             // Después de añadir el messageElement al DOM, podemos obtener los estilos computados del textSpan
@@ -1551,20 +1655,20 @@
                  // Verificar si textSpan existe antes de intentar obtener estilos computados
                  if (textSpan && textSpan.parentElement) { // Asegurarse de que textSpan está en el DOM
                      const computedStyle = window.getComputedStyle(textSpan);
-                     console.log(`[${userName}] textSpan for message ${messageId} computed style -> Color: ${computedStyle.color}, Visibility: ${computedStyle.visibility}, Display: ${computedStyle.display}`);
+                     console.log(`[${userName}] textSpan for message ${messageId} computed style -> Color: ${computedStyle.color}, Visibility: ${computedStyle.visibility}, Display: ${computedStyle.display}`); // Log
                  } else {
-                     console.log(`[${userName}] textSpan not found in DOM for message ${messageId}. Skipping computed style log.`);
+                     console.log(`[${userName}] textSpan not found in DOM for message ${messageId}. Skipping computed style log.`); // Log
                  }
 
 
                  // Verificar también el estilo computado del messageFooter
                  const computedFooterStyle = window.getComputedStyle(messageFooter);
-                 console.log(`[${userName}] messageFooter for message ${messageId} computed style -> Display: ${computedFooterStyle.display}, Visibility: ${computedFooterStyle.visibility}, Opacity: ${computedFooterStyle.opacity}`);
+                 console.log(`[${userName}] messageFooter for message ${messageId} computed style -> Display: ${computedFooterStyle.display}, Visibility: ${computedFooterStyle.visibility}, Opacity: ${computedFooterStyle.opacity}`); // Log
 
                  // Observar el mensaje si es un mensaje recibido
                  if (messageElement.classList.contains('received')) {
                      messageObserver.observe(messageElement);
-                     console.log(`[${userName}] Observing received message ${messageId} with Intersection Observer.`);
+                     console.log(`[${userName}] Observing received message ${messageId} with Intersection Observer.`); // Log
                  }
 
 
@@ -1578,6 +1682,7 @@
 
              // Añadir listener de clic para responder
              messageElement.addEventListener('click', () => {
+                 console.log(`[${userName}] Message ${messageId} clicked. Attempting to start reply.`); // Log
                  // Crear un objeto con los datos necesarios para la respuesta
                  const messageDataForReply = {
                      id: messageId,
@@ -1591,19 +1696,25 @@
 
         // Función para reproducir el sonido de notificación
         function playNotificationSound() {
+             console.log(`[${userName}] Attempting to play notification sound. Audio unlocked: ${audioUnlocked}. Ready state: ${notificationSound ? notificationSound.readyState : 'N/A'}`); // Log
              if (notificationSound && audioUnlocked) { // Solo reproducir si el audio está desbloqueado
                  notificationSound.currentTime = 0; // Reiniciar el sonido si ya se está reproduciendo
-                 notificationSound.play().catch(error => {
-                     console.error("Error al reproducir el sonido:", error);
+                 notificationSound.play().then(() => {
+                     console.log(`[${userName}] Notification sound played successfully.`); // Log
+                 }).catch(error => {
+                     console.error(`[${userName}] Error al reproducir el sonido:`, error); // Log
                      // Esto a menudo ocurre si el navegador bloquea el autoplay
                  });
              } else if (!audioUnlocked) {
-                 console.log("Audio not unlocked yet. Cannot play sound.");
+                 console.log(`[${userName}] Audio not unlocked yet. Cannot play sound.`); // Log
+             } else {
+                 console.log(`[${userName}] Notification sound element not found or not ready.`); // Log
              }
         }
 
         // Función para intentar desbloquear el audio con una interacción del usuario
         function unlockAudio() {
+             console.log(`[${userName}] unlockAudio function called.`); // Log
             if (notificationSound && notificationSound.readyState >= 2 && !audioUnlocked) { // readyState 2 means enough data is available
                 notificationSound.volume = 0; // Set volume to 0
                 const playPromise = notificationSound.play();
@@ -1614,25 +1725,25 @@
                         notificationSound.pause(); // Pause immediately
                         notificationSound.volume = 1; // Restore volume
                         audioUnlocked = true; // Mark audio as unlocked
-                        console.log("Audio unlocked successfully.");
+                        console.log(`[${userName}] Audio unlocked successfully.`); // Log
                         // Remove this listener after first interaction
                         document.removeEventListener('click', unlockAudio);
                         document.removeEventListener('touchstart', unlockAudio);
                         sendButton.removeEventListener('click', unlockAudio); // Remove from send button too
                     }).catch(error => {
                         // Playback failed, likely due to user interaction requirement
-                        console.error("Audio unlock failed:", error);
+                        console.error(`[${userName}] Audio unlock failed:`, error); // Log
                         audioUnlocked = false; // Keep audio locked
                     });
                 }
             } else if (audioUnlocked) {
-                 console.log("Audio already unlocked.");
+                 console.log(`[${userName}] Audio already unlocked.`); // Log
                  // Remove listeners if already unlocked
                  document.removeEventListener('click', unlockAudio);
                  document.removeEventListener('touchstart', unlockAudio);
                  sendButton.removeEventListener('click', unlockAudio); // Remove from send button too
             } else {
-                 console.log("Notification sound not ready or not found.");
+                 console.log(`[${userName}] Notification sound not ready or not found.`); // Log
             }
         }
 
@@ -1640,6 +1751,7 @@
         // --- Lógica para Limpiar Chat con Clave (Realtime Database) ---
         // El listener ahora está asociado al botón dentro del dropdown
         clearChatButton.addEventListener('click', () => {
+             console.log(`[${userName}] Clear chat button clicked.`); // Log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1648,25 +1760,26 @@
 
             // Verificar la clave
             if (enteredPassword === CLEAR_CHAT_PASSWORD) {
+                 console.log(`[${userName}] Correct password entered. Attempting to clear chat.`); // Log
                 // Si la clave es correcta, eliminar el nodo 'messages' de Realtime Database
                 messagesRef.remove()
                     .then(() => {
-                        console.log("Chat limpiado exitosamente en Realtime Database!");
+                        console.log(`[${userName}] Chat limpiado exitosamente en Realtime Database!`); // Log
                         // La UI se actualizará automáticamente gracias al listener on 'child_added'
                     })
                     .catch((error) => {
-                        console.error("Error al limpiar el chat en Realtime Database:", error);
+                        console.error(`[${userName}] Error al limpiar el chat en Realtime Database:`, error); // Log
                         // Mostrar mensaje de error al usuario
                     });
             } else {
-                // Si la clave es incorrecta
-                console.log("Clave incorrecta. El chat no fue limpiado.");
+                console.log(`[${userName}] Incorrect password entered. Chat not cleared.`); // Log
                 // Mostrar mensaje de clave incorrecta al usuario
             }
         });
 
         // --- Lógica para Cambiar Nombre ---
         changeNameButton.addEventListener('click', () => {
+             console.log(`[${userName}] Change name button clicked.`); // Log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1674,13 +1787,13 @@
             if (newName && newName.trim() !== '' && newName.trim() !== userName) {
                 userName = newName.trim();
                 localStorage.setItem('chatName', userName);
-                console.log(`Nombre cambiado a: ${userName}`);
+                console.log(`[${userName}] Nombre cambiado a: ${userName}`); // Log
                 // Recargar la página para actualizar la interfaz y la presencia
                 location.reload();
             } else if (newName && newName.trim() === userName) {
-                console.log("El nuevo nombre es el mismo que el actual.");
+                console.log(`[${userName}] The new name is the same as the current one.`); // Log
             } else {
-                console.log("Cambio de nombre cancelado o nombre inválido.");
+                console.log(`[${userName}] Name change cancelled or invalid name.`); // Log
             }
         });
 
@@ -1698,6 +1811,7 @@
 
             // Añadir listener para insertar el emoji en el input
             emojiSpan.addEventListener('click', () => {
+                console.log(`[${userName}] Emoji clicked: ${emoji}`); // Log
                 insertEmoji(emoji);
                 // Opcional: Ocultar el selector después de seleccionar un emoji
                 // emojiPicker.style.display = 'none';
@@ -1706,6 +1820,7 @@
 
         // Función para insertar emoji en el textarea en la posición del cursor
         function insertEmoji(emoji) {
+             console.log(`[${userName}] insertEmoji function called with: ${emoji}`); // Log
             const textarea = messageInput;
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -1726,6 +1841,7 @@
 
         // Listener para el botón de emoji para mostrar/ocultar el selector
         emojiButton.addEventListener('click', (event) => {
+            console.log(`[${userName}] Emoji button clicked.`); // Log
             // Prevenir que el clic en el botón cierre el selector inmediatamente
             event.stopPropagation();
              // Ocultar el dropdown de settings si está visible
@@ -1733,12 +1849,14 @@
 
             if (emojiPicker.style.display === 'flex') {
                 emojiPicker.style.display = 'none';
+                console.log(`[${userName}] Emoji picker hidden.`); // Log
             } else {
                 // Posicionar el selector justo encima de la barra de input
                 // bottom del selector = altura del área de input + padding/margen
                 const inputAreaHeight = bottomFixedArea.offsetHeight; // Usar la altura del contenedor fijo
                 emojiPicker.style.bottom = `${inputAreaHeight + 10}px`; // 10px de margen
                 emojiPicker.style.display = 'flex';
+                console.log(`[${userName}] Emoji picker shown.`); // Log
             }
         });
 
@@ -1759,18 +1877,29 @@
 
         // Función para ajustar el padding inferior del chatBox
         function adjustChatBoxPadding() {
+            console.log(`[${userName}] adjustChatBoxPadding function called.`); // Log
             // Usar un pequeño retraso para asegurar que el DOM esté renderizado y las alturas sean correctas
             setTimeout(() => {
                  // Usar la altura del nuevo contenedor fijo
                  const bottomAreaHeight = bottomFixedArea.offsetHeight;
-                 // Añadir un buffer más grande para asegurar espacio suficiente
-                 // Puedes ajustar este valor (80) para aumentar o disminuir el espacio inferior
-                 const newPaddingBottom = bottomAreaHeight + 80; // <--- Aquí puedes modificar el valor del buffer
+                 let newPaddingBottom;
+
+                 if (window.matchMedia("(min-width: 769px)").matches) {
+                     // Para PC, establecemos un padding basado en la altura del área inferior fija
+                     // Ajustado el buffer a 20px, puede requerir ajuste fino
+                     newPaddingBottom = bottomAreaHeight + 20;
+                 } else {
+                     // Para móvil, mantenemos la lógica original o ajustamos según necesidad
+                     // Añadido un buffer más grande para asegurar espacio suficiente en móvil
+                     newPaddingBottom = bottomAreaHeight + 80; // Buffer original para móvil
+                 }
+
                  chatBox.style.paddingBottom = `${newPaddingBottom}px`;
-                 console.log(`[${userName}] Adjusted paddingBottom of chatBox to ${chatBox.style.paddingBottom}`); // Debugging log con nombre de usuario
-                 console.log(`[${userName}] bottomFixedArea.offsetHeight: ${bottomAreaHeight}`); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] Adjusted paddingBottom of chatBox to ${chatBox.style.paddingBottom}`); // Log
+                 console.log(`[${userName}] bottomFixedArea.offsetHeight: ${bottomAreaHeight}`); // Log
                  // Intentar scrollear al final después de ajustar el padding
                  chatBox.scrollTop = chatBox.scrollHeight;
+                 console.log(`[${userName}] Scrolled chatBox to bottom.`); // Log
             }, 300); // Aumentar el retraso a 300ms
         }
 
@@ -1780,11 +1909,12 @@
 
         // Listener para el evento 'focus' en el input de mensaje
         messageInput.addEventListener('focus', () => {
+             console.log(`[${userName}] messageInput focused.`); // Log
              // Intentar scrollear la caja de chat al final cuando el input recibe foco
              // Esto ayuda a asegurar que la barra de input sea visible
              setTimeout(() => {
                  chatBox.scrollTop = chatBox.scrollHeight;
-                 console.log(`[${userName}] Input enfocado, scrolleando chatBox al final con retraso.`); // Debugging log con nombre de usuario
+                 console.log(`[${userName}] Input enfocado, scrolleando chatBox al final con retraso.`); // Log
              }, 150); // Retraso para dar tiempo al layout a ajustarse
         });
 
@@ -1793,6 +1923,13 @@
 
         // Función para iniciar el modo de respuesta
         function startReply(messageData) {
+            console.log(`[${userName}] startReply function called with:`, messageData); // Log
+            // Verificar si messageData es válido antes de proceder
+            if (!messageData || !messageData.id || !messageData.name) {
+                 console.warn(`[${userName}] Invalid message data provided to startReply. Aborting.`); // Log
+                 return; // Abortar si los datos no son válidos
+            }
+
             replyingToMessage = messageData; // Almacenar los datos del mensaje
             replyNameSpan.textContent = messageData.name + ':';
             // Mostrar un fragmento del texto o indicar que es un archivo
@@ -1802,16 +1939,19 @@
             messageInput.focus(); // Poner el foco en el campo de mensaje
             // Ajustar padding después de mostrar la vista previa
             adjustChatBoxPadding();
+            console.log(`[${userName}] Reply preview shown for message ID: ${messageData.id}`); // Log
         }
 
         // Función para cancelar el modo de respuesta
         function cancelReply() {
+             console.log(`[${userName}] cancelReply function called.`); // Log
             replyingToMessage = null; // Limpiar la referencia al mensaje
             replyPreview.style.display = 'none'; // Ocultar la vista previa
             replyNameSpan.textContent = '';
             replyTextSpan.textContent = '';
             // Ajustar padding después de ocultar la vista previa
             adjustChatBoxPadding();
+             console.log(`[${userName}] Reply preview hidden.`); // Log
         }
 
         // Listener para el botón de cancelar respuesta
@@ -1822,6 +1962,7 @@
 
         // Listener para el botón de configuración para mostrar/ocultar el dropdown
         settingsButton.addEventListener('click', (event) => {
+            console.log(`[${userName}] Settings button clicked.`); // Log
             // Prevenir que el clic en el botón cierre el dropdown inmediatamente
             event.stopPropagation();
              // Ocultar el selector de emojis si está visible
@@ -1829,6 +1970,7 @@
 
             if (settingsDropdown.style.display === 'flex') {
                 settingsDropdown.style.display = 'none';
+                console.log(`[${userName}] Settings dropdown hidden.`); // Log
             } else {
                 // Posicionar el dropdown justo debajo y a la derecha del botón de settings
                 // Esto se maneja principalmente con CSS position: absolute y top/right
@@ -1837,6 +1979,7 @@
                 // const settingsButtonRect = settingsButton.getBoundingClientRect();
                 // settingsDropdown.style.top = `${settingsButtonRect.bottom + 5}px`; // 5px debajo del botón
                 // settingsDropdown.style.right = `${window.innerWidth - settingsButtonRect.right}px`; // Alinear a la derecha del botón
+                console.log(`[${userName}] Settings dropdown shown.`); // Log
             }
         });
 
@@ -1844,27 +1987,28 @@
         // --- Lógica de Presencia (Usuarios en Línea) ---
         function setupPresence() {
              if (!userName) return;
+             console.log(`[${userName}] setupPresence function called.`); // Log
 
              const userPresenceRef = presenceRef.child(userName);
 
              // Establecer la presencia a true cuando el usuario se conecta
              userPresenceRef.set(true);
-             console.log(`[${userName}] Presence set to true.`);
+             console.log(`[${userName}] Presence set to true.`); // Log
 
              // Eliminar la presencia cuando el usuario se desconecta inesperadamente
              userPresenceRef.onDisconnect().remove()
-                 .then(() => console.log(`[${userName}] onDisconnect configured to remove presence.`))
-                 .catch(error => console.error(`[${userName}] Error configuring onDisconnect:`, error));
+                 .then(() => console.log(`[${userName}] onDisconnect configured to remove presence.`)) // Log
+                 .catch(error => console.error(`[${userName}] Error configuring onDisconnect:`, error)); // Log
 
 
              // Establecer la presencia a false cuando el usuario abandona la página (cierra pestaña, navega)
              window.addEventListener('beforeunload', () => {
-                 console.log(`[${userName}] beforeunload event detected. Setting presence to false.`);
+                 console.log(`[${userName}] beforeunload event detected. Setting presence to false.`); // Log
                  userPresenceRef.set(false); // Establecer a false explícitamente
              });
 
              window.addEventListener('unload', () => {
-                 console.log(`[${userName}] unload event detected. Setting presence to false.`);
+                 console.log(`[${userName}] unload event detected. Setting presence to false.`); // Log
                  userPresenceRef.set(false); // Establecer a false explícitamente
              });
 
@@ -1889,9 +2033,9 @@
                  } else {
                      onlineUsersDiv.textContent = 'Nadie más en línea';
                  }
-                 console.log(`[${userName}] Online users updated: ${onlineUsersDiv.textContent}. Raw data:`, onlineUsers);
+                 console.log(`[${userName}] Online users updated: ${onlineUsersDiv.textContent}. Raw data:`, onlineUsers); // Log
              }, (error) => {
-                 console.error(`[${userName}] Error in presence listener:`, error);
+                 console.error(`[${userName}] Error in presence listener:`, error); // Log
              });
         }
 
@@ -1900,22 +2044,27 @@
         const savedName = localStorage.getItem('chatName');
         if (savedName) {
             nameInput.value = savedName; // Rellenar el campo de nombre
+            console.log(`[${userName}] Found saved name in localStorage: ${savedName}`); // Log
             // No llamar a startChatButton.click() aquí, initializeChat se llama en window.onload
         }
 
         // Ajustes iniciales al cargar la página
         window.onload = function() {
+             console.log(`[${userName}] window.onload triggered.`); // Log
              // Si hay un nombre guardado, inicializar el chat
              if (localStorage.getItem('chatName')) {
                  userName = localStorage.getItem('chatName');
                  namePrompt.style.display = 'none'; // Ocultar la sección de nombre
                  chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
                  initializeChat(); // Inicializar la carga de mensajes y listeners
+             } else {
+                 console.log(`[${userName}] No saved name found. Showing name prompt.`); // Log
              }
              // Ajustar el padding inferior del chatBox al cargar
              adjustChatBoxPadding();
 
              // Add initial click/touch listeners to unlock audio
+             // Using { once: true } ensures these listeners are removed after the first interaction
              document.addEventListener('click', unlockAudio, { once: true });
              document.addEventListener('touchstart', unlockAudio, { once: true });
              sendButton.addEventListener('click', unlockAudio, { once: true }); // Also try on send button click
