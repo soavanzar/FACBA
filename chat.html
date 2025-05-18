@@ -1055,7 +1055,7 @@
              </div>
     </div>
 
-    <audio id="notification-sound" src="sonido_mensaje.mp3" preload="auto"></audio>
+    <audio id="notification-sound" src="https://soavanzar.github.io/FACBA/sonido_mensaje.mp3" preload="auto"></audio>
 
     <div id="device-detection-message"></div>
 
@@ -1079,7 +1079,7 @@
 
         let userName = ''; // Variable para almacenar el nombre del usuario
         let typingTimeout; // Para manejar el indicador de escribiendo
-        let initialLoadComplete = false; // Bandera para saber si la carga inicial de mensajes ha terminado
+        // Eliminada la bandera initialLoadComplete ya que no es necesaria con el nuevo enfoque de carga
         let audioUnlocked = false; // Bandera para rastrear si el audio se ha desbloqueado
 
 
@@ -1149,7 +1149,7 @@
         function initializeChat() {
              console.log(`[${userName}] initializeChat function called.`); // Log
              setupMessageObserver(); // Configurar el Intersection Observer
-             loadInitialMessages(); // Cargar mensajes existentes una vez
+             // Eliminada la llamada a loadInitialMessages
              setupRealtimeListeners(); // Configurar listeners en tiempo real una vez
              setupTypingIndicator(); // Configurar el indicador de escribiendo
              setupPresence(); // Configurar la presencia del usuario
@@ -1335,61 +1335,39 @@
 
 
         // --- Lógica para Cargar Mensajes Iniciales (Realtime Database) ---
-        function loadInitialMessages() {
-             console.log(`[${userName}] loadInitialMessages function called.`); // Log
-
-             // Cargar mensajes existentes una vez al inicio
-             messagesRef.once('value', (snapshot) => {
-                 console.log(`[${userName}] Initial message load from Realtime Database complete.`); // Log
-                 const messages = snapshot.val();
-                 if (messages) {
-                     // Convertir objeto de mensajes a array y ordenar por timestamp
-                     const messageList = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
-                     messageList.sort((a, b) => a.timestamp - b.timestamp);
-
-                     // Limpiar el chatbox antes de cargar los mensajes existentes
-                     chatBox.innerHTML = '';
-                     console.log(`[${userName}] chatBox cleared for initial load.`); // Log
-
-                     messageList.forEach((msg) => {
-                         displayMessage(msg, msg.id); // Pasar el ID a displayMessage
-                     });
-                 } else {
-                     console.log(`[${userName}] No initial messages found in Realtime Database.`); // Log
-                 }
-                 chatBox.scrollTop = chatBox.scrollHeight; // Scroll al final
-                 initialLoadComplete = true; // Marcar la carga inicial como completa
-                 console.log(`[${userName}] Initial load complete. initialLoadComplete = ${initialLoadComplete}`); // Log
-             }, (error) => {
-                 console.error(`[${userName}] Error fetching initial messages from Realtime Database:`, error); // Log
-             });
-        }
+        // Eliminada la función loadInitialMessages
 
         // --- Lógica para Configurar Listeners en Tiempo Real (Realtime Database) ---
         function setupRealtimeListeners() {
             console.log(`[${userName}] setupRealtimeListeners function called.`); // Log
+            // Limpiar el chatbox antes de adjuntar el listener para evitar duplicados en recargas
+             chatBox.innerHTML = '';
+             console.log(`[${userName}] chatBox cleared before attaching realtime listener.`); // Log
+
 
              // Escuchar en tiempo real los mensajes nuevos desde Realtime Database
-             // Este listener solo se adjunta UNA VEZ
+             // Este listener se adjunta UNA VEZ y maneja la carga inicial y los mensajes nuevos
              messagesRef.on('child_added', (data) => {
                  const newMessage = data.val();
                  const messageId = data.key; // Obtener el ID único del mensaje
-                 console.log(`[${userName}] child_added event:`, newMessage, "ID:", messageId, `Initial load complete: ${initialLoadComplete}`); // Log
+                 console.log(`[${userName}] child_added event:`, newMessage, "ID:", messageId); // Log
 
-                 // Solo mostrar el mensaje si no es parte de la carga inicial
-                 // La bandera initialLoadComplete ayuda a diferenciar
-                 if (initialLoadComplete) {
-                    displayMessage(newMessage, messageId); // Mostrar el nuevo mensaje
-                    // Reproducir sonido si el mensaje no es del usuario actual
-                     if (newMessage.name !== userName) {
-                         playNotificationSound();
-                     }
-                    chatBox.scrollTop = chatBox.scrollHeight; // Scroll al final
-                 } else {
-                     // Si aún no ha terminado la carga inicial, no hacemos nada con este evento
-                     // porque ya se mostrará en loadInitialMessages
-                     console.log(`[${userName}] Ignoring child_added event during initial load for message ${messageId}.`); // Log
+                 // Mostrar el nuevo mensaje
+                 displayMessage(newMessage, messageId); // Mostrar el nuevo mensaje
+
+                 // Reproducir sonido si el mensaje no es del usuario actual
+                 if (newMessage.name !== userName) {
+                     playNotificationSound();
                  }
+                 // Scrollear al final solo si el usuario está cerca del final o si es el propio mensaje
+                 const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100; // Umbral de 100px
+                 if (isNearBottom || newMessage.name === userName) {
+                      chatBox.scrollTop = chatBox.scrollHeight; // Scroll al final
+                      console.log(`[${userName}] Scrolled to bottom after adding message ${messageId}.`); // Log
+                 } else {
+                      console.log(`[${userName}] Not scrolling to bottom for message ${messageId} (user not near bottom).`); // Log
+                 }
+
 
              }, (error) => {
                  console.error(`[${userName}] Error in realtime listener for messages (child_added):`, error); // Log
@@ -1437,6 +1415,12 @@
                 rootMargin: '0px',
                 threshold: 0.5 // El mensaje se considera visible si al menos el 50% está en el viewport
             };
+
+            // Si ya existe un observer, desconéctalo antes de crear uno nuevo
+            if (messageObserver) {
+                messageObserver.disconnect();
+                console.log(`[${userName}] Existing Intersection Observer disconnected.`); // Log
+            }
 
             messageObserver = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
@@ -1556,7 +1540,7 @@
             if (youtubeUrlMatch && youtubeUrlMatch[1]) {
                 const videoId = youtubeUrlMatch[1];
                 const iframe = document.createElement('iframe');
-                iframe.src = `https://www.youtube.com/embed/${videoId}`; // URL de incrustación estándar de YouTube
+                iframe.src = `http://www.youtube.com/embed/${videoId}`; // URL de incrustación estándar de YouTube
                 iframe.setAttribute('allowfullscreen', ''); // Permitir pantalla completa
                 iframe.setAttribute('loading', 'lazy'); // Carga diferida
                 contentElement = iframe;
@@ -1676,28 +1660,45 @@
 
 
              // Reproducir sonido solo para mensajes entrantes que no sean del usuario actual
-             if (initialLoadComplete && msg.name !== userName) {
+             // Eliminado el check initialLoadComplete ya que ahora child_added maneja todo
+             if (msg.name !== userName) {
                  playNotificationSound();
              }
 
-             // Añadir listener de clic para responder
-             messageElement.addEventListener('click', () => {
-                 console.log(`[${userName}] Message ${messageId} clicked. Attempting to start reply.`); // Log
-                 // Crear un objeto con los datos necesarios para la respuesta
-                 const messageDataForReply = {
-                     id: messageId,
-                     name: msg.name,
-                     text: msg.text || '', // Usar texto si existe, vacío si es archivo
-                     // Puedes añadir más propiedades si quieres referenciar archivos en el futuro
-                 };
-                 startReply(messageDataForReply);
-             });
+             // Añadir listener de clic para responder con un pequeño retraso
+             // Esto ayuda a evitar clics accidentales al cargar y ajustar el layout
+             setTimeout(() => {
+                 messageElement.addEventListener('click', (event) => { // Pasar el evento
+                     console.log(`[${userName}] Message ${messageId} clicked. Event trusted: ${event.isTrusted}. Attempting to start reply.`); // Log con isTrusted
+                     // Verificar si el evento es confiable (generado por el usuario)
+                     if (event.isTrusted) {
+                         // Crear un objeto con los datos necesarios para la respuesta
+                         const messageDataForReply = {
+                             id: messageId,
+                             name: msg.name,
+                             text: msg.text || '', // Usar texto si existe, vacío si es archivo
+                             // Puedes añadir más propiedades si quieres referenciar archivos en el futuro
+                         };
+                         startReply(messageDataForReply);
+                     } else {
+                          console.log(`[${userName}] Click event for message ${messageId} is not trusted. Ignoring.`); // Log si no es confiable
+                     }
+                 });
+                 console.log(`[${userName}] Reply click listener attached to message ${messageId} with delay.`); // Log
+             }, 300); // Retraso aumentado a 300ms
+
         }
 
         // Función para reproducir el sonido de notificación
         function playNotificationSound() {
              console.log(`[${userName}] Attempting to play notification sound. Audio unlocked: ${audioUnlocked}. Ready state: ${notificationSound ? notificationSound.readyState : 'N/A'}`); // Log
-             if (notificationSound && audioUnlocked) { // Solo reproducir si el audio está desbloqueado
+             // Verificar si el elemento de audio existe antes de intentar reproducir
+             if (!notificationSound) {
+                 console.warn(`[${userName}] Notification sound element not found.`); // Log
+                 return;
+             }
+
+             if (audioUnlocked) { // Solo reproducir si el audio está desbloqueado
                  notificationSound.currentTime = 0; // Reiniciar el sonido si ya se está reproduciendo
                  notificationSound.play().then(() => {
                      console.log(`[${userName}] Notification sound played successfully.`); // Log
@@ -1705,17 +1706,25 @@
                      console.error(`[${userName}] Error al reproducir el sonido:`, error); // Log
                      // Esto a menudo ocurre si el navegador bloquea el autoplay
                  });
-             } else if (!audioUnlocked) {
-                 console.log(`[${userName}] Audio not unlocked yet. Cannot play sound.`); // Log
              } else {
-                 console.log(`[${userName}] Notification sound element not found or not ready.`); // Log
+                 console.log(`[${userName}] Audio not unlocked yet. Cannot play sound.`); // Log
              }
         }
 
         // Función para intentar desbloquear el audio con una interacción del usuario
         function unlockAudio() {
              console.log(`[${userName}] unlockAudio function called.`); // Log
-            if (notificationSound && notificationSound.readyState >= 2 && !audioUnlocked) { // readyState 2 means enough data is available
+             // Verificar si el elemento de audio existe antes de intentar desbloquear
+             if (!notificationSound) {
+                 console.warn(`[${userName}] Notification sound element not found. Cannot unlock audio.`); // Log
+                 // Remove listeners if sound element is not found
+                 document.removeEventListener('click', unlockAudio);
+                 document.removeEventListener('touchstart', unlockAudio);
+                 sendButton.removeEventListener('click', unlockAudio);
+                 return;
+             }
+
+            if (notificationSound.readyState >= 2 && !audioUnlocked) { // readyState 2 means enough data is available
                 notificationSound.volume = 0; // Set volume to 0
                 const playPromise = notificationSound.play();
 
@@ -1743,7 +1752,7 @@
                  document.removeEventListener('touchstart', unlockAudio);
                  sendButton.removeEventListener('click', unlockAudio); // Remove from send button too
             } else {
-                 console.log(`[${userName}] Notification sound not ready or not found.`); // Log
+                 console.log(`[${userName}] Notification sound not ready.`); // Log
             }
         }
 
@@ -1898,8 +1907,8 @@
                  console.log(`[${userName}] Adjusted paddingBottom of chatBox to ${chatBox.style.paddingBottom}`); // Log
                  console.log(`[${userName}] bottomFixedArea.offsetHeight: ${bottomAreaHeight}`); // Log
                  // Intentar scrollear al final después de ajustar el padding
-                 chatBox.scrollTop = chatBox.scrollHeight;
-                 console.log(`[${userName}] Scrolled chatBox to bottom.`); // Log
+                 // chatBox.scrollTop = chatBox.scrollHeight; // Eliminado el scroll automático aquí para evitar conflictos
+                 // console.log(`[${userName}] Scrolled chatBox to bottom.`); // Log
             }, 300); // Aumentar el retraso a 300ms
         }
 
