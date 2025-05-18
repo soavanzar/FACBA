@@ -230,6 +230,10 @@
         .action-cell {
             text-align: center; /* Centra el contenido en la celda de acciones */
             position: relative; /* Necesario para posicionar los botones de acción */
+            /* Asegurar que la tuerca esté visible por defecto */
+            display: flex; /* Usar flexbox para alinear la tuerca */
+            justify-content: center; /* Centrar la tuerca */
+            align-items: center; /* Alinear la tuerca verticalmente */
         }
 
         .action-cell .action-buttons-container {
@@ -311,6 +315,7 @@
              color: #6b7280; /* Color gris */
              cursor: pointer;
              transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+             display: inline-block; /* Asegurar que la tuerca se muestre por defecto */
          }
 
          .gear-icon:hover {
@@ -917,6 +922,7 @@
          /* Aplicar estilos de action-button a los botones específicos */
          .generate-invoice-button.action-button {
              background-color: #10b981; /* Verde */
+             color: white; /* Texto blanco */
          }
          .generate-invoice-button.action-button:hover {
              background-color: #059669; /* Verde más oscuro */
@@ -924,6 +930,7 @@
 
          .save-invoice-button.action-button {
              background-color: #10b981; /* Verde */
+             color: white; /* Texto blanco */
          }
          .save-invoice-button.action-button:hover {
              background-color: #059669; /* Verde más oscuro */
@@ -931,6 +938,7 @@
 
          .view-invoices-button.action-button {
              background-color: #6366f1; /* Indigo */
+             color: white; /* Texto blanco */
          }
          .view-invoices-button.action-button:hover {
              background-color: #4f46e5; /* Indigo más oscuro */
@@ -938,6 +946,7 @@
 
          .generate-pdf-button.action-button {
              background-color: #ef4444; /* Rojo */
+             color: white; /* Texto blanco */
          }
          .generate-pdf-button.action-button:hover {
              background-color: #dc2626; /* Rojo más oscuro */
@@ -949,6 +958,8 @@
          {
              flex-direction: column; /* Apilar elementos en cada item de factura */
              align-items: flex-start; /* Alinear a la izquierda */
+             position: relative; /* Necesario para posicionar la tuerca/botones */
+             padding-right: 40px; /* Espacio para la tuerca/botones */
          }
 
          #invoice-history-list li .invoice-summary,
@@ -958,13 +969,31 @@
              margin-bottom: 10px; /* Espacio debajo del resumen */
          }
 
+         /* Contenedor de acciones dentro de los items de historial de factura */
          #invoice-history-list li .invoice-actions,
          #full-invoice-history-list li .invoice-actions /* NUEVO */
          {
-             width: 100%; /* Ocupar todo el ancho */
-             display: flex;
-             justify-content: flex-end; /* Alinear botones a la derecha */
-             gap: 8px; /* Espacio entre botones */
+             display: none; /* Oculto por defecto */
+             position: absolute; /* Posicionamiento absoluto */
+             top: 50%; /* Centrar verticalmente */
+             right: 5px; /* Posicionar a la derecha */
+             transform: translateY(-50%); /* Ajustar para centrado exacto */
+             background-color: #ffffff; /* Fondo blanco */
+             padding: 5px; /* Espaciado interno */
+             border-radius: 6px; /* Bordes redondeados */
+             box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Sombra */
+             z-index: 10; /* Asegura que esté por encima del contenido de la lista */
+             white-space: nowrap; /* Evita que los botones se rompan */
+             gap: 5px; /* Espacio entre botones */
+             align-items: center; /* Centra los botones verticalmente */
+         }
+
+         #invoice-history-list li .invoice-actions.show,
+         #full-invoice-history-list li .invoice-actions.show /* NUEVO */
+         {
+             display: flex; /* Mostrar cuando tiene la clase 'show' */
+             opacity: 1; /* Asegurar opacidad 1 */
+             visibility: visible; /* Asegurar visibilidad */
          }
 
          #invoice-history-list li .invoice-actions button,
@@ -973,6 +1002,29 @@
              padding: 5px 10px;
              font-size: 0.85rem;
          }
+
+         /* Icono de tuerca dentro de los items de historial de factura */
+         #invoice-history-list li .gear-icon,
+         #full-invoice-history-list li .gear-icon /* NUEVO */
+         {
+             position: absolute; /* Posicionamiento absoluto */
+             top: 50%; /* Centrar verticalmente */
+             right: 10px; /* Posicionar a la derecha */
+             transform: translateY(-50%); /* Ajustar para centrado exacto */
+             font-size: 1.2rem; /* Tamaño del icono */
+             color: #6b7280; /* Color gris */
+             cursor: pointer;
+             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+             z-index: 11; /* Asegura que esté por encima del contenedor de acciones (cuando está oculto) */
+         }
+
+         #invoice-history-list li .gear-icon:hover,
+         #full-invoice-history-list li .gear-icon:hover /* NUEVO */
+         {
+             color: #1f2937; /* Gris más oscuro al pasar el ratón */
+             transform: translateY(-50%) rotate(90deg); /* Rotar al pasar el ratón */
+         }
+
 
          /* NUEVOS ESTILOS: Botones de acción en listas de historial */
          .history-item-actions {
@@ -1004,7 +1056,7 @@
               background-color: #f87171; /* Rojo */
          }
          .history-item-actions .delete-payment-button:hover,
-         .history-item-actions .delete-invoice-button:hover {
+         .history-item-actions .delete-invoice-button:hover { /* CORRECCIÓN: Aplicar hover a delete-invoice-button */
               background-color: #ef4444; /* Rojo más oscuro */
          }
 
@@ -1020,6 +1072,11 @@
          }
          .history-item-actions .generate-invoice-pdf-button:hover {
              background-color: #dc2626; /* Rojo más oscuro */
+         }
+
+         /* CORRECCIÓN: Asegurar opacidad 1 en hover para los action buttons en historial */
+         .history-item-actions .action-button:hover {
+             opacity: 1; /* Asegurar que los botones no se vuelvan transparentes al pasar el ratón */
          }
 
 
@@ -1067,6 +1124,7 @@
               #full-invoice-history-list li {
                   flex-direction: column; /* Apilar */
                   align-items: flex-start; /* Alinear a la izquierda */
+                   padding-right: 15px; /* Reducir padding derecho en móvil */
               }
                #invoice-history-list li .invoice-summary,
                #full-invoice-history-list li .invoice-summary {
@@ -1074,10 +1132,31 @@
                }
               #invoice-history-list li .invoice-actions,
               #full-invoice-history-list li .invoice-actions {
+                   position: static; /* Posicionamiento estático en móvil */
+                   transform: none; /* Eliminar transformación */
                    width: 100%; /* Ocupa todo el ancho */
                    justify-content: flex-end; /* Alinear botones a la derecha */
                    margin-top: 10px; /* Espacio encima de los botones */
+                   background-color: transparent; /* Fondo transparente */
+                   box-shadow: none; /* Sin sombra */
+                   padding: 0; /* Sin padding */
               }
+               #invoice-history-list li .gear-icon,
+               #full-invoice-history-list li .gear-icon {
+                    position: static; /* Posicionamiento estático en móvil */
+                    transform: none; /* Eliminar transformación */
+                    margin-left: auto; /* Empujar a la derecha */
+                    margin-top: 10px; /* Espacio encima */
+               }
+               #invoice-history-list li .invoice-actions.show + .gear-icon,
+               #full-invoice-history-list li .invoice-actions.show + .gear-icon {
+                    display: none; /* Ocultar tuerca cuando botones se muestran en móvil */
+               }
+               #invoice-history-list li .invoice-actions:not(.show),
+               #full-invoice-history-list li .invoice-actions:not(.show) {
+                    display: none; /* Ocultar botones por defecto en móvil */
+               }
+
 
          }
 
@@ -1471,7 +1550,7 @@
                     <input type="date" id="billing-end-date" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="generate-invoice-button action-button save-changes-button" id="generate-invoice-button">Generar Factura</button>
+                    <button type="button" class="generate-invoice-button action-button" id="generate-invoice-button">Generar Factura</button>
                 </div>
             </form>
 
@@ -1480,8 +1559,8 @@
                  <div id="generated-invoice-details">
                      </div>
                  <div class="billing-buttons">
-                     <button type="button" class="save-invoice-button action-button save-changes-button" id="save-invoice-button">Guardar Factura</button>
-                     <button type="button" class="generate-pdf-button action-button delete-button" id="generate-generated-pdf-button"><i class="fas fa-file-pdf"></i> Generar PDF (Actual)</button>
+                      <button type="button" class="save-invoice-button action-button" id="save-invoice-button" style="display: none;">Guardar Factura</button>
+                     <button type="button" class="generate-pdf-button action-button" id="generate-generated-pdf-button" style="display: none;"><i class="fas fa-file-pdf"></i> Generar PDF (Actual)</button>
                      </div>
             </div>
 
@@ -2151,12 +2230,12 @@
                 <td data-label="CCF">${ccfIcon}</td>
                 <td class="action-cell" data-label="Acciones">
                     <div class="action-buttons-container">
-                        <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-button edit-button" data-id="${userDoc.id}" title="Editar"><i class="fas fa-edit"></i> Editar</button>
+                        <button class="action-button delete-button" data-id="${userDoc.id}" title="Eliminar"><i class="fas fa-trash-alt"></i> Eliminar</button>
                         <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
-                             <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
+                             <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i> ${estado === 'activo' ? 'Retirar' : 'Activar'}
                         </button>
-                         <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-dollar-sign"></i></button> <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice"></i></button> </div>
+                         <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-dollar-sign"></i> Pago</button> <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice"></i> Factura</button> </div>
                     <i class="fas fa-cog gear-icon" data-id="${userDoc.id}" title="Mostrar Acciones"></i>
                 </td>
             `;
@@ -2522,6 +2601,10 @@
              const isActionButton = e.target.closest('.action-button');
              const isGearIcon = e.target.closest('.gear-icon');
              const isStatusIcon = e.target.closest('.status-icon'); // Also check for status icons
+             const isClickInsideInvoiceListItem = e.target.closest('#invoice-history-list li, #full-invoice-history-list li'); // Check if click is inside an invoice list item
+             const isClickInsideInvoiceActions = e.target.closest('.invoice-actions'); // Check if click is inside invoice actions container
+             const isClickInsideInvoiceGear = e.target.closest('#invoice-history-list li .gear-icon, #full-invoice-history-list li .gear-icon'); // Check if click is on invoice gear icon
+
 
              // If the click was not inside an action cell, or if it was on an action button/gear/status icon
              // within an action cell, we don't hide the buttons for that specific cell.
@@ -2540,6 +2623,22 @@
                       }
                  });
              }
+
+             // Also hide invoice action buttons if the click is outside an invoice list item or within its actions/gear
+             if (!isClickInsideInvoiceListItem || isClickInsideInvoiceActions || isClickInsideInvoiceGear) {
+                 document.querySelectorAll('#invoice-history-list li .invoice-actions.show, #full-invoice-history-list li .invoice-actions.show').forEach(container => {
+                      const parentListItem = container.closest('li');
+                      // Hide only if the click was NOT on the gear icon of *this* list item
+                      if (!isClickInsideInvoiceGear || (isClickInsideInvoiceGear && parentListItem !== isClickInsideInvoiceListItem)) {
+                           container.classList.remove('show');
+                           // Show the corresponding gear icon
+                           if (parentListItem) {
+                                parentListItem.querySelector('.gear-icon').style.display = 'inline-block';
+                           }
+                      }
+                 });
+             }
+
              // If the click was on the gear icon, the logic to show/hide was already handled in the userTableBody listener
              // If the click was on a status icon, the tooltip message was handled, no action buttons to hide here.
          });
@@ -4112,8 +4211,17 @@
                  return;
              }
 
-             const startDate = new Date(startDateString + 'T00:00:00Z');
-             const endDate = new Date(endDateString + 'T23:59:59Z'); // Incluir todo el día de fin
+             // CORRECCIÓN: Manejo de fechas para evitar desfase de un día
+             // Parsear las fechas como fechas locales para asegurar que el día seleccionado se mantenga
+             const startDateParts = startDateString.split('-');
+             const startDate = new Date(parseInt(startDateParts[0]), parseInt(startDateParts[1]) - 1, parseInt(startDateParts[2])); // Year, Month (0-indexed), Day
+
+             const endDateParts = endDateString.split('-');
+             const endDate = new Date(parseInt(endDateParts[0]), parseInt(endDateParts[1]) - 1, parseInt(endDateParts[2])); // Year, Month (0-indexed), Day
+
+             // Ajustar la hora de fin para incluir todo el día
+             endDate.setHours(23, 59, 59, 999);
+
 
              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                  showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
@@ -4154,8 +4262,8 @@
                  // necesitarías implementar esa lógica aquí, posiblemente consultando otros datos.
                  const valorFacturado = userData.valorAPagar || 0; // Usamos el valor a pagar del usuario como base
 
-                 // Formatear fechas para mostrar en la factura
-                 const formattedStartDate = formatDate(startDate);
+                 // Formatear fechas para mostrar en la factura (usando las fechas locales creadas)
+                 const formattedStartDate = formatDate(startDate); // formatDate funciona bien con Date objects
                  const formattedEndDate = formatDate(endDate);
 
 
@@ -4229,14 +4337,20 @@
              const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO'; // Usar el código encontrado o un placeholder
 
 
-             const startDate = new Date(startDateString + 'T00:00:00Z');
-             const endDate = new Date(endDateString + 'T23:59:59Z');
+             // CORRECCIÓN: Guardar fechas como Timestamps a partir de las fechas locales creadas
+             const startDateParts = startDateString.split('-');
+             const startDate = new Date(parseInt(startDateParts[0]), parseInt(startDateParts[1]) - 1, parseInt(startDateParts[2])); // Year, Month (0-indexed), Day
+
+             const endDateParts = endDateString.split('-');
+             const endDate = new Date(parseInt(endDateParts[0]), parseInt(endDateParts[1]) - 1, parseInt(endDateParts[2])); // Year, Month (0-indexed), Day
+             endDate.setHours(23, 59, 59, 999); // Ajustar hora de fin
+
 
              const newInvoice = {
                  userId: userId,
                  codigo: invoiceCode, // Guardar el código único
                  fechaInicio: firebase.firestore.Timestamp.fromDate(startDate), // Guardar fechas como Timestamp
-                 fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                 fechaFin: firebase.firestore.Timestamp.fromDate(endDate), // Guardar fechas como Timestamp
                  detalles: invoiceDetails, // Guardar los detalles completos como texto
                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
              };
@@ -4268,7 +4382,7 @@
         viewAllInvoicesButton.addEventListener('click', () => {
              const userId = billingUserIdInput.value;
              if (userId) {
-                 hideBillingModal(); // Ocultar el modal de facturación
+                 hideBillingModal(); // Ocultar el modal de agregar pago
                  showInvoiceHistoryModal(userId); // Mostrar el modal de historial completo
              }
         });
@@ -4338,6 +4452,7 @@
                              <button class="action-button edit-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Factura"><i class="fas fa-edit"></i></button>
                               <button class="action-button delete-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
                              </div>
+                         <i class="fas fa-cog gear-icon" data-id="${doc.id}" data-user-id="${userId}" title="Mostrar Acciones"></i>
                      `;
                      listElement.appendChild(listItem);
                  });
@@ -4355,33 +4470,69 @@
          document.querySelectorAll('#invoice-history-list, #full-invoice-history-list').forEach(list => {
               list.addEventListener('click', async (e) => {
                    const target = e.target;
-                   const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
-                   const userId = target.dataset.userId || target.closest('li')?.dataset.userId; // Get userId from listItem
+                   const invoiceId = target.dataset.id || target.closest('button')?.dataset.id || target.closest('.gear-icon')?.dataset.id; // Get ID from button or gear icon
+                   const userId = target.dataset.userId || target.closest('li')?.dataset.userId || target.closest('.gear-icon')?.dataset.userId; // Get userId from list item or gear icon
 
                    if (!invoiceId || !userId) return;
 
-                   if (target.classList.contains('view-invoice-details-button')) {
-                        // Acción: Ver Detalles de Factura
-                        console.log("Ver Detalles de Factura clickeado:", invoiceId);
-                        await viewInvoiceDetails(invoiceId); // Reusing the existing view function
+                   const listItem = target.closest('li');
+                   const invoiceActionsContainer = listItem ? listItem.querySelector('.invoice-actions') : null;
+                   const gearIcon = listItem ? listItem.querySelector('.gear-icon') : null;
 
-                   } else if (target.classList.contains('generate-invoice-pdf-button')) {
-                        // Acción: Generar PDF de Factura
-                        console.log("Generar PDF de Factura clickeado:", invoiceId);
-                        await generateInvoicePdf(invoiceId);
 
-                   } else if (target.classList.contains('edit-invoice-button')) {
-                       // NUEVO: Acción Editar Factura
-                       console.log("Editar Factura clickeado:", invoiceId);
-                       await loadInvoiceDataForEdit(invoiceId, userId);
-                       showEditInvoiceModal();
+                   if (target.classList.contains('gear-icon')) {
+                        // Acción de mostrar/ocultar botones al hacer clic en la tuerca
+                        console.log("Gear icon clicked for invoice:", invoiceId);
+                        // Ocultar todos los contenedores de acciones de factura abiertos
+                        document.querySelectorAll('#invoice-history-list li .invoice-actions.show, #full-invoice-history-list li .invoice-actions.show').forEach(container => {
+                             container.classList.remove('show');
+                             // Mostrar la tuerca correspondiente
+                             const parentItem = container.closest('li');
+                             if (parentItem) {
+                                  parentItem.querySelector('.gear-icon').style.display = 'inline-block';
+                             }
+                        });
 
-                   } else if (target.classList.contains('delete-invoice-button')) {
-                       // NUEVO: Acción Eliminar Factura
-                       console.log("Eliminar Factura clickeado:", invoiceId);
-                       if (confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
-                           deleteInvoice(invoiceId, userId);
-                       }
+                        // Mostrar el contenedor de acciones para este item de factura
+                        if (invoiceActionsContainer && gearIcon) {
+                             invoiceActionsContainer.classList.add('show');
+                             gearIcon.style.display = 'none'; // Ocultar la tuerca
+                        }
+
+                   } else if (target.closest('.action-button')) {
+                        // Es un botón de acción dentro del historial de facturas
+                        const actionButton = target.closest('.action-button');
+
+                        // Ocultar los botones de acción después de la acción
+                        if (invoiceActionsContainer && gearIcon) {
+                             invoiceActionsContainer.classList.remove('show');
+                             gearIcon.style.display = 'inline-block'; // Mostrar la tuerca de nuevo
+                        }
+
+
+                        if (actionButton.classList.contains('view-invoice-details-button')) {
+                             // Acción: Ver Detalles de Factura
+                             console.log("Ver Detalles de Factura clickeado:", invoiceId);
+                             await viewInvoiceDetails(invoiceId); // Reusing the existing view function
+
+                        } else if (actionButton.classList.contains('generate-invoice-pdf-button')) {
+                             // Acción: Generar PDF de Factura
+                             console.log("Generar PDF de Factura clickeado:", invoiceId);
+                             await generateInvoicePdf(invoiceId);
+
+                        } else if (actionButton.classList.contains('edit-invoice-button')) {
+                            // NUEVO: Acción Editar Factura
+                            console.log("Editar Factura clickeado:", invoiceId);
+                            await loadInvoiceDataForEdit(invoiceId, userId);
+                            showEditInvoiceModal();
+
+                        } else if (actionButton.classList.contains('delete-invoice-button')) {
+                            // NUEVO: Acción Eliminar Factura
+                            console.log("Eliminar Factura clickeado:", invoiceId);
+                            if (confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+                                deleteInvoice(invoiceId, userId);
+                            }
+                        }
                    }
               });
          });
@@ -4424,17 +4575,166 @@
                  const { jsPDF } = window.jspdf;
                  const doc = new jsPDF();
 
-                 // Añadir contenido al PDF
+                 // --- INICIO: Generación de PDF Moderno ---
+                 const primaryColor = '#4f46e5'; // Indigo 600
+                 const secondaryColor = '#eef2ff'; // Indigo 100
+                 const textColor = '#1f2937'; // Gray 800
+                 const accentColor = '#10b981'; // Green 500
+
+                 const margin = 15;
+                 let y = margin;
+                 const pageWidth = doc.internal.pageSize.getWidth();
+
+                 // Header
+                 doc.setFillColor(primaryColor);
+                 doc.rect(0, 0, pageWidth, 20, 'F'); // Colored header band
                  doc.setFontSize(18);
-                 doc.text("Factura FACBA", 10, 10);
+                 doc.setTextColor(255); // White text
+                 doc.text("Factura FACBA", margin, 13);
+
+                 y = 30; // Start content below header
+
+                 // Invoice Info
+                 doc.setFontSize(12);
+                 doc.setTextColor(textColor);
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Código de Factura:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${invoiceData.codigo || 'N/A'}`, margin + 45, y);
+                 y += 7;
+
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Fecha de Generación:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${formatDateTime(invoiceData.createdAt)}`, margin + 45, y);
+                 y += 7;
+
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Período Facturado:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${formatDate(invoiceData.fechaInicio)} al ${formatDate(invoiceData.fechaFin)}`, margin + 45, y);
+                 y += 15;
+
+                 // User Data Section
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Datos del Usuario", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor); // Line under section title
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
 
                  doc.setFontSize(12);
-                 // Dividir el texto de detalles en líneas para el PDF
-                 // Check if invoiceData.detalles exists and is a string
-                 const detailsText = typeof invoiceData.detalles === 'string' ? invoiceData.detalles : 'No hay detalles disponibles.';
-                 const detailsLines = doc.splitTextToSize(detailsText, 180); // 180mm width
+                 doc.setFont(undefined, 'normal');
+                 // Extract user data from the details text (less reliable, consider fetching user data directly if needed)
+                 const nombreMatch = invoiceData.detalles.match(/Nombre: (.+)/);
+                 const identificacionMatch = invoiceData.detalles.match(/Identificación: (.+)/);
+                 const estadoMatch = invoiceData.detalles.match(/Estado: (.+)/);
 
-                 doc.text(detailsLines, 10, 20); // Add the details text
+                 doc.text(`Nombre: ${nombreMatch ? nombreMatch[1].trim() : 'Sin Nombre'}`, margin, y);
+                 y += 7;
+                 doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'}`, margin, y);
+                 y += 7;
+                 doc.text(`Estado: ${estadoMatch ? estadoMatch[1].trim() : 'N/A'}`, margin, y);
+                 y += 15;
+
+                 // Associated Entities Section
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Datos de Entidades Asociadas", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor);
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
+
+                 doc.setFontSize(12);
+                 doc.setFont(undefined, 'normal');
+                 // Extract entity data from the details text
+                 const empresaMatch = invoiceData.detalles.match(/Empresa: (.+)/);
+                 const asesorMatch = invoiceData.detalles.match(/Asesor: (.+)/);
+                 const arlMatch = invoiceData.detalles.match(/ARL: (.+)/);
+                 const epsMatch = invoiceData.detalles.match(/EPS: (.+)/);
+                 const ccfMatch = invoiceData.detalles.match(/CCF: (.+)/);
+                 const afpMatch = invoiceData.detalles.match(/AFP: (.+)/);
+
+
+                 doc.text(`Empresa: ${empresaMatch ? empresaMatch[1].trim() : 'Desconocida'}`, margin, y);
+                 y += 7;
+                 doc.text(`Asesor: ${asesorMatch ? asesorMatch[1].trim() : 'Desconocido'}`, margin, y);
+                 y += 7;
+                 doc.text(`ARL: ${arlMatch ? arlMatch[1].trim() : 'Desconocida'}`, margin, y); // Use extracted ARL info
+                 y += 7;
+                 doc.text(`EPS: ${epsMatch ? epsMatch[1].trim() : 'Desconocida'}`, margin, y);
+                 y += 7;
+                 doc.text(`CCF: ${ccfMatch ? ccfMatch[1].trim() : 'Desconocida'}`, margin, y);
+                 y += 7;
+                 doc.text(`AFP: ${afpMatch ? afpMatch[1].trim() : 'Desconocida'}`, margin, y);
+                 y += 15;
+
+                 // Service Details Section (Using autoTable for a cleaner look)
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Detalle del Servicio", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor);
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
+
+                 // Extract service details from the text
+                 const valorBaseMatch = invoiceData.detalles.match(/Valor Base \(según usuario\): (.+)/);
+                 const ibcMatch = invoiceData.detalles.match(/IBC \(según usuario\): (.+)/);
+
+                 const tableData = [
+                     ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                 ];
+
+                 // Add table using autoTable plugin
+                 doc.autoTable({
+                     startY: y,
+                     head: [['Descripción', 'Valor Base', 'IBC']],
+                     body: tableData,
+                     theme: 'striped', // Use a striped theme
+                     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                     bodyStyles: { textColor: textColor },
+                     margin: { left: margin, right: margin },
+                     didDrawPage: function(data) {
+                         // Footer (optional)
+                         let pageHeight = doc.internal.pageSize.getHeight();
+                         doc.setFontSize(10);
+                         doc.setTextColor(150);
+                         doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                     }
+                 });
+
+                 y = doc.autoTable.previous.finalY + 15; // Update y position after the table
+
+                 // Total Section
+                 doc.setFontSize(16);
+                 doc.setFont(undefined, 'bold');
+                 doc.setTextColor(accentColor); // Green color for total
+                 const totalMatch = invoiceData.detalles.match(/TOTAL A PAGAR: (.+)/);
+                 const totalText = totalMatch ? `TOTAL A PAGAR: ${totalMatch[1].trim()}` : 'TOTAL A PAGAR: N/A';
+
+                 const totalTextWidth = doc.getTextWidth(totalText);
+                 const totalX = pageWidth - margin - totalTextWidth;
+
+                 doc.text(totalText, totalX, y);
+                 y += 10;
+                 doc.setDrawColor(accentColor);
+                 doc.setLineWidth(0.5);
+                 doc.line(totalX, y, pageWidth - margin, y); // Line under total
+
+                 // Footer (Company Info - Example)
+                 y = doc.internal.pageSize.getHeight() - 20; // Position near bottom
+                 doc.setFontSize(10);
+                 doc.setTextColor(textColor);
+                 doc.setFont(undefined, 'normal');
+                 doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y); // Updated text
+                 doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5); // Updated text
+
+
+                 // --- FIN: Generación de PDF Moderno ---
+
 
                  // Guardar el PDF
                  doc.save(`factura_${invoiceData.codigo || invoiceId}.pdf`);
@@ -4448,12 +4748,13 @@
          }
 
          // NUEVA Función para generar PDF de la factura GENERADA (la que se ve en el modal de facturación)
-         generateGeneratedPdfButton.addEventListener('click', () => {
+         generateGeneratedPdfButton.addEventListener('click', async () => {
              showStatusMessage('Generando PDF de la factura actual...', 'info');
              const invoiceDetailsText = generatedInvoiceDetails.textContent;
+             const userId = billingUserIdInput.value; // Need userId to get user data for PDF
 
-             if (!invoiceDetailsText || invoiceDetailsText.includes('Error al generar factura')) {
-                 showStatusMessage('No hay una factura actual válida para generar PDF.', 'error');
+             if (!invoiceDetailsText || invoiceDetailsText.includes('Error al generar factura') || !userId) {
+                 showStatusMessage('No hay una factura actual válida o datos de usuario para generar PDF.', 'error');
                  return;
              }
 
@@ -4461,18 +4762,176 @@
                  const { jsPDF } = window.jspdf;
                  const doc = new jsPDF();
 
+                 // Obtener datos actualizados del usuario para el PDF moderno
+                 const userDoc = await usersCollection.doc(userId).get();
+                 if (!userDoc.exists) {
+                     showStatusMessage('Error: Datos del usuario no encontrados para generar PDF.', 'error');
+                     return;
+                 }
+                 const userData = userDoc.data();
+
+                 // Extraer información del texto generado para el PDF moderno
+                 const invoiceCodeMatch = invoiceDetailsText.match(/Código de Factura: (.+)/);
+                 const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO';
+                 const fechaGeneracionMatch = invoiceDetailsText.match(/Fecha de Generación: (.+)/);
+                 const fechaGeneracion = fechaGeneracionMatch ? fechaGeneracionMatch[1].trim() : 'N/A';
+                 const periodoFacturadoMatch = invoiceDetailsText.match(/Período Facturado: (.+)/);
+                 const periodoFacturado = periodoFacturadoMatch ? periodoFacturadoMatch[1].trim() : 'N/A';
+
+                 const empresaNombre = empresasMap.get(userData.empresaId) || 'Desconocida';
+                 const asesorNombre = asesoresMap.get(userData.asesorId) || 'Desconocido';
+                 const arlNombreMatch = invoiceDetailsText.match(/ARL: (.+)/);
+                 const arlInfo = arlNombreMatch ? arlNombreMatch[1].trim() : 'Desconocida'; // Get full ARL line
+                 const epsNombre = epsMap.get(userData.epsId) || 'Desconocida';
+                 const ccfNombre = ccfMap.get(userData.ccfId) || 'Desconocida';
+                 const afpNombre = afpMap.get(userData.afpId) || 'Desconocida';
+
+                 const valorBaseMatch = invoiceDetailsText.match(/Valor Base \(según usuario\): (.+)/);
+                 const ibcMatch = invoiceDetailsText.match(/IBC \(según usuario\): (.+)/);
+                 const totalMatch = invoiceDetailsText.match(/TOTAL A PAGAR: (.+)/);
+
+
+                 // --- INICIO: Generación de PDF Moderno (Similar a la función de historial) ---
+                 const primaryColor = '#4f46e5'; // Indigo 600
+                 const secondaryColor = '#eef2ff'; // Indigo 100
+                 const textColor = '#1f2937'; // Gray 800
+                 const accentColor = '#10b981'; // Green 500
+
+                 const margin = 15;
+                 let y = margin;
+                 const pageWidth = doc.internal.pageSize.getWidth();
+
+                 // Header
+                 doc.setFillColor(primaryColor);
+                 doc.rect(0, 0, pageWidth, 20, 'F'); // Colored header band
                  doc.setFontSize(18);
-                 doc.text("Factura FACBA (Generada)", 10, 10);
+                 doc.setTextColor(255); // White text
+                 doc.text("Factura FACBA", margin, 13);
+
+                 y = 30; // Start content below header
+
+                 // Invoice Info
+                 doc.setFontSize(12);
+                 doc.setTextColor(textColor);
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Código de Factura:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${invoiceCode}`, margin + 45, y);
+                 y += 7;
+
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Fecha de Generación:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${fechaGeneracion}`, margin + 45, y);
+                 y += 7;
+
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`Período Facturado:`, margin, y);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`${periodoFacturado}`, margin + 45, y);
+                 y += 15;
+
+                 // User Data Section
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Datos del Usuario", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor); // Line under section title
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
 
                  doc.setFontSize(12);
-                 const detailsLines = doc.splitTextToSize(invoiceDetailsText, 180);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`Nombre: ${userData.nombre || 'Sin Nombre'}`, margin, y);
+                 y += 7;
+                 doc.text(`Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})`, margin, y);
+                 y += 7;
+                 doc.text(`Estado: ${userData.estado || 'N/A'}`, margin, y);
+                 y += 15;
 
-                 doc.text(detailsLines, 10, 20);
+                 // Associated Entities Section
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Datos de Entidades Asociadas", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor);
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
 
-                 // Extraer código para el nombre del archivo si es posible
-                 const invoiceCodeMatch = invoiceDetailsText.match(/Código de Factura: (.+)/);
-                 const filenameCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'generada';
+                 doc.setFontSize(12);
+                 doc.setFont(undefined, 'normal');
+                 doc.text(`Empresa: ${empresaNombre}`, margin, y);
+                 y += 7;
+                 doc.text(`Asesor: ${asesorNombre}`, margin, y);
+                 y += 7;
+                 doc.text(`ARL: ${arlInfo}`, margin, y); // Use extracted ARL info
+                 y += 7;
+                 doc.text(`EPS: ${epsNombre}`, margin, y);
+                 y += 7;
+                 doc.text(`CCF: ${ccfNombre}`, margin, y);
+                 y += 7;
+                 doc.text(`AFP: ${afpNombre}`, margin, y);
+                 y += 15;
 
+                 // Service Details Section (Using autoTable for a cleaner look)
+                 doc.setFontSize(14);
+                 doc.setFont(undefined, 'bold');
+                 doc.text("Detalle del Servicio", margin, y);
+                 y += 8;
+                 doc.setDrawColor(primaryColor);
+                 doc.line(margin, y, pageWidth - margin, y);
+                 y += 5;
+
+                 const tableData = [
+                     ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                 ];
+
+                 doc.autoTable({
+                     startY: y,
+                     head: [['Descripción', 'Valor Base', 'IBC']],
+                     body: tableData,
+                     theme: 'striped',
+                     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                     bodyStyles: { textColor: textColor },
+                     margin: { left: margin, right: margin },
+                     didDrawPage: function(data) {
+                         // Footer (optional)
+                         let pageHeight = doc.internal.pageSize.getHeight();
+                         doc.setFontSize(10);
+                         doc.setTextColor(150);
+                         doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                     }
+                 });
+
+                 y = doc.autoTable.previous.finalY + 15;
+
+                 // Total Section
+                 doc.setFontSize(16);
+                 doc.setFont(undefined, 'bold');
+                 doc.setTextColor(accentColor); // Green color for total
+                 const totalText = totalMatch ? `TOTAL A PAGAR: ${totalMatch[1].trim()}` : 'TOTAL A PAGAR: N/A';
+
+                 const totalTextWidth = doc.getTextWidth(totalText);
+                 const totalX = pageWidth - margin - totalTextWidth;
+
+                 doc.text(totalText, totalX, y);
+                 y += 10;
+                 doc.setDrawColor(accentColor);
+                 doc.setLineWidth(0.5);
+                 doc.line(totalX, y, pageWidth - margin, y); // Line under total
+
+                 // Footer (Company Info - Example)
+                 y = doc.internal.pageSize.getHeight() - 20; // Position near bottom
+                 doc.setFontSize(10);
+                 doc.setTextColor(textColor);
+                 doc.setFont(undefined, 'normal');
+                 doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y); // Updated text
+                 doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5); // Updated text
+
+                 // --- FIN: Generación de PDF Moderno ---
+
+
+                 const filenameCode = invoiceCode || 'generada';
                  doc.save(`factura_${filenameCode}.pdf`);
 
                  showStatusMessage('PDF generado con éxito!', 'success');
@@ -4549,18 +5008,25 @@
                   return;
               }
 
-              const startDate = new Date(startDateString + 'T00:00:00Z');
-              const endDate = new Date(endDateString + 'T23:59:59Z');
+              // CORRECCIÓN: Manejo de fechas para guardar en Firestore desde edición
+              const startDateParts = startDateString.split('-');
+              const startDate = new Date(parseInt(startDateParts[0]), parseInt(startDateParts[1]) - 1, parseInt(startDateParts[2])); // Year, Month (0-indexed), Day
+
+              const endDateParts = endDateString.split('-');
+              const endDate = new Date(parseInt(endDateParts[0]), parseInt(endDateParts[1]) - 1, parseInt(endDateParts[2])); // Year, Month (0-indexed), Day
+              endDate.setHours(23, 59, 59, 999); // Ajustar hora de fin
+
 
               if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                  showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
                  return;
              }
 
+
               const updatedData = {
                   codigo: invoiceCode,
-                  fechaInicio: firebase.firestore.Timestamp.fromDate(startDate),
-                  fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                  fechaInicio: firebase.firestore.Timestamp.fromDate(startDate), // Guardar como Timestamp
+                  fechaFin: firebase.firestore.Timestamp.fromDate(endDate), // Guardar como Timestamp
                   detalles: invoiceDetails,
                   updatedAt: firebase.firestore.FieldValue.serverTimestamp()
               };
