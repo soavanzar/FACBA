@@ -14,7 +14,7 @@
             overflow: hidden; /* Prevenir scroll del body */
             /* Establecer la fuente principal */
             font-family: 'Roboto', sans-serif; /* Usar Roboto, con sans-serif como fallback moderno */
-            background-color: #f0f2f5; /* Fondo gris claro para el body en PC */
+            background-color: #f0f2f5; /* Fondo gris claro para el body en PC por defecto */
         }
 
         /* Estilos generales y de contenedor (aplican por defecto a PC y pantallas grandes) */
@@ -82,165 +82,6 @@
         }
 
 
-        /* Media query para pantallas pequeñas (Android) */
-        @media (max-width: 768px) {
-            body {
-                padding: 0; /* Eliminar padding del body en móviles */
-                background-color: #ffffff; /* Fondo blanco en móviles */
-            }
-            #chat-container {
-                width: 100vw; /* Ocupar todo el ancho del viewport */
-                max-width: 100vw;
-                height: 100vh;
-                max-height: 100vh;
-                border-radius: 0; /* Eliminar bordes redondeados en pantalla completa */
-                 padding: 0; /* Eliminar padding del contenedor en móviles */
-                 margin: 0; /* Eliminar margen en móviles */
-                 /* Asegurar que name-prompt o chat-interface ocupen el espacio */
-                 justify-content: flex-start; /* Alinear contenido al inicio */
-                 align-items: stretch; /* Estirar elementos para ocupar el ancho */
-            }
-
-            #name-prompt {
-                padding: 20px 15px;
-                 /* Asegurar que name-prompt ocupe el espacio cuando es visible */
-                 flex-grow: 1;
-                 justify-content: center; /* Centrar contenido verticalmente */
-                 align-items: center; /* Centrar contenido horizontalmente */
-                 background-color: #e5e5ea; /* Gris claro en móviles */
-                 border-bottom: 1px solid #d1d1d6; /* Borde sutil en móviles */
-            }
-
-            #name-prompt h2 {
-                 font-size: 1.5em; /* Tamaño de título original en móviles */
-                 margin-bottom: 15px;
-            }
-
-            #name-prompt input,
-            #name-prompt button {
-                font-size: 1em; /* Ajustar tamaño de fuente */
-                padding: 10px 12px; /* Ajustar padding */
-            }
-
-             #name-prompt input[type="text"] { /* Especificar input de texto */
-                 margin-right: 5px;
-                 align-self: center; /* Centrar verticalmente */
-                 width: 80%; /* Ancho original en móviles */
-                 max-width: none; /* Sin ancho máximo específico en móviles */
-                 text-align: left; /* Alinear texto a la izquierda en móviles */
-             }
-
-             /* Contenedor fijo para el área de input y el indicador de escribiendo en móviles */
-             #bottom-fixed-area {
-                 position: fixed; /* Fixed en móviles */
-                 bottom: 0;
-                 left: 0;
-                 right: 0;
-                 max-width: 100vw;
-                 padding: 10px 15px; /* Ajustar padding para móviles */
-                 background-color: #f9f9f9; /* Fondo claro en móviles */
-                 border-top: 1px solid #eee; /* Borde superior en móviles */
-             }
-
-
-             .message-input-area {
-                 display: flex;
-                 gap: 5px;
-                 align-items: center; /* Centrar horizontalmente */
-                 flex-shrink: 0; /* Evita que el área de entrada se encoja */
-             }
-
-             .message-input-area .input-buttons {
-                 gap: 5px;
-                 align-items: center; /* Centrar verticalmente */
-                 flex-shrink: 0; /* Asegurar que no se encoja */
-             }
-
-             /* Ajuste para textarea en móviles */
-             .message-input-area textarea {
-                 font-size: 1em;
-                 padding: 8px 12px; /* Ajustar padding */
-                 min-height: 40px; /* Asegurar altura mínima */
-                 max-height: 100px; /* Ajustar altura máxima para móviles */
-                 flex-grow: 1;
-                 box-sizing: border-box;
-             }
-
-             .input-container {
-                 flex-direction: row; /* Alinear horizontalmente en móviles */
-                 align-items: flex-end; /* Alinear verticalmente los elementos al final (bottom) */
-                 gap: 5px;
-             }
-
-
-             #emoji-button, #send-button {
-                 width: 40px;
-                 height: 40px;
-                 padding: 0; /* Eliminar padding extra */
-                 flex-shrink: 0; /* Evitar que se reduzcan */
-                 align-self: center; /* Centrar verticalmente */
-             }
-              #send-button {
-                  width: auto; /* Permitir que el botón de enviar ajuste su ancho */
-                  padding: 10px 15px;
-              }
-
-
-              #emoji-button svg, #settings-button svg {
-                 width: 20px;
-                 height: 20px;
-             }
-
-             #settings-button {
-                 /* Ajuste de tamaño y posición para móviles */
-                 width: 40px;
-                 height: 40px;
-                 padding: 0;
-                 align-self: center;
-                 font-size: 1.5em; /* Tamaño para el emoji */
-                 /* Añadido para intentar centrar el emoji */
-                 line-height: 1;
-                 vertical-align: middle;
-             }
-
-             #settings-dropdown button { /* Aplicar a todos los botones dentro del dropdown */
-                 font-size: 0.9em;
-                 padding: 8px 12px;
-             }
-
-             .message {
-                 max-width: 90%; /* Permitir que los mensajes ocupen más ancho */
-             }
-
-             /* Ajuste del indicador de escribiendo en móviles */
-             #typing-indicator {
-                 /* align-self: flex-end; Eliminado */
-                 /* margin-bottom: 5px; Eliminado */
-                 padding: 0 5px; /* Ajustar padding lateral para móviles */
-                 text-align: right; /* Asegurar alineación derecha */
-                 margin-bottom: 5px; /* Añadir margen debajo del indicador */
-             }
-
-             /* Ajuste del selector de emojis en móviles */
-             #emoji-picker {
-                 /* bottom se ajustará dinámicamente en JS */
-                 left: 10px;
-                 width: calc(100% - 20px); /* Ajustar ancho para móviles */
-             }
-
-             /* Ajuste de la vista previa de respuesta en móviles */
-             #reply-preview {
-                 padding: 8px 10px;
-             }
-
-             /* Ajuste del dropdown de settings en móviles */
-             #settings-dropdown {
-                 top: 40px; /* Posicionar debajo del botón de settings */
-                 right: 10px; /* Alinear a la derecha en móviles */
-                 left: auto; /* Desactivar alineación izquierda */
-             }
-        }
-
         /* Estilos para el encabezado del chat (PC) */
         #chat-header {
             display: flex;
@@ -267,7 +108,7 @@
              min-height: 1.2em; /* Reserva espacio */
          }
 
-         /* Estilos para el botón de configuración en general */
+         /* Estilos para el botón de configuración en general (PC) */
          #settings-button {
              /* Ajuste de tamaño y posición */
              width: 40px;
@@ -414,35 +255,6 @@
              vertical-align: middle; /* Alinear verticalmente */
              display: inline;
              flex-shrink: 0; /* Evitar que se encoja */
-         }
-
-
-        /* Estilos para mensajes recibidos (PC) */
-        .message.received {
-            background-color: #e9e9eb; /* Gris claro */
-            align-self: flex-start;
-            border-bottom-left-radius: 6px; /* Esquina inferior izquierda menos redondeada */
-        }
-
-        /* Estilos para mensajes enviados (PC) */
-        .message.sent {
-            background-color: #1a73e8; /* Azul de Google */
-            color: white; /* Texto blanco */
-            align-self: flex-end;
-            border-bottom-right-radius: 6px; /* Esquina inferior derecha menos redondeada */
-        }
-
-         /* Estilos para mensajes enviados - elementos internos */
-        .message.sent .name,
-        .message.sent .text,
-        .message.sent .timestamp {
-             color: white !important; /* Forzar texto blanco */
-        }
-         .message.sent .timestamp {
-             color: rgba(255, 255, 255, 0.8) !important; /* Gris claro en mensajes enviados */
-         }
-         .message.sent .checkmarks {
-             color: white !important; /* Checkmarks blancos en mensajes enviados, forzar */
          }
 
          /* Estilos para el contenido de respuesta */
@@ -658,6 +470,233 @@
          }
 
 
+        /* Media query para pantallas pequeñas (Android) */
+        @media (max-width: 768px) {
+            body {
+                padding: 0; /* Eliminar padding del body en móviles */
+                background-color: #ffffff; /* Fondo blanco en móviles */
+            }
+            #chat-container {
+                width: 100vw; /* Ocupar todo el ancho del viewport */
+                max-width: 100vw;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0; /* Eliminar bordes redondeados en pantalla completa */
+                 padding: 0; /* Eliminar padding del contenedor en móviles */
+                 margin: 0; /* Eliminar margen en móviles */
+                 /* Asegurar que name-prompt o chat-interface ocupen el espacio */
+                 justify-content: flex-start; /* Alinear contenido al inicio */
+                 align-items: stretch; /* Estirar elementos para ocupar el ancho */
+            }
+
+            #name-prompt {
+                padding: 20px 15px;
+                 /* Asegurar que name-prompt ocupe el espacio cuando es visible */
+                 flex-grow: 1;
+                 justify-content: center; /* Centrar contenido verticalmente */
+                 align-items: center; /* Centrar contenido horizontalmente */
+                 background-color: #e5e5ea; /* Gris claro en móviles */
+                 border-bottom: 1px solid #d1d1d6; /* Borde sutil en móviles */
+            }
+
+            #name-prompt h2 {
+                 font-size: 1.5em; /* Tamaño de título original en móviles */
+                 margin-bottom: 15px;
+            }
+
+            #name-prompt input,
+            #name-prompt button {
+                font-size: 1em; /* Ajustar tamaño de fuente */
+                padding: 10px 12px; /* Ajustar padding */
+            }
+
+             #name-prompt input[type="text"] { /* Especificar input de texto */
+                 margin-right: 5px;
+                 align-self: center; /* Centrar verticalmente */
+                 width: 80%; /* Ancho original en móviles */
+                 max-width: none; /* Sin ancho máximo específico en móviles */
+                 text-align: left; /* Alinear texto a la izquierda en móviles */
+             }
+
+             /* Contenedor fijo para el área de input y el indicador de escribiendo en móviles */
+             #bottom-fixed-area {
+                 position: fixed; /* Fixed en móviles */
+                 bottom: 0;
+                 left: 0;
+                 right: 0;
+                 max-width: 100vw;
+                 padding: 10px 15px; /* Ajustar padding para móviles */
+                 background-color: #f9f9f9; /* Fondo claro en móviles */
+                 border-top: 1px solid #eee; /* Borde superior en móviles */
+             }
+
+
+             .message-input-area {
+                 display: flex;
+                 gap: 5px;
+                 align-items: center; /* Centrar horizontalmente */
+                 flex-shrink: 0; /* Evita que el área de entrada se encoja */
+             }
+
+             .message-input-area .input-buttons {
+                 display: flex; /* Asegurar flex para alinear botones */
+                 gap: 5px;
+                 align-items: center; /* Centrar verticalmente */
+                 flex-shrink: 0; /* Asegurar que no se encoja */
+             }
+
+             /* Ajuste para textarea en móviles */
+             .message-input-area textarea {
+                 font-size: 1em;
+                 padding: 8px 12px; /* Ajustar padding */
+                 min-height: 40px; /* Asegurar altura mínima */
+                 max-height: 100px; /* Ajustar altura máxima para móviles */
+                 flex-grow: 1;
+                 box-sizing: border-box;
+                 border-radius: 20px; /* Bordes redondeados */
+                 border: 1px solid #d1d1d6; /* Borde */
+             }
+
+             .input-container {
+                 flex-direction: row; /* Alinear horizontalmente en móviles */
+                 align-items: flex-end; /* Alinear verticalmente los elementos al final (bottom) */
+                 gap: 5px;
+             }
+
+
+             #emoji-button, #send-button {
+                 width: 40px;
+                 height: 40px;
+                 padding: 0; /* Eliminar padding extra */
+                 flex-shrink: 0; /* Evitar que se reduzcan */
+                 align-self: center; /* Centrar verticalmente */
+                 border-radius: 50%; /* Botones redondos */
+                 background-color: #e5e5ea; /* Fondo gris claro */
+                 border: none;
+                 display: flex; /* Asegurar flex para centrar contenido */
+                 justify-content: center;
+                 align-items: center;
+             }
+              #send-button {
+                  width: auto; /* Permitir que el botón de enviar ajuste su ancho */
+                  padding: 10px 15px;
+                  border-radius: 20px; /* Bordes redondeados */
+                  background-color: #007aff; /* Azul */
+                  color: white;
+              }
+
+
+              #emoji-button svg, #settings-button svg {
+                 width: 20px;
+                 height: 20px;
+              }
+
+             #emoji-button svg {
+                 fill: #3a3a3c; /* Color oscuro para el icono en móvil */
+             }
+
+
+             #settings-button {
+                 /* Ajuste de tamaño y posición para móviles */
+                 width: 40px;
+                 height: 40px;
+                 padding: 0;
+                 align-self: center;
+                 font-size: 1.5em; /* Tamaño para el emoji */
+                 /* Añadido para intentar centrar el emoji */
+                 line-height: 1;
+                 vertical-align: middle;
+                 color: #1c1c1e; /* Color oscuro */
+                 background-color: transparent; /* Fondo transparente */
+                 border: none;
+             }
+
+             #settings-dropdown button { /* Aplicar a todos los botones dentro del dropdown */
+                 font-size: 0.9em;
+                 padding: 8px 12px;
+             }
+
+             .message {
+                 max-width: 90%; /* Permitir que los mensajes ocupen más ancho */
+             }
+
+             /* Ajuste del indicador de escribiendo en móviles */
+             #typing-indicator {
+                 /* align-self: flex-end; Eliminado */
+                 /* margin-bottom: 5px; Eliminado */
+                 padding: 0 5px; /* Ajustar padding lateral para móviles */
+                 text-align: right; /* Asegurar alineación derecha */
+                 margin-bottom: 5px; /* Añadir margen debajo del indicador */
+             }
+
+             /* Ajuste del selector de emojis en móviles */
+             #emoji-picker {
+                 /* bottom se ajustará dinámicamente en JS */
+                 left: 10px;
+                 width: calc(100% - 20px); /* Ajustar ancho para móviles */
+                 background-color: #fff; /* Fondo blanco */
+                 border: 1px solid #d1d1d6; /* Borde */
+                 border-radius: 8px;
+                 padding: 10px;
+                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                 flex-wrap: wrap;
+                 gap: 5px;
+                 max-height: 200px;
+                 overflow-y: auto;
+             }
+
+             #emoji-picker span {
+                 font-size: 1.5em;
+                 padding: 3px;
+             }
+
+
+             /* Ajuste de la vista previa de respuesta en móviles */
+             #reply-preview {
+                 padding: 8px 10px;
+                 background-color: #e5e5ea; /* Fondo gris claro */
+                 border-left-color: #007aff; /* Barra azul */
+             }
+
+             /* Ajuste del dropdown de settings en móviles */
+             #settings-dropdown {
+                 top: 40px; /* Posicionar debajo del botón de settings */
+                 right: 10px; /* Alinear a la derecha en móviles */
+                 left: auto; /* Desactivar alineación izquierda */
+                 background-color: #fff; /* Fondo blanco */
+                 border: 1px solid #d1d1d6; /* Borde */
+                 border-radius: 8px;
+                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                 min-width: 150px;
+                 padding: 5px 0;
+             }
+        }
+
+         /* Estilos para el botón de configuración en general (Móvil por defecto) */
+         #settings-button {
+             /* Ajuste de tamaño y posición */
+             width: 40px;
+             height: 40px;
+             padding: 0;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             background-color: transparent; /* Fondo transparente */
+             border: none;
+             border-radius: 50%; /* Botón redondo */
+             cursor: pointer;
+             font-size: 1.5em; /* Tamaño para el emoji */
+             color: #1c1c1e; /* Color oscuro para el emoji */
+             /* Añadido para intentar centrar el emoji */
+             line-height: 1;
+             vertical-align: middle;
+         }
+
+         #settings-button:hover {
+             background-color: #e5e5ea; /* Fondo gris claro al pasar el ratón */
+         }
+
+
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
@@ -717,14 +756,14 @@
     <script>
         // Configuración de tu aplicación web de Firebase
         const firebaseConfig = {
-  apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
-  authDomain: "facba-69d41.firebaseapp.com",
-  databaseURL: "https://facba-69d41-default-rtdb.firebaseio.com",
-  projectId: "facba-69d41",
-  storageBucket: "facba-69d41.firebasestorage.app",
-  messagingSenderId: "264089433073",
-  appId: "1:264089433073:web:968551648758972eb74a50",
-  measurementId: "G-NL7Y6NDH99"
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            databaseURL: "https://facba-69d41-default-rtdb.firebaseio.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
         };
 
         // Inicializar Firebase
@@ -780,7 +819,6 @@
             if (enteredName) {
                 userName = enteredName;
                 namePrompt.style.display = 'none'; // Ocultar la sección de nombre
-                // Asegurarse de que chatInterface se muestre como flex para el layout de chat
                 chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
                 messageInput.focus(); // Poner el foco en el campo de mensaje
                 // Opcional: Guardar el nombre en localStorage para recordarlo
@@ -832,7 +870,6 @@
             if (!timestamp) return ''; // Manejar caso sin timestamp
             const date = new Date(timestamp);
             const hours = date.getHours().toString().padStart(2, '0');
-            // Corrected: use getMinutes() once
             const minutes = date.getMinutes().toString().padStart(2, '0');
             return `${hours}:${minutes}`;
         }
@@ -1194,7 +1231,7 @@
             if (youtubeUrlMatch && youtubeUrlMatch[1]) {
                 const videoId = youtubeUrlMatch[1];
                 const iframe = document.createElement('iframe');
-                iframe.src = `http://www.youtube.com/embed/${videoId}`; // Corrected YouTube embed URL
+                iframe.src = `https://www.youtube.com/embed/${videoId}`; // Corrected YouTube embed URL
                 iframe.setAttribute('allowfullscreen', ''); // Permitir pantalla completa
                 iframe.setAttribute('loading', 'lazy'); // Carga diferida
                 contentElement = iframe;
@@ -1331,31 +1368,19 @@
 
         // Función para reproducir el sonido de notificación
         function playNotificationSound() {
-             console.log("Attempting to play notification sound. audioUnlocked:", audioUnlocked); // Debugging log
-             if (notificationSound && notificationSound.readyState >= 2 && audioUnlocked) { // readyState 2 means enough data is available
-                 const playPromise = notificationSound.play();
-
-                 if (playPromise !== undefined) {
-                     playPromise.then(() => {
-                         // Playback started successfully
-                         console.log("Notification sound played successfully."); // Debugging log
-                     }).catch(error => {
-                         // Playback failed
-                         console.error("Notification sound playback failed:", error); // Debugging log
-                     });
-                 }
-            } else if (!notificationSound) {
-                console.log("Notification sound element not found."); // Debugging log
-            } else if (notificationSound.readyState < 2) {
-                 console.log("Notification sound not ready yet. readyState:", notificationSound.readyState); // Debugging log
-            } else if (!audioUnlocked) {
-                 console.log("Audio is locked. Cannot play sound."); // Debugging log
-            }
+             if (notificationSound && audioUnlocked) { // Solo reproducir si el audio está desbloqueado
+                 notificationSound.currentTime = 0; // Reiniciar el sonido si ya se está reproduciendo
+                 notificationSound.play().catch(error => {
+                     console.error("Error al reproducir el sonido:", error);
+                     // Esto a menudo ocurre si el navegador bloquea el autoplay
+                 });
+             } else if (!audioUnlocked) {
+                 console.log("Audio not unlocked yet. Cannot play sound.");
+             }
         }
 
         // Función para intentar desbloquear el audio con una interacción del usuario
         function unlockAudio() {
-            console.log("Attempting to unlock audio."); // Debugging log
             if (notificationSound && notificationSound.readyState >= 2 && !audioUnlocked) { // readyState 2 means enough data is available
                 notificationSound.volume = 0; // Set volume to 0
                 const playPromise = notificationSound.play();
@@ -1378,13 +1403,13 @@
                     });
                 }
             } else if (audioUnlocked) {
-                 console.log("Audio already unlocked. Removing listeners."); // Debugging log
+                 console.log("Audio already unlocked.");
                  // Remove listeners if already unlocked
                  document.removeEventListener('click', unlockAudio);
                  document.removeEventListener('touchstart', unlockAudio);
                  sendButton.removeEventListener('click', unlockAudio); // Remove from send button too
             } else {
-                 console.log("Notification sound not ready or not found for unlock attempt."); // Debugging log
+                 console.log("Notification sound not ready or not found.");
             }
         }
 
@@ -1392,7 +1417,6 @@
         // --- Lógica para Limpiar Chat con Clave (Realtime Database) ---
         // El listener ahora está asociado al botón dentro del dropdown
         clearChatButton.addEventListener('click', () => {
-            console.log("clearChatButton clicked"); // Debugging log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1401,7 +1425,6 @@
 
             // Verificar la clave
             if (enteredPassword === CLEAR_CHAT_PASSWORD) {
-                console.log("Password correct. Attempting to clear chat."); // Debugging log
                 // Si la clave es correcta, eliminar el nodo 'messages' de Realtime Database
                 messagesRef.remove()
                     .then(() => {
@@ -1421,7 +1444,6 @@
 
         // --- Lógica para Cambiar Nombre ---
         changeNameButton.addEventListener('click', () => {
-            console.log("changeNameButton clicked"); // Debugging log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1453,7 +1475,6 @@
 
             // Añadir listener para insertar el emoji en el input
             emojiSpan.addEventListener('click', () => {
-                console.log("Emoji clicked:", emoji); // Debugging log
                 insertEmoji(emoji);
                 // Opcional: Ocultar el selector después de seleccionar un emoji
                 // emojiPicker.style.display = 'none';
@@ -1462,7 +1483,6 @@
 
         // Función para insertar emoji en el textarea en la posición del cursor
         function insertEmoji(emoji) {
-            console.log("insertEmoji function called with:", emoji); // Debugging log
             const textarea = messageInput;
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -1483,35 +1503,18 @@
 
         // Listener para el botón de emoji para mostrar/ocultar el selector
         emojiButton.addEventListener('click', (event) => {
-            console.log("emojiButton clicked"); // Debugging log
             // Prevenir que el clic en el botón cierre el selector inmediatamente
             event.stopPropagation();
              // Ocultar el dropdown de settings si está visible
              settingsDropdown.style.display = 'none';
 
             if (emojiPicker.style.display === 'flex') {
-                console.log("Hiding emoji picker."); // Debugging log
                 emojiPicker.style.display = 'none';
             } else {
-                console.log("Showing emoji picker."); // Debugging log
                 // Posicionar el selector justo encima de la barra de input
                 // bottom del selector = altura del área de input + padding/margen
                 const inputAreaHeight = bottomFixedArea.offsetHeight; // Usar la altura del contenedor fijo
-                // Adjusted bottom position slightly if needed
                 emojiPicker.style.bottom = `${inputAreaHeight + 10}px`; // 10px de margen
-                 // Adjusted left position to be relative to the button or input area
-                 const buttonRect = emojiButton.getBoundingClientRect();
-                 const bottomAreaRect = bottomFixedArea.getBoundingClientRect();
-                 // Position relative to the left edge of the bottom area, aligned with the button's left edge
-                 emojiPicker.style.left = `${buttonRect.left - bottomAreaRect.left}px`;
-                 // Ensure it doesn't go off the right edge
-                 const pickerWidth = emojiPicker.offsetWidth;
-                 const rightEdge = bottomAreaRect.width - pickerWidth;
-                 if (parseFloat(emojiPicker.style.left) > rightEdge) {
-                     emojiPicker.style.left = `${rightEdge}px`;
-                 }
-
-
                 emojiPicker.style.display = 'flex';
             }
         });
@@ -1520,17 +1523,11 @@
         document.addEventListener('click', (event) => {
             // Si el clic no fue dentro del selector de emojis ni en el botón de emoji
             if (!emojiPicker.contains(event.target) && event.target !== emojiButton) {
-                if (emojiPicker.style.display === 'flex') {
-                     console.log("Clicked outside emoji picker/button. Hiding picker."); // Debugging log
-                     emojiPicker.style.display = 'none';
-                }
+                emojiPicker.style.display = 'none';
             }
              // Si el clic no fue dentro del dropdown de settings ni en el botón de settings
              if (!settingsDropdown.contains(event.target) && event.target !== settingsButton) {
-                 if (settingsDropdown.style.display === 'flex') {
-                     console.log("Clicked outside settings dropdown/button. Hiding dropdown."); // Debugging log
-                     settingsDropdown.style.display = 'none';
-                 }
+                 settingsDropdown.style.display = 'none';
              }
         });
 
@@ -1560,7 +1557,6 @@
 
         // Listener para el evento 'focus' en el input de mensaje
         messageInput.addEventListener('focus', () => {
-             console.log("messageInput focused."); // Debugging log
              // Intentar scrollear la caja de chat al final cuando el input recibe foco
              // Esto ayuda a asegurar que la barra de input sea visible
              setTimeout(() => {
@@ -1574,7 +1570,6 @@
 
         // Función para iniciar el modo de respuesta
         function startReply(messageData) {
-            console.log("startReply function called with:", messageData); // Debugging log
             replyingToMessage = messageData; // Almacenar los datos del mensaje
             replyNameSpan.textContent = messageData.name + ':';
             // Mostrar un fragmento del texto o indicar que es un archivo
@@ -1588,7 +1583,6 @@
 
         // Función para cancelar el modo de respuesta
         function cancelReply() {
-            console.log("cancelReply function called."); // Debugging log
             replyingToMessage = null; // Limpiar la referencia al mensaje
             replyPreview.style.display = 'none'; // Ocultar la vista previa
             replyNameSpan.textContent = '';
@@ -1598,27 +1592,21 @@
         }
 
         // Listener para el botón de cancelar respuesta
-        cancelReplyButton.addEventListener('click', () => {
-            console.log("cancelReplyButton clicked"); // Debugging log
-            cancelReply();
-        });
+        cancelReplyButton.addEventListener('click', cancelReply);
 
 
         // --- Lógica del Botón de Configuración y Dropdown ---
 
         // Listener para el botón de configuración para mostrar/ocultar el dropdown
         settingsButton.addEventListener('click', (event) => {
-            console.log("settingsButton clicked"); // Debugging log
             // Prevenir que el clic en el botón cierre el dropdown inmediatamente
             event.stopPropagation();
              // Ocultar el selector de emojis si está visible
              emojiPicker.style.display = 'none';
 
             if (settingsDropdown.style.display === 'flex') {
-                console.log("Hiding settings dropdown."); // Debugging log
                 settingsDropdown.style.display = 'none';
             } else {
-                console.log("Showing settings dropdown."); // Debugging log
                 // Posicionar el dropdown justo debajo y a la derecha del botón de settings
                 // Esto se maneja principalmente con CSS position: absolute y top/right
                 settingsDropdown.style.display = 'flex';
@@ -1632,11 +1620,7 @@
 
         // --- Lógica de Presencia (Usuarios en Línea) ---
         function setupPresence() {
-             console.log("setupPresence function called."); // Debugging log
-             if (!userName) {
-                 console.log("setupPresence: userName not set. Skipping."); // Debugging log
-                 return;
-             }
+             if (!userName) return;
 
              const userPresenceRef = presenceRef.child(userName);
 
@@ -1653,20 +1637,17 @@
              // Establecer la presencia a false cuando el usuario abandona la página (cierra pestaña, navega)
              window.addEventListener('beforeunload', () => {
                  console.log(`[${userName}] beforeunload event detected. Setting presence to false.`);
-                 // Use set(false) instead of remove() for explicit offline status
-                 userPresenceRef.set(false);
+                 userPresenceRef.set(false); // Establecer a false explícitamente
              });
 
              window.addEventListener('unload', () => {
                  console.log(`[${userName}] unload event detected. Setting presence to false.`);
-                 // Use set(false) instead of remove() for explicit offline status
-                 userPresenceRef.set(false);
+                 userPresenceRef.set(false); // Establecer a false explícitamente
              });
 
 
              // Escuchar cambios en el nodo de presencia para actualizar la lista de usuarios en línea
              presenceRef.on('value', (snapshot) => {
-                 console.log("Presence data changed:", snapshot.val()); // Debugging log
                  const onlineUsers = snapshot.val();
                  const usersOnline = [];
 
@@ -1696,28 +1677,21 @@
         const savedName = localStorage.getItem('chatName');
         if (savedName) {
             nameInput.value = savedName; // Rellenar el campo de nombre
-            console.log("Found saved name:", savedName); // Debugging log
             // No llamar a startChatButton.click() aquí, initializeChat se llama en window.onload
-        } else {
-             console.log("No saved name found."); // Debugging log
         }
 
         // Ajustes iniciales al cargar la página
         window.onload = function() {
-             console.log("window.onload fired."); // Debugging log
              // Si hay un nombre guardado, inicializar el chat
              if (localStorage.getItem('chatName')) {
                  userName = localStorage.getItem('chatName');
                  namePrompt.style.display = 'none'; // Ocultar la sección de nombre
-                 // Asegurarse de que chatInterface se muestre como flex al inicio si hay nombre guardado
                  chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
-                 console.log("Saved name found, showing chat interface."); // Debugging log
                  initializeChat(); // Inicializar la carga de mensajes y listeners
              } else {
                   // Si no hay nombre guardado, mostrar el name-prompt y ocultar el chat-interface
                   namePrompt.style.display = 'flex';
                   chatInterface.style.display = 'none';
-                  console.log("No saved name, showing name prompt."); // Debugging log
              }
              // Ajustar el padding inferior del chatBox al cargar
              adjustChatBoxPadding();
@@ -1727,7 +1701,7 @@
              document.addEventListener('touchstart', unlockAudio, { once: true });
              sendButton.addEventListener('click', unlockAudio, { once: true }); // Also try on send button click
 
-             console.log("Initial setup complete."); // Debugging log
+
         };
 
 
