@@ -13,20 +13,20 @@
             padding: 0;
             overflow: hidden; /* Prevenir scroll del body */
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ebee; /* Fondo gris claro para el body en PC */
+            background-color: #f0f2f5; /* Fondo gris muy claro para el body en PC */
             display: flex; /* Usar flexbox para centrar el chat-container en PC */
             justify-content: center;
             align-items: center;
         }
 
         #chat-container {
-            width: 90%; /* Ocupar la mayoría del ancho */
+            width: 95%; /* Ocupar un poco más de ancho */
             max-width: 900px; /* Ancho máximo para PC */
-            height: 90vh; /* Altura en PC */
-            max-height: 90vh;
+            height: 95vh; /* Altura en PC */
+            max-height: 95vh;
             background-color: #ffffff;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra más sutil */
-            border-radius: 4px; /* Bordes menos redondeados */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada y suave */
+            border-radius: 12px; /* Bordes más redondeados */
             overflow: hidden;
             display: flex; /* Contenedor principal como flex column */
             flex-direction: column; /* Apilar elementos hijos verticalmente */
@@ -51,44 +51,49 @@
         #name-prompt h2 {
             margin-top: 0;
             color: #333;
-            font-size: 2em;
-            margin-bottom: 25px;
-            font-weight: 500;
+            font-size: 2.2em; /* Tamaño de fuente ligeramente mayor */
+            margin-bottom: 30px; /* Más espacio debajo */
+            font-weight: 700; /* Negrita */
         }
 
         #name-prompt input {
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
+            padding: 15px 20px; /* Más padding */
+            margin-bottom: 25px; /* Más espacio debajo */
+            border: 1px solid #d1d1d6; /* Borde más suave */
+            border-radius: 8px; /* Bordes más redondeados */
+            font-size: 1.1em; /* Tamaño de fuente ligeramente mayor */
             box-sizing: border-box;
-            width: 60%;
-            max-width: 300px;
+            width: 70%; /* Ocupar más ancho */
+            max-width: 350px; /* Ancho máximo */
             text-align: center;
-            transition: border-color 0.3s ease-in-out;
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
         #name-prompt input:focus {
             border-color: #007bff; /* Azul */
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2); /* Sombra al enfocar */
             outline: none;
         }
 
 
         #name-prompt button {
-            padding: 12px 25px;
+            padding: 15px 30px; /* Más padding */
             background-color: #007bff; /* Azul */
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px; /* Bordes más redondeados */
             cursor: pointer;
-            font-size: 1em;
+            font-size: 1.1em; /* Tamaño de fuente ligeramente mayor */
             font-weight: 500;
-            transition: background-color 0.3s ease-in-out;
+            transition: background-color 0.3s ease-in-out, transform 0.1s ease-in-out;
         }
 
         #name-prompt button:hover {
             background-color: #0056b3;
         }
+         #name-prompt button:active {
+             transform: scale(0.98); /* Efecto de click */
+         }
+
 
         /* Estilos para la interfaz de chat (Contenedor del header, chatbox y bottom area) */
         #chat-interface {
@@ -103,8 +108,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px; /* Padding */
-            background-color: #007bff; /* Azul */
+            padding: 15px 25px; /* Más padding */
+            background: linear-gradient(to right, #007bff, #0056b3); /* Degradado azul */
             color: white;
             flex-shrink: 0; /* No permitir que se encoja */
             position: relative;
@@ -113,13 +118,14 @@
 
         #chat-header h2 {
             margin: 0;
-            font-size: 1.2em;
+            font-size: 1.3em; /* Tamaño de fuente ligeramente mayor */
             color: white;
-            font-weight: 500;
+            font-weight: 700; /* Negrita */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra de texto sutil */
         }
 
         #online-users {
-            font-size: 0.85em;
+            font-size: 0.9em; /* Tamaño de fuente ligeramente mayor */
             color: rgba(255, 255, 255, 0.9);
             margin-top: 2px;
             min-height: 1.1em;
@@ -127,8 +133,8 @@
 
         /* Estilos para el botón de configuración (Base para PC) */
          #settings-button {
-             width: 30px; /* Tamaño */
-             height: 30px; /* Tamaño */
+             width: 35px; /* Tamaño ligeramente mayor */
+             height: 35px; /* Tamaño ligeramente mayor */
              padding: 0;
              display: flex;
              justify-content: center;
@@ -137,7 +143,7 @@
              border: none;
              border-radius: 50%;
              cursor: pointer;
-             font-size: 1.4em; /* Tamaño del icono */
+             font-size: 1.6em; /* Tamaño del icono ligeramente mayor */
              color: white; /* Color blanco */
              line-height: 1;
              vertical-align: middle;
@@ -145,43 +151,43 @@
          }
 
          #settings-button:hover {
-             background-color: rgba(255, 255, 255, 0.1);
+             background-color: rgba(255, 255, 255, 0.15); /* Hover más visible */
          }
           #settings-button svg { /* Asegurar color del icono SVG en PC */
               fill: white;
-              width: 20px; /* Tamaño del SVG */
-              height: 20px; /* Tamaño del SVG */
+              width: 22px; /* Tamaño del SVG */
+              height: 22px; /* Tamaño del SVG */
           }
 
 
         /* Estilos para el menú desplegable de configuración (Base para PC) */
         #settings-dropdown {
             position: absolute;
-            top: 45px; /* Posicionar debajo del botón */
-            right: 10px; /* Alinear a la derecha */
+            top: 55px; /* Posicionar debajo del encabezado */
+            right: 15px; /* Alinear a la derecha */
             background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+            border-radius: 8px; /* Bordes más redondeados */
             display: none;
             flex-direction: column;
             z-index: 10;
             overflow: hidden;
-            min-width: 150px; /* Ancho mínimo */
+            min-width: 180px; /* Ancho mínimo mayor */
         }
 
         #settings-dropdown button {
-            padding: 8px 15px;
+            padding: 10px 20px; /* Más padding */
             border: none;
             background-color: transparent;
             text-align: left;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 1em; /* Tamaño de fuente */
             color: #333;
             transition: background-color 0.2s ease-in-out;
         }
 
         #settings-dropdown button:hover {
-            background-color: #f8f9fa; /* Gris muy claro */
+            background-color: #f0f0f0; /* Gris claro */
         }
          #settings-dropdown #clear-chat-button:hover { /* Color rojo al pasar el ratón */
              color: #dc3545; /* Rojo */
@@ -195,36 +201,55 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px; /* Espacio entre mensajes */
+            gap: 10px; /* Mayor espacio entre mensajes */
             background-image: url('https://www.transparenttextures.com/patterns/always-grey.png'); /* Textura sutil */
             background-color: #e5ddd5; /* Fondo de chat similar a WhatsApp */
             background-blend-mode: multiply; /* Mezclar textura y color */
             padding-bottom: 15px; /* Ajustado por JS */
+             /* Estilos para la barra de scroll */
+             scrollbar-width: thin; /* Para Firefox */
+             scrollbar-color: #007bff #e5ddd5; /* Color del thumb y track para Firefox */
         }
+
+         /* Estilos para la barra de scroll en Webkit (Chrome, Safari) */
+         #chat-box::-webkit-scrollbar {
+             width: 8px; /* Ancho de la barra de scroll */
+         }
+
+         #chat-box::-webkit-scrollbar-track {
+             background: #e5ddd5; /* Color del track */
+         }
+
+         #chat-box::-webkit-scrollbar-thumb {
+             background-color: #007bff; /* Color del thumb */
+             border-radius: 4px; /* Bordes redondeados del thumb */
+             border: 2px solid #e5ddd5; /* Espacio alrededor del thumb */
+         }
+
 
         /* Estilos para cada mensaje individual (Base para PC) */
         .message {
-            padding: 8px 10px; /* Padding */
-            border-radius: 7px; /* Bordes redondeados */
-            max-width: 65%; /* Ancho */
+            padding: 10px 14px; /* Más padding */
+            border-radius: 10px; /* Bordes más redondeados */
+            max-width: 70%; /* Ancho ligeramente mayor */
             word-wrap: break-word;
             position: relative;
-            line-height: 1.3; /* Espaciado */
-            font-size: 0.95em; /* Tamaño de fuente */
+            line-height: 1.4; /* Mayor espaciado */
+            font-size: 1em; /* Tamaño de fuente */
             background-color: #ffffff; /* Fondo blanco */
             cursor: pointer;
             display: flex;
             flex-direction: column;
             z-index: 1;
-            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.08); /* Sombra sutil */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
         }
 
         .message .name {
-             font-size: 0.8em; /* Tamaño relativo */
+             font-size: 0.85em; /* Tamaño relativo */
              color: #1f2d38; /* Texto oscuro */
-             margin-bottom: 1px;
+             margin-bottom: 2px; /* Más espacio debajo */
              display: block;
-             font-weight: 500;
+             font-weight: 600; /* Negrita */
         }
 
         .message .text {
@@ -233,7 +258,7 @@
              flex-grow: 1;
              min-width: 0;
              margin-right: auto;
-             padding-right: 6px;
+             padding-right: 8px; /* Más espacio a la derecha */
              overflow-wrap: break-word;
              word-break: break-word;
         }
@@ -252,19 +277,19 @@
              align-items: center;
              justify-content: flex-end;
              flex-wrap: wrap;
-             gap: 3px; /* Espacio */
-             margin-top: 1px;
+             gap: 4px; /* Mayor espacio */
+             margin-top: 3px; /* Más espacio arriba */
          }
 
         .message .timestamp {
-            font-size: 0.65em; /* Tamaño */
-            color: rgba(0, 0, 0, 0.4); /* Gris semi-transparente */
+            font-size: 0.7em; /* Tamaño */
+            color: rgba(0, 0, 0, 0.5); /* Gris semi-transparente */
             display: inline-block;
              flex-shrink: 0;
         }
 
          .message .checkmarks {
-             font-size: 0.75em; /* Tamaño */
+             font-size: 0.8em; /* Tamaño */
              color: #007bff; /* Azul */
              vertical-align: middle;
              display: inline;
@@ -274,27 +299,22 @@
         .message.received {
             background-color: #ffffff; /* Fondo blanco */
             align-self: flex-start;
-            border-bottom-left-radius: 3px; /* Esquina menos redondeada */
+            border-bottom-left-radius: 4px; /* Esquina menos redondeada */
         }
 
         .message.sent {
-            background-color: #dcf8c6; /* Verde claro (mantengo este para mensajes propios, es distintivo) */
-            color: #1f2d38; /* Texto oscuro */
-            align-self: flex-end;
-            border-bottom-right-radius: 3px; /* Esquina menos redondeada */
-        }
-         /* Ajuste de colores para mensajes enviados para que coincidan con el tema azul general */
-         .message.sent {
              background-color: #007bff; /* Azul */
              color: white;
+             align-self: flex-end;
+             border-bottom-right-radius: 4px; /* Esquina menos redondeada */
          }
          .message.sent .name,
          .message.sent .text,
          .message.sent .timestamp {
-              color: white !important;
+              color: white !important; /* Forzar color blanco */
          }
          .message.sent .timestamp {
-              color: rgba(255, 255, 255, 0.8) !important;
+              color: rgba(255, 255, 255, 0.8) !important; /* Gris claro semi-transparente */
          }
          .message.sent .checkmarks {
               color: #4fc3f7 !important; /* Azul claro para checkmarks */
@@ -303,17 +323,18 @@
 
          .reply-content {
              border-left: 4px solid #007bff; /* Azul */
-             padding-left: 6px;
-             margin-bottom: 4px;
-             opacity: 0.9;
-             font-size: 0.85em;
+             padding-left: 8px; /* Más padding */
+             margin-bottom: 6px; /* Más espacio debajo */
+             opacity: 0.95; /* Menos transparencia */
+             font-size: 0.9em; /* Tamaño de fuente */
+             color: inherit; /* Heredar color del mensaje padre */
          }
 
          .reply-content .reply-name {
              font-weight: bold;
              color: inherit;
              display: block;
-             margin-bottom: 1px;
+             margin-bottom: 2px; /* Más espacio debajo */
          }
 
          .reply-content .reply-text {
@@ -325,12 +346,12 @@
          }
 
         .video-preview-container {
-            margin-top: 6px;
-            margin-bottom: 3px;
+            margin-top: 8px; /* Más espacio arriba */
+            margin-bottom: 5px; /* Más espacio abajo */
             width: 100%;
             aspect-ratio: 16 / 9;
             overflow: hidden;
-            border-radius: 5px;
+            border-radius: 8px; /* Bordes más redondeados */
              background-color: #000;
         }
 
@@ -357,15 +378,15 @@
             flex-direction: column; /* Apilar verticalmente: indicador, reply preview, input area */
             background-color: #f8f9fa; /* Gris muy claro */
             border-top: 1px solid #dee2e6;
-            padding: 8px 20px; /* Padding */
+            padding: 12px 25px; /* Más padding */
             flex-shrink: 0; /* No permitir que se encoja */
         }
 
          #typing-indicator {
-             font-size: 0.8em;
-             color: #666;
-             height: 1em;
-             margin-bottom: 4px;
+             font-size: 0.85em; /* Tamaño de fuente ligeramente mayor */
+             color: #555; /* Color ligeramente más oscuro */
+             height: 1.2em; /* Altura ligeramente mayor */
+             margin-bottom: 6px; /* Más espacio debajo */
              text-align: left;
              padding: 0 5px;
          }
@@ -374,18 +395,18 @@
              display: none;
              background-color: #e9ecef; /* Gris muy claro */
              border-left: 4px solid #007bff; /* Azul */
-             padding: 6px 10px;
-             margin-bottom: 6px;
-             border-radius: 4px;
+             padding: 8px 12px; /* Más padding */
+             margin-bottom: 8px; /* Más espacio debajo */
+             border-radius: 6px; /* Bordes más redondeados */
              align-items: center;
              justify-content: space-between;
-             font-size: 0.85em;
-             color: #555;
+             font-size: 0.9em; /* Tamaño de fuente ligeramente mayor */
+             color: #444; /* Color ligeramente más oscuro */
          }
 
          #reply-preview .reply-name {
              font-weight: bold;
-             margin-right: 5px;
+             margin-right: 8px; /* Más espacio */
          }
 
          #reply-preview .reply-text {
@@ -393,52 +414,53 @@
              white-space: nowrap;
              overflow: hidden;
              text-overflow: ellipsis;
-             margin-right: 10px;
+             margin-right: 15px; /* Más espacio */
          }
 
          #reply-preview #cancel-reply-button {
              background-color: transparent;
              border: none;
-             font-size: 1em;
+             font-size: 1.1em; /* Tamaño de fuente ligeramente mayor */
              cursor: pointer;
-             color: #888;
+             color: #777; /* Color ligeramente más oscuro */
              padding: 0;
              line-height: 1;
          }
 
          #reply-preview #cancel-reply-button:hover {
-             color: #555;
+             color: #333; /* Color más oscuro al pasar el ratón */
          }
 
          .message-input-area {
              display: flex; /* Usar flexbox para alinear input y botones horizontalmente */
-             gap: 6px; /* Espacio entre elementos */
+             gap: 8px; /* Mayor espacio entre elementos */
              align-items: flex-end; /* Alinear al final (parte inferior) */
              flex-shrink: 0;
          }
 
          .message-input-area textarea {
              flex-grow: 1; /* Permite que el textarea ocupe el espacio restante */
-             padding: 8px 12px; /* Padding */
+             padding: 10px 15px; /* Más padding */
              border: 1px solid #ccc;
-             border-radius: 18px;
-             font-size: 0.95em;
-             min-height: 38px;
-             max-height: 100px;
+             border-radius: 22px; /* Bordes más redondeados */
+             font-size: 1em; /* Tamaño de fuente */
+             min-height: 45px; /* Altura mínima mayor */
+             max-height: 120px; /* Altura máxima mayor */
              resize: none;
              overflow-y: auto;
              box-sizing: border-box;
-             transition: border-color 0.3s ease-in-out;
+             transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
          }
          .message-input-area textarea:focus {
              border-color: #007bff; /* Azul */
+             box-shadow: 0 0 8px rgba(0, 123, 255, 0.2); /* Sombra al enfocar */
              outline: none;
          }
 
 
          .message-input-area .input-buttons {
              display: flex; /* Usar flexbox para los botones */
-             gap: 4px; /* Espacio entre botones */
+             gap: 6px; /* Mayor espacio entre botones */
              align-items: flex-end; /* Alinear al final (parte inferior) */
              flex-shrink: 0;
          }
@@ -446,21 +468,24 @@
          /* Estilo base para los botones de icono (Base para PC) */
          .message-input-area button {
              width: auto; /* Ancho automático */
-             height: 38px; /* Altura */
-             padding: 0 10px; /* Padding horizontal */
-             border-radius: 18px; /* Bordes redondeados */
+             height: 45px; /* Altura mayor */
+             padding: 0 12px; /* Más padding horizontal */
+             border-radius: 22px; /* Bordes más redondeados */
              cursor: pointer;
              display: flex;
              justify-content: center;
              align-items: center;
-             transition: background-color 0.2s ease-in-out;
+             transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
              border: none;
+         }
+         .message-input-area button:active {
+             transform: scale(0.95); /* Efecto de click */
          }
 
 
          #emoji-button {
              background-color: #e9ecef; /* Gris muy claro */
-             font-size: 1.1em;
+             font-size: 1.2em; /* Tamaño de fuente ligeramente mayor */
              color: #666;
          }
 
@@ -469,17 +494,17 @@
          }
 
          #emoji-button svg {
-             width: 18px; /* Tamaño del SVG */
-             height: 18px; /* Tamaño del SVG */
+             width: 20px; /* Tamaño del SVG */
+             height: 20px; /* Tamaño del SVG */
              fill: #666;
          }
 
          #send-button {
              background-color: #007bff; /* Azul */
              color: white;
-             font-size: 0.95em;
+             font-size: 1em; /* Tamaño de fuente */
              font-weight: 500;
-             padding: 8px 12px;
+             padding: 10px 15px; /* Más padding */
          }
 
          #send-button:hover {
@@ -489,26 +514,26 @@
         /* Estilos para el selector de emojis (Base para PC) */
          #emoji-picker {
              position: absolute;
-             bottom: 50px; /* Ajustado por JS */
-             left: 20px; /* Ajustado por JS */
+             bottom: 60px; /* Ajustado por JS */
+             left: 25px; /* Ajustado por JS */
              background-color: #ffffff;
-             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-             border-radius: 6px;
-             padding: 8px;
+             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+             border-radius: 8px; /* Bordes más redondeados */
+             padding: 10px; /* Más padding */
              display: none;
              flex-wrap: wrap;
-             gap: 4px; /* Espacio */
-             max-width: 250px; /* Ancho máximo */
+             gap: 6px; /* Mayor espacio */
+             max-width: 300px; /* Ancho máximo mayor */
              z-index: 10;
-             max-height: 180px; /* Altura */
+             max-height: 200px; /* Altura mayor */
              overflow-y: auto;
          }
 
          #emoji-picker span {
              cursor: pointer;
-             font-size: 1.4em;
-             padding: 4px;
-             border-radius: 3px;
+             font-size: 1.6em; /* Tamaño de fuente mayor */
+             padding: 5px; /* Más padding */
+             border-radius: 4px; /* Bordes más redondeados */
              transition: background-color 0.1s ease-in-out;
          }
 
@@ -529,14 +554,15 @@
             }
             #chat-container {
                 width: 100vw;
-                max-width: 100vw;
+                max-width: 100vw; /* Asegurar que ocupe todo el ancho */
                 height: 100vh;
-                max-height: 100vh;
+                max-height: 100vh; /* Asegurar que ocupe toda la altura */
                 border-radius: 0; /* Sin bordes redondeados en Android */
                  padding: 0;
                  margin: 0; /* Sin margen en Android */
                  justify-content: flex-start;
                  align-items: stretch;
+                 box-shadow: none; /* Eliminar sombra en móvil */
             }
 
             #name-prompt {
@@ -572,10 +598,13 @@
                  background-color: #ffffff; /* Fondo blanco */
                  color: #1c1c1e; /* Texto oscuro */
                  border-bottom: 1px solid #eee;
+                 background: none; /* Eliminar degradado en móvil */
+                 box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Sombra sutil en móvil */
              }
 
              #chat-header h2 {
                  color: #1c1c1e; /* Texto oscuro */
+                 text-shadow: none; /* Eliminar sombra de texto en móvil */
              }
              #online-users {
                  color: #8e8e93; /* Gris tenue */
@@ -588,10 +617,11 @@
                  bottom: 0;
                  left: 0;
                  right: 0;
-                 max-width: 100vw;
+                 max-width: 100vw; /* Asegurar que ocupe todo el ancho */
                  padding: 10px 15px; /* Padding en Android */
                  background-color: #f9f9f9; /* Fondo gris claro */
                  border-top: 1px solid #eee;
+                 box-sizing: border-box; /* Incluir padding en el ancho */
              }
 
 
@@ -1286,7 +1316,7 @@
                 // 2. Intentar detectar Facebook Video (regex mejorada, pero puede no ser exhaustiva)
                 const facebookUrlMatch = msg.text ? msg.text.match(/(?:https?:\/\/)?(?:www\.)?(?:facebook\.com)\/(?:watch\/)?(?:v=)?(?:videos\/)?([0-9]+)(?:\/)?/) : null;
                  if (facebookUrlMatch && facebookUrlMatch[1]) {
-                     const videoId = facebookUrlUrlMatch[1];
+                     const videoId = facebookUrlMatch[1];
                      const iframe = document.createElement('iframe');
                      // URL de incrustación básica de Facebook (puede requerir ajustes dependiendo de la configuración)
                      iframe.src = `https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D${videoId}&show_text=0&width=560`;
