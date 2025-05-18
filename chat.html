@@ -6,7 +6,7 @@
     <title>Chat Moderno</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos base para PC (aplican por defecto) */
+        /* Estilos base para PC (aplican por defecto y son sobrescritos en Android por la media query) */
         html, body {
             height: 100%;
             margin: 0;
@@ -1209,7 +1209,7 @@
                 // 2. Intentar detectar Facebook Video (regex mejorada, pero puede no ser exhaustiva)
                 const facebookUrlMatch = msg.text ? msg.text.match(/(?:https?:\/\/)?(?:www\.)?(?:facebook\.com)\/(?:watch\/)?(?:v=)?(?:videos\/)?([0-9]+)(?:\/)?/) : null;
                  if (facebookUrlMatch && facebookUrlMatch[1]) {
-                     const videoId = facebookUrlUrlMatch[1];
+                     const videoId = facebookUrlMatch[1];
                      const iframe = document.createElement('iframe');
                      // URL de incrustación básica de Facebook (puede requerir ajustes dependiendo de la configuración)
                      iframe.src = `https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D${videoId}&show_text=0&width=560`;
