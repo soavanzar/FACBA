@@ -708,6 +708,21 @@
              background-color: #e5e5ea; /* Fondo gris claro al pasar el ratón */
          }
 
+        /* Estilos para el mensaje temporal de detección de dispositivo */
+        #device-detection-message {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0; /* Inicialmente invisible */
+            transition: opacity 0.5s ease-in-out;
+        }
+
 
     </style>
 
@@ -766,6 +781,8 @@
 
     <audio id="notification-sound" src="sonido_mensaje.mp3" preload="auto"></audio>
 
+    <div id="device-detection-message"></div>
+
 
     <script>
         // Configuración de tu aplicación web de Firebase
@@ -823,6 +840,7 @@
         const messageInputArea = document.querySelector('.message-input-area'); // Referencia al área de input
         const onlineUsersDiv = document.getElementById('online-users'); // Elemento para usuarios en línea
         const bottomFixedArea = document.getElementById('bottom-fixed-area'); // Nuevo contenedor fijo
+        const deviceDetectionMessage = document.getElementById('device-detection-message'); // Mensaje de detección
 
 
         // --- Lógica de Ingreso de Nombre ---
@@ -1679,6 +1697,25 @@
              });
         }
 
+        // Función para detectar el tipo de dispositivo y mostrar el mensaje
+        function detectDeviceAndShowMessage() {
+            const messageElement = document.getElementById('device-detection-message');
+            let deviceType = 'PC'; // Asumir PC por defecto
+
+            // Usar la media query para detectar si es un dispositivo móvil
+            if (window.matchMedia("(max-width: 768px)").matches) {
+                deviceType = 'Móvil';
+            }
+
+            messageElement.textContent = `Detectado: ${deviceType}`;
+            messageElement.style.opacity = 1; // Hacer visible el mensaje
+
+            // Ocultar el mensaje después de 3 segundos
+            setTimeout(() => {
+                messageElement.style.opacity = 0;
+            }, 3000);
+        }
+
 
         // Comprobar si hay un nombre guardado en localStorage al cargar la página
         const savedName = localStorage.getItem('chatName');
@@ -1704,6 +1741,8 @@
              document.addEventListener('touchstart', unlockAudio, { once: true });
              sendButton.addEventListener('click', unlockAudio, { once: true }); // Also try on send button click
 
+             // Detectar dispositivo y mostrar el mensaje al cargar
+             detectDeviceAndShowMessage();
 
         };
 
