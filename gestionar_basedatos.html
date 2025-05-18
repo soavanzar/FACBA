@@ -1427,8 +1427,8 @@
                      </div>
                  <div class="billing-buttons">
                      <button type="button" class="save-invoice-button action-button save-changes-button" id="save-invoice-button">Guardar Factura</button>
-                     <button type="button" class="generate-pdf-button action-button delete-button" id="generate-pdf-button"><i class="fas fa-file-pdf"></i> Generar PDF</button>
-                 </div>
+                     <button type="button" class="generate-pdf-button action-button delete-button" id="generate-generated-pdf-button"><i class="fas fa-file-pdf"></i> Generar PDF (Actual)</button>
+                     </div>
             </div>
 
              <div class="history-section">
@@ -1650,7 +1650,9 @@
         const generatedInvoiceSection = document.getElementById('generated-invoice-section');
         const generatedInvoiceDetails = document.getElementById('generated-invoice-details');
         const saveInvoiceButton = document.getElementById('save-invoice-button');
-        const generatePdfButton = document.getElementById('generate-pdf-button');
+        // const generatePdfButton = document.getElementById('generate-pdf-button'); // Este botón ahora se genera dinámicamente en el historial
+        const generateGeneratedPdfButton = document.getElementById('generate-generated-pdf-button'); // NUEVO: Botón para PDF de factura GENERADA
+
         const invoiceHistoryList = document.getElementById('invoice-history-list');
         const viewAllInvoicesButton = document.getElementById('view-all-invoices-button');
 
@@ -1660,7 +1662,7 @@
         const fullInvoiceHistoryList = document.getElementById('full-invoice-history-list');
         const invoiceHistoryModalTitle = document.getElementById('invoice-history-modal-title');
 
-        // NUEVO: Modal de Edición de Factura
+        // NUEVO: Modal de Editar Factura
         const editInvoiceModal = document.getElementById('edit-invoice-modal');
         const closeEditInvoiceModalButton = document.getElementById('close-edit-invoice-modal');
         const cancelEditInvoiceButton = document.getElementById('cancel-edit-invoice');
@@ -3820,8 +3822,8 @@
                          <span>Valor: ${formatCurrency(payment.valor)}</span>
                          <span>Novedad: ${payment.novedad || 'N/A'}</span>
                           <div class="history-item-actions">
-                             <button class="action-button edit-payment-button" data-id="${doc.id}" title="Editar Pago"><i class="fas fa-edit"></i></button>
-                             <button class="action-button delete-payment-button" data-id="${doc.id}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
+                             <button class="action-button edit-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Pago"><i class="fas fa-edit"></i></button>
+                             <button class="action-button delete-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
                          </div>
                      `;
                      listElement.appendChild(listItem);
@@ -4016,7 +4018,7 @@
              generatedInvoiceDetails.innerHTML = '';
              generatedInvoiceSection.style.display = 'none';
              saveInvoiceButton.style.display = 'none'; // Ocultar botón de guardar
-             generatePdfButton.style.display = 'none'; // Ocultar botón de PDF
+             generateGeneratedPdfButton.style.display = 'none'; // Ocultar botón de PDF generado (el de la factura actual)
 
              // Cargar historial de facturas reciente (ej. últimos 3)
              await loadInvoiceHistory(userId, invoiceHistoryList, 3);
@@ -4032,7 +4034,7 @@
              generatedInvoiceDetails.innerHTML = ''; // Limpiar detalles de factura
              generatedInvoiceSection.style.display = 'none'; // Ocultar sección de factura generada
              saveInvoiceButton.style.display = 'none'; // Ocultar botón de guardar
-             generatePdfButton.style.display = 'none'; // Ocultar botón de PDF
+             generateGeneratedPdfButton.style.display = 'none'; // Ocultar botón de PDF generado
              invoiceHistoryList.innerHTML = ''; // Limpiar historial al cerrar
              viewAllInvoicesButton.style.display = 'none'; // Ocultar botón de ver todo
         }
@@ -4142,7 +4144,7 @@
                  generatedInvoiceDetails.textContent = invoiceDetailsText;
                  generatedInvoiceSection.style.display = 'block'; // Mostrar la sección
                  saveInvoiceButton.style.display = 'inline-block'; // Mostrar botón de guardar
-                 generatePdfButton.style.display = 'inline-block'; // Mostrar botón de PDF
+                 generateGeneratedPdfButton.style.display = 'inline-block'; // Mostrar botón de PDF generado (el de la factura actual)
 
                  showStatusMessage('Factura generada. Revísala y guarda.', 'success');
 
@@ -4152,7 +4154,7 @@
                  generatedInvoiceDetails.innerHTML = 'Error al generar factura.';
                  generatedInvoiceSection.style.display = 'block';
                  saveInvoiceButton.style.display = 'none';
-                 generatePdfButton.style.display = 'none';
+                 generateGeneratedPdfButton.style.display = 'none'; // Ocultar botón de PDF generado en caso de error
              }
         });
 
@@ -4195,7 +4197,7 @@
                  generatedInvoiceDetails.innerHTML = '';
                  generatedInvoiceSection.style.display = 'none';
                  saveInvoiceButton.style.display = 'none';
-                 generatePdfButton.style.display = 'none';
+                 generateGeneratedPdfButton.style.display = 'none'; // Ocultar botón de PDF generado
                  billingForm.reset(); // Resetear formulario de fechas
 
                  // Recargar historial de facturas en el modal
@@ -4277,10 +4279,10 @@
                              Fecha Guardada: ${formatDateTime(invoice.createdAt)}
                          </div>
                          <div class="invoice-actions">
-                             <button class="action-button view-invoice-details-button" data-id="${doc.id}" title="Ver Detalles">Ver Detalles</button>
-                             <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
-                             <button class="action-button edit-invoice-button" data-id="${doc.id}" title="Editar Factura"><i class="fas fa-edit"></i></button>
-                              <button class="action-button delete-invoice-button" data-id="${doc.id}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
+                             <button class="action-button view-invoice-details-button" data-id="${doc.id}" data-user-id="${userId}" title="Ver Detalles">Ver Detalles</button>
+                             <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" data-user-id="${userId}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                             <button class="action-button edit-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Factura"><i class="fas fa-edit"></i></button>
+                              <button class="action-button delete-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
                              </div>
                      `;
                      listElement.appendChild(listItem);
@@ -4352,7 +4354,7 @@
              }
          }
 
-         // Función para generar PDF de una factura específica
+         // Función para generar PDF de una factura específica (desde el historial)
          async function generateInvoicePdf(invoiceId) {
              showStatusMessage('Generando PDF...', 'info');
              try {
@@ -4362,6 +4364,7 @@
                      return;
                  }
                  const invoiceData = invoiceDoc.data();
+                 console.log("Datos de factura para PDF:", invoiceData); // Debugging PDF data
 
                  // Usar jsPDF para crear el PDF
                  const { jsPDF } = window.jspdf;
@@ -4373,7 +4376,9 @@
 
                  doc.setFontSize(12);
                  // Dividir el texto de detalles en líneas para el PDF
-                 const detailsLines = doc.splitTextToSize(invoiceData.detalles, 180); // 180mm width
+                 // Check if invoiceData.detalles exists and is a string
+                 const detailsText = typeof invoiceData.detalles === 'string' ? invoiceData.detalles : 'No hay detalles disponibles.';
+                 const detailsLines = doc.splitTextToSize(detailsText, 180); // 180mm width
 
                  doc.text(detailsLines, 10, 20); // Add the details text
 
@@ -4387,6 +4392,43 @@
                  showStatusMessage('Error al generar PDF: ' + error.message, 'error');
              }
          }
+
+         // NUEVA Función para generar PDF de la factura GENERADA (la que se ve en el modal de facturación)
+         generateGeneratedPdfButton.addEventListener('click', () => {
+             showStatusMessage('Generando PDF de la factura actual...', 'info');
+             const invoiceDetailsText = generatedInvoiceDetails.textContent;
+
+             if (!invoiceDetailsText || invoiceDetailsText.includes('Error al generar factura')) {
+                 showStatusMessage('No hay una factura actual válida para generar PDF.', 'error');
+                 return;
+             }
+
+             try {
+                 const { jsPDF } = window.jspdf;
+                 const doc = new jsPDF();
+
+                 doc.setFontSize(18);
+                 doc.text("Factura FACBA (Generada)", 10, 10);
+
+                 doc.setFontSize(12);
+                 const detailsLines = doc.splitTextToSize(invoiceDetailsText, 180);
+
+                 doc.text(detailsLines, 10, 20);
+
+                 // Extraer código para el nombre del archivo si es posible
+                 const invoiceCodeMatch = invoiceDetailsText.match(/Código de Factura: (.+)/);
+                 const filenameCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'generada';
+
+                 doc.save(`factura_${filenameCode}.pdf`);
+
+                 showStatusMessage('PDF generado con éxito!', 'success');
+
+             } catch (error) {
+                 console.error("Error al generar PDF de la factura actual:", error);
+                 showStatusMessage('Error al generar PDF de la factura actual: ' + error.message, 'error');
+             }
+         });
+
 
          // --- Funcionalidad de Editar Factura ---
 
