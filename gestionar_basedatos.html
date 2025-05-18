@@ -991,9 +991,10 @@
          #invoice-history-list li .invoice-actions.show,
          #full-invoice-history-list li .invoice-actions.show /* NUEVO */
          {
-             display: flex; /* Mostrar cuando tiene la clase 'show' */
-             opacity: 1; /* Asegurar opacidad 1 */
-             visibility: visible; /* Asegurar visibilidad */
+             /* CORRECCIÓN: Asegurar que display, opacity y visibility se apliquen */
+             display: flex !important; /* Forzar a flex */
+             opacity: 1 !important; /* Forzar opacidad 1 */
+             visibility: visible !important; /* Forzar visibilidad */
          }
 
          #invoice-history-list li .invoice-actions button,
