@@ -815,12 +815,18 @@
          #add-payment-modal .modal-content,
          #billing-modal .modal-content,
          #payment-history-modal .modal-content,
-         #invoice-history-modal .modal-content {
+         #invoice-history-modal .modal-content,
+         #edit-payment-modal .modal-content, /* NUEVO: Modal de edición de pago */
+         #edit-invoice-modal .modal-content /* NUEVO: Modal de edición de factura */
+         {
              max-width: 600px; /* Aumentar ancho para formularios/historiales */
          }
 
          #payment-history-list,
-         #invoice-history-list {
+         #invoice-history-list,
+         #full-payment-history-list, /* NUEVO: Lista en modal de historial completo */
+         #full-invoice-history-list /* NUEVO: Lista en modal de historial completo */
+         {
              list-style: none;
              padding: 0;
              margin-top: 20px;
@@ -828,7 +834,10 @@
          }
 
          #payment-history-list li,
-         #invoice-history-list li {
+         #invoice-history-list li,
+         #full-payment-history-list li, /* NUEVO */
+         #full-invoice-history-list li /* NUEVO */
+         {
              padding: 10px 0;
              border-bottom: 1px solid #e5e7eb;
              font-size: 0.95rem;
@@ -840,12 +849,18 @@
          }
 
          #payment-history-list li:last-child,
-         #invoice-history-list li:last-child {
+         #invoice-history-list li:last-child,
+         #full-payment-history-list li:last-child, /* NUEVO */
+         #full-invoice-history-list li:last-child /* NUEVO */
+         {
              border-bottom: none;
          }
 
          #payment-history-list li span,
-         #invoice-history-list li span {
+         #invoice-history-list li span,
+         #full-payment-history-list li span, /* NUEVO */
+         #full-invoice-history-list li span /* NUEVO */
+         {
              margin-right: 15px; /* Espacio entre elementos */
          }
 
@@ -929,28 +944,88 @@
          }
 
          /* Estilos para la lista de historial de facturas */
-         #invoice-history-list li {
+         #invoice-history-list li,
+         #full-invoice-history-list li /* NUEVO */
+         {
              flex-direction: column; /* Apilar elementos en cada item de factura */
              align-items: flex-start; /* Alinear a la izquierda */
          }
 
-         #invoice-history-list li .invoice-summary {
+         #invoice-history-list li .invoice-summary,
+         #full-invoice-history-list li .invoice-summary /* NUEVO */
+         {
              width: 100%; /* Ocupar todo el ancho */
              margin-bottom: 10px; /* Espacio debajo del resumen */
          }
 
-         #invoice-history-list li .invoice-actions {
+         #invoice-history-list li .invoice-actions,
+         #full-invoice-history-list li .invoice-actions /* NUEVO */
+         {
              width: 100%; /* Ocupar todo el ancho */
              display: flex;
              justify-content: flex-end; /* Alinear botones a la derecha */
              gap: 8px; /* Espacio entre botones */
          }
 
-         #invoice-history-list li .invoice-actions button {
+         #invoice-history-list li .invoice-actions button,
+         #full-invoice-history-list li .invoice-actions button /* NUEVO */
+         {
              padding: 5px 10px;
              font-size: 0.85rem;
          }
 
+         /* NUEVOS ESTILOS: Botones de acción en listas de historial */
+         .history-item-actions {
+             display: flex;
+             gap: 8px; /* Espacio entre botones */
+             align-items: center;
+             margin-left: auto; /* Empuja los botones a la derecha */
+         }
+
+         .history-item-actions .action-button {
+             padding: 4px 8px; /* Padding más pequeño para botones en lista */
+             font-size: 0.75rem; /* Tamaño de fuente más pequeño */
+         }
+
+         /* Ajuste para que los detalles del pago/factura y los botones de acción estén en la misma línea si hay espacio */
+         #payment-history-list li,
+         #full-payment-history-list li {
+             flex-direction: row; /* Volver a fila si hay espacio */
+             justify-content: space-between; /* Espacio entre detalles y acciones */
+             align-items: center;
+         }
+
+         #payment-history-list li span,
+         #full-payment-history-list li span {
+             margin-right: 10px; /* Espacio entre los spans de detalles */
+             flex-shrink: 0; /* Evitar que se encojan demasiado */
+         }
+
+         #payment-history-list li .history-item-actions,
+         #full-payment-history-list li .history-item-actions {
+             margin-left: auto; /* Asegura que los botones estén a la derecha */
+             flex-shrink: 0; /* Evitar que se encojan demasiado */
+         }
+
+         /* En pantallas pequeñas, volver a apilar */
+         @media (max-width: 767px) {
+              #payment-history-list li,
+              #full-payment-history-list li {
+                  flex-direction: column;
+                  align-items: flex-start;
+              }
+              #payment-history-list li span,
+              #full-payment-history-list li span {
+                  margin-right: 0;
+                  margin-bottom: 5px; /* Espacio entre detalles apilados */
+              }
+              #payment-history-list li .history-item-actions,
+              #full-payment-history-list li .history-item-actions {
+                  width: 100%; /* Ocupa todo el ancho */
+                  justify-content: flex-end; /* Alinear botones a la derecha */
+                  margin-top: 10px; /* Espacio encima de los botones */
+              }
+         }
 
     </style>
 </head>
@@ -1295,6 +1370,38 @@
              </div>
         </div>
     </div>
+    <div id="edit-payment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-edit-payment-modal">&times;</span>
+            <h2>Editar Pago</h2>
+            <form id="edit-payment-form">
+                <input type="hidden" id="edit-payment-id">
+                 <input type="hidden" id="edit-payment-user-id"> <div class="modal-form-group">
+                    <label for="edit-payment-date">Fecha:</label>
+                    <input type="date" id="edit-payment-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-payment-value">Valor (COP):</label>
+                    <input type="number" id="edit-payment-value" step="0.01" required>
+                </div>
+                 <div class="modal-form-group">
+                    <label for="edit-payment-novelty">Novedad:</label>
+                    <select id="edit-payment-novelty" required>
+                        <option value="">Selecciona</option>
+                        <option value="APO">APO</option>
+                        <option value="ING">ING</option>
+                        <option value="RET">RET</option>
+                         <option value="OTRO">OTRO</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit-payment">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="billing-modal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close-button" id="close-billing-modal">&times;</span>
@@ -1343,6 +1450,36 @@
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-invoice-history-modal-button">Cerrar</button>
              </div>
+        </div>
+    </div>
+    <div id="edit-invoice-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-edit-invoice-modal">&times;</span>
+            <h2>Editar Factura</h2>
+            <form id="edit-invoice-form">
+                <input type="hidden" id="edit-invoice-id">
+                 <input type="hidden" id="edit-invoice-user-id"> <div class="modal-form-group">
+                    <label for="edit-invoice-code">Código de Factura:</label>
+                    <input type="text" id="edit-invoice-code" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-invoice-start-date">Fecha Inicio:</label>
+                    <input type="date" id="edit-invoice-start-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-invoice-end-date">Fecha Fin:</label>
+                    <input type="date" id="edit-invoice-end-date" required>
+                </div>
+                 <div class="modal-form-group">
+                     <label for="edit-invoice-details">Detalles:</label>
+                     <textarea id="edit-invoice-details" rows="10" class="w-full p-2 border rounded"></textarea>
+                 </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit-invoice">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
     </div>
     <script>
@@ -1491,6 +1628,17 @@
         const fullPaymentHistoryList = document.getElementById('full-payment-history-list');
         const paymentHistoryModalTitle = document.getElementById('payment-history-modal-title');
 
+        // NUEVO: Modal de Edición de Pago
+        const editPaymentModal = document.getElementById('edit-payment-modal');
+        const closeEditPaymentModalButton = document.getElementById('close-edit-payment-modal');
+        const cancelEditPaymentButton = document.getElementById('cancel-edit-payment');
+        const editPaymentForm = document.getElementById('edit-payment-form');
+        const editPaymentIdInput = document.getElementById('edit-payment-id');
+        const editPaymentUserIdInput = document.getElementById('edit-payment-user-id');
+        const editPaymentDateInput = document.getElementById('edit-payment-date');
+        const editPaymentValueInput = document.getElementById('edit-payment-value');
+        const editPaymentNoveltySelect = document.getElementById('edit-payment-novelty');
+
 
         const billingModal = document.getElementById('billing-modal');
         const closeBillingModalButton = document.getElementById('close-billing-modal');
@@ -1511,6 +1659,19 @@
         const closeInvoiceHistoryModalButtonInModal = document.getElementById('close-invoice-history-modal-button');
         const fullInvoiceHistoryList = document.getElementById('full-invoice-history-list');
         const invoiceHistoryModalTitle = document.getElementById('invoice-history-modal-title');
+
+        // NUEVO: Modal de Edición de Factura
+        const editInvoiceModal = document.getElementById('edit-invoice-modal');
+        const closeEditInvoiceModalButton = document.getElementById('close-edit-invoice-modal');
+        const cancelEditInvoiceButton = document.getElementById('cancel-edit-invoice');
+        const editInvoiceForm = document.getElementById('edit-invoice-form');
+        const editInvoiceIdInput = document.getElementById('edit-invoice-id');
+        const editInvoiceUserIdInput = document.getElementById('edit-invoice-user-id');
+        const editInvoiceCodeInput = document.getElementById('edit-invoice-code');
+        const editInvoiceStartDateInput = document.getElementById('edit-invoice-start-date');
+        const editInvoiceEndDateInput = document.getElementById('edit-invoice-end-date');
+        const editInvoiceDetailsTextarea = document.getElementById('edit-invoice-details');
+
 
         // --- FIN NUEVOS ELEMENTOS ---
 
@@ -3650,11 +3811,18 @@
                      const payment = doc.data();
                      console.log("loadPaymentHistory: Processing payment doc:", doc.id, payment); // Debugging each doc
                      const listItem = document.createElement('li');
+                     listItem.dataset.id = doc.id; // Guardar el ID del pago
+                     listItem.dataset.userId = userId; // Guardar el ID del usuario
+
                      // Mostrar fecha formateada, valor y novedad
                      listItem.innerHTML = `
                          <span>Fecha: ${formatDate(payment.fecha)}</span>
                          <span>Valor: ${formatCurrency(payment.valor)}</span>
                          <span>Novedad: ${payment.novedad || 'N/A'}</span>
+                          <div class="history-item-actions">
+                             <button class="action-button edit-payment-button" data-id="${doc.id}" title="Editar Pago"><i class="fas fa-edit"></i></button>
+                             <button class="action-button delete-payment-button" data-id="${doc.id}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
+                         </div>
                      `;
                      listElement.appendChild(listItem);
                  });
@@ -3665,6 +3833,33 @@
                  showStatusMessage('Error al cargar historial de pagos: ' + error.message, 'error'); // Show specific error message
              }
         }
+
+         // Listener para los botones de acción en las listas de historial de pagos (usando delegación)
+         // Esto cubre tanto la lista reciente como la lista completa
+         document.querySelectorAll('#payment-history-list, #full-payment-history-list').forEach(list => {
+              list.addEventListener('click', async (e) => {
+                   const target = e.target;
+                   const paymentId = target.dataset.id || target.closest('button')?.dataset.id;
+                   const userId = target.dataset.userId || target.closest('li')?.dataset.userId; // Get userId from listItem
+
+                   if (!paymentId || !userId) return;
+
+                   if (target.classList.contains('edit-payment-button')) {
+                        // Acción: Editar Pago
+                        console.log("Editar Pago clickeado:", paymentId);
+                        await loadPaymentDataForEdit(paymentId, userId);
+                        showEditPaymentModal();
+
+                   } else if (target.classList.contains('delete-payment-button')) {
+                        // Acción: Eliminar Pago
+                        console.log("Eliminar Pago clickeado:", paymentId);
+                        if (confirm('¿Estás seguro de que deseas eliminar este pago?')) {
+                             deletePayment(paymentId, userId);
+                        }
+                   }
+              });
+         });
+
 
         // Listener para el botón "Ver Historial Completo" de pagos
         viewAllPaymentsButton.addEventListener('click', () => {
@@ -3696,6 +3891,120 @@
                   hidePaymentHistoryModal();
               }
          });
+
+         // --- Funcionalidad de Editar Pago ---
+
+         // Mostrar modal de editar pago
+         function showEditPaymentModal() {
+             editPaymentModal.classList.add('show');
+         }
+
+         // Ocultar modal de editar pago
+         function hideEditPaymentModal() {
+             editPaymentModal.classList.remove('show');
+             editPaymentForm.reset(); // Resetear formulario
+         }
+
+         // Listeners para cerrar modal de editar pago
+         closeEditPaymentModalButton.addEventListener('click', hideEditPaymentModal);
+         cancelEditPaymentButton.addEventListener('click', hideEditPaymentModal);
+         editPaymentModal.addEventListener('click', (e) => {
+             if (e.target === editPaymentModal) {
+                 hideEditPaymentModal();
+             }
+         });
+
+         // Cargar datos de un pago en el modal de edición
+         async function loadPaymentDataForEdit(paymentId, userId) {
+              try {
+                   const paymentDoc = await pagosCollection.doc(paymentId).get();
+                   if (paymentDoc.exists) {
+                        const paymentData = paymentDoc.data();
+                        console.log("Datos del pago cargados para edición:", paymentData);
+
+                        editPaymentIdInput.value = paymentId;
+                        editPaymentUserIdInput.value = userId; // Store userId
+                        editPaymentDateInput.value = formatDate(paymentData.fecha);
+                        editPaymentValueInput.value = paymentData.valor || 0;
+                        editPaymentNoveltySelect.value = paymentData.novedad || '';
+
+                   } else {
+                        console.error("Pago no encontrado para edición:", paymentId);
+                        showStatusMessage('Error: Pago no encontrado para editar.', 'error');
+                        hideEditPaymentModal();
+                   }
+              } catch (error) {
+                   console.error("Error al cargar datos del pago para edición:", error);
+                   showStatusMessage('Error al cargar datos del pago para edición.', 'error');
+                   hideEditPaymentModal();
+              }
+         }
+
+         // Listener para guardar cambios del formulario de edición de pago
+         editPaymentForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+
+              const paymentId = editPaymentIdInput.value;
+              const userId = editPaymentUserIdInput.value; // Get userId
+              const paymentDateString = editPaymentDateInput.value;
+              const paymentValue = parseFloat(editPaymentValueInput.value);
+              const paymentNovelty = editPaymentNoveltySelect.value;
+
+              if (!paymentId || !userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
+                  showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+                  return;
+              }
+
+              const paymentDate = new Date(paymentDateString + 'T00:00:00Z');
+              const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
+
+
+              const updatedData = {
+                  fecha: paymentTimestamp,
+                  valor: paymentValue,
+                  novedad: paymentNovelty,
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              };
+
+              showStatusMessage('Guardando cambios del pago...', 'info');
+
+              try {
+                  await pagosCollection.doc(paymentId).update(updatedData);
+                  showStatusMessage('Cambios del pago guardados con éxito!', 'success');
+                  hideEditPaymentModal();
+
+                  // Recargar el historial de pagos en el modal visible
+                  if (addPaymentModal.classList.contains('show')) {
+                       await loadPaymentHistory(userId, paymentHistoryList, 5);
+                  } else if (paymentHistoryModal.classList.contains('show')) {
+                       await loadPaymentHistory(userId, fullPaymentHistoryList);
+                  }
+
+              } catch (error) {
+                  console.error("Error al guardar cambios del pago:", error);
+                  showStatusMessage('Error al guardar cambios del pago: ' + error.message, 'error');
+              }
+         });
+
+         // Función para eliminar un pago
+         async function deletePayment(paymentId, userId) {
+              showStatusMessage('Eliminando pago...', 'info');
+              try {
+                  await pagosCollection.doc(paymentId).delete();
+                  showStatusMessage('Pago eliminado con éxito!', 'success');
+
+                  // Recargar el historial de pagos en el modal visible
+                  if (addPaymentModal.classList.contains('show')) {
+                       await loadPaymentHistory(userId, paymentHistoryList, 5);
+                  } else if (paymentHistoryModal.classList.contains('show')) {
+                       await loadPaymentHistory(userId, fullPaymentHistoryList);
+                  }
+
+              } catch (error) {
+                  console.error("Error al eliminar pago:", error);
+                  showStatusMessage('Error al eliminar pago: ' + error.message, 'error');
+              }
+         }
 
 
         // --- Funcionalidad de Facturación ---
@@ -3957,6 +4266,9 @@
                      const invoice = doc.data();
                       console.log("loadInvoiceHistory: Processing invoice doc:", doc.id, invoice); // Debugging each doc
                      const listItem = document.createElement('li');
+                     listItem.dataset.id = doc.id; // Guardar el ID de la factura
+                     listItem.dataset.userId = userId; // Guardar el ID del usuario
+
                      // Mostrar resumen de la factura y botones de acción
                      listItem.innerHTML = `
                          <div class="invoice-summary">
@@ -3967,7 +4279,9 @@
                          <div class="invoice-actions">
                              <button class="action-button view-invoice-details-button" data-id="${doc.id}" title="Ver Detalles">Ver Detalles</button>
                              <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
-                              </div>
+                             <button class="action-button edit-invoice-button" data-id="${doc.id}" title="Editar Factura"><i class="fas fa-edit"></i></button>
+                              <button class="action-button delete-invoice-button" data-id="${doc.id}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
+                             </div>
                      `;
                      listElement.appendChild(listItem);
                  });
@@ -3981,53 +4295,39 @@
         }
 
          // Listener para botones de acción en el historial de facturas (usando delegación)
-         invoiceHistoryList.addEventListener('click', async (e) => {
-              const target = e.target;
-              const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+         // Esto cubre tanto la lista reciente como la lista completa
+         document.querySelectorAll('#invoice-history-list, #full-invoice-history-list').forEach(list => {
+              list.addEventListener('click', async (e) => {
+                   const target = e.target;
+                   const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+                   const userId = target.dataset.userId || target.closest('li')?.dataset.userId; // Get userId from listItem
 
-              if (!invoiceId) return;
+                   if (!invoiceId || !userId) return;
 
-              if (target.classList.contains('view-invoice-details-button')) {
-                   // Acción: Ver Detalles de Factura
-                   console.log("Ver Detalles de Factura clickeado:", invoiceId);
-                   await viewInvoiceDetails(invoiceId);
+                   if (target.classList.contains('view-invoice-details-button')) {
+                        // Acción: Ver Detalles de Factura
+                        console.log("Ver Detalles de Factura clickeado:", invoiceId);
+                        await viewInvoiceDetails(invoiceId); // Reusing the existing view function
 
-              } else if (target.classList.contains('generate-invoice-pdf-button')) {
-                   // Acción: Generar PDF de Factura
-                   console.log("Generar PDF de Factura clickeado:", invoiceId);
-                   await generateInvoicePdf(invoiceId);
-              }
-              // Add delete invoice logic here if delete button is added
-         });
+                   } else if (target.classList.contains('generate-invoice-pdf-button')) {
+                        // Acción: Generar PDF de Factura
+                        console.log("Generar PDF de Factura clickeado:", invoiceId);
+                        await generateInvoicePdf(invoiceId);
 
-         // Listener para botones de acción en el historial de facturas completo (usando delegación)
-         fullInvoiceHistoryList.addEventListener('click', async (e) => {
-              const target = e.target;
-              const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+                   } else if (target.classList.contains('edit-invoice-button')) {
+                       // NUEVO: Acción Editar Factura
+                       console.log("Editar Factura clickeado:", invoiceId);
+                       await loadInvoiceDataForEdit(invoiceId, userId);
+                       showEditInvoiceModal();
 
-              if (!invoiceId) return;
-
-              if (target.classList.contains('view-invoice-details-button')) {
-                   // Acción: Ver Detalles de Factura (desde historial completo)
-                   console.log("Ver Detalles de Factura (completo) clickeado:", invoiceId);
-                   // Opcional: Cerrar modal de historial completo y abrir modal de factura con detalles
-                   hideInvoiceHistoryModal();
-                   // Need a way to display details, maybe reuse billing modal or a new one
-                   // For now, let's just log the details or show in an alert
-                   const invoiceDoc = await facturasCollection.doc(invoiceId).get();
-                   if (invoiceDoc.exists) {
-                        alert("Detalles de Factura:\n\n" + invoiceDoc.data().detalles);
-                   } else {
-                       showStatusMessage('Detalles de factura no encontrados.', 'error');
+                   } else if (target.classList.contains('delete-invoice-button')) {
+                       // NUEVO: Acción Eliminar Factura
+                       console.log("Eliminar Factura clickeado:", invoiceId);
+                       if (confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+                           deleteInvoice(invoiceId, userId);
+                       }
                    }
-
-
-              } else if (target.classList.contains('generate-invoice-pdf-button')) {
-                   // Acción: Generar PDF de Factura (desde historial completo)
-                   console.log("Generar PDF de Factura (completo) clickeado:", invoiceId);
-                   await generateInvoicePdf(invoiceId);
-              }
-              // Add delete invoice logic here if delete button is added
+              });
          });
 
 
@@ -4087,6 +4387,129 @@
                  showStatusMessage('Error al generar PDF: ' + error.message, 'error');
              }
          }
+
+         // --- Funcionalidad de Editar Factura ---
+
+         // Mostrar modal de editar factura
+         function showEditInvoiceModal() {
+             editInvoiceModal.classList.add('show');
+         }
+
+         // Ocultar modal de editar factura
+         function hideEditInvoiceModal() {
+             editInvoiceModal.classList.remove('show');
+             editInvoiceForm.reset(); // Resetear formulario
+         }
+
+         // Listeners para cerrar modal de editar factura
+         closeEditInvoiceModalButton.addEventListener('click', hideEditInvoiceModal);
+         cancelEditInvoiceButton.addEventListener('click', hideEditInvoiceModal);
+         editInvoiceModal.addEventListener('click', (e) => {
+             if (e.target === editInvoiceModal) {
+                 hideEditInvoiceModal();
+             }
+         });
+
+         // Cargar datos de una factura en el modal de edición
+         async function loadInvoiceDataForEdit(invoiceId, userId) {
+              try {
+                   const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                   if (invoiceDoc.exists) {
+                        const invoiceData = invoiceDoc.data();
+                        console.log("Datos de la factura cargados para edición:", invoiceData);
+
+                        editInvoiceIdInput.value = invoiceId;
+                        editInvoiceUserIdInput.value = userId; // Store userId
+                        editInvoiceCodeInput.value = invoiceData.codigo || '';
+                        editInvoiceStartDateInput.value = formatDate(invoiceData.fechaInicio);
+                        editInvoiceEndDateInput.value = formatDate(invoiceData.fechaFin);
+                        editInvoiceDetailsTextarea.value = invoiceData.detalles || '';
+
+                   } else {
+                        console.error("Factura no encontrada para edición:", invoiceId);
+                        showStatusMessage('Error: Factura no encontrada para editar.', 'error');
+                        hideEditInvoiceModal();
+                   }
+              } catch (error) {
+                   console.error("Error al cargar datos de la factura para edición:", error);
+                   showStatusMessage('Error al cargar datos de la factura para edición.', 'error');
+                   hideEditInvoiceModal();
+              }
+         }
+
+         // Listener para guardar cambios del formulario de edición de factura
+         editInvoiceForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+
+              const invoiceId = editInvoiceIdInput.value;
+              const userId = editInvoiceUserIdInput.value; // Get userId
+              const invoiceCode = editInvoiceCodeInput.value.trim();
+              const startDateString = editInvoiceStartDateInput.value;
+              const endDateString = editInvoiceEndDateInput.value;
+              const invoiceDetails = editInvoiceDetailsTextarea.value;
+
+              if (!invoiceId || !userId || !invoiceCode || !startDateString || !endDateString || !invoiceDetails) {
+                  showStatusMessage('Por favor, completa todos los campos de la factura correctamente.', 'error');
+                  return;
+              }
+
+              const startDate = new Date(startDateString + 'T00:00:00Z');
+              const endDate = new Date(endDateString + 'T23:59:59Z');
+
+              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                 return;
+             }
+
+              const updatedData = {
+                  codigo: invoiceCode,
+                  fechaInicio: firebase.firestore.Timestamp.fromDate(startDate),
+                  fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                  detalles: invoiceDetails,
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              };
+
+              showStatusMessage('Guardando cambios de la factura...', 'info');
+
+              try {
+                  await facturasCollection.doc(invoiceId).update(updatedData);
+                  showStatusMessage('Cambios de la factura guardados con éxito!', 'success');
+                  hideEditInvoiceModal();
+
+                  // Recargar el historial de facturas en el modal visible
+                  if (billingModal.classList.contains('show')) {
+                       await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+                  } else if (invoiceHistoryModal.classList.contains('show')) {
+                       await loadInvoiceHistory(userId, fullInvoiceHistoryList);
+                  }
+
+              } catch (error) {
+                  console.error("Error al guardar cambios de la factura:", error);
+                  showStatusMessage('Error al guardar cambios de la factura: ' + error.message, 'error');
+              }
+         });
+
+
+         // Función para eliminar una factura
+         async function deleteInvoice(invoiceId, userId) {
+              showStatusMessage('Eliminando factura...', 'info');
+              try {
+                  await facturasCollection.doc(invoiceId).delete();
+                  showStatusMessage('Factura eliminada con éxito!', 'success');
+
+                  // Recargar el historial de facturas en el modal visible
+                  if (billingModal.classList.contains('show')) {
+                       await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+                  } else if (invoiceHistoryModal.classList.contains('show')) {
+                       await loadInvoiceHistory(userId, fullInvoiceHistoryList);
+                  }
+
+              } catch (error) {
+                  console.error("Error al eliminar factura:", error);
+                  showStatusMessage('Error al eliminar factura: ' + error.message, 'error');
+              }
+         }
+
 
         // --- NUEVA FUNCIONALIDAD: Abrir ventana de Chat ---
         chatButton.addEventListener('click', () => {
