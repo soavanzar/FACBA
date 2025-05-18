@@ -27,7 +27,7 @@
             margin: 0;
             padding: 20px;
             min-height: 100vh;
-            position: relative; /* Necesario para posicionar el botón de configuración */
+            position: relative; /* Necesario para posicionar los botones superiores */
         }
 
         .container {
@@ -58,22 +58,42 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        /* Estilo para el botón de configuración */
-        .settings-button {
+        /* Contenedor para los iconos superiores */
+        .top-icons {
             position: absolute; /* Posicionamiento absoluto */
             top: 20px; /* Ajusta según sea necesario */
             right: 30px; /* Ajusta según sea necesario */
+            display: flex; /* Usa flexbox para alinear los iconos */
+            gap: 15px; /* Espacio entre iconos */
+            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        /* Estilo para el icono de configuración */
+        .settings-button,
+        .chat-button { /* Aplica estilos comunes a ambos iconos */
             font-size: 2.5rem; /* Tamaño del icono (ajustado para ser más grande) */
-            color: #4b5563; /* Color gris oscuro */
             cursor: pointer;
             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        .settings-button {
+            color: #4b5563; /* Color gris oscuro para la tuerca */
         }
 
         .settings-button:hover {
             color: #1f2937; /* Gris más oscuro al pasar el ratón */
             transform: rotate(15deg); /* Pequeña rotación al pasar el ratón */
         }
+
+         /* Estilo para el nuevo icono de chat */
+         .chat-button {
+             color: #3b82f6; /* Color azul para el chat */
+         }
+
+         .chat-button:hover {
+             color: #2563eb; /* Azul más oscuro al pasar el ratón */
+             transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+         }
 
 
         .filter-buttons {
@@ -240,6 +260,7 @@
             cursor: pointer;
             transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
             border: none; /* Sin borde por defecto */
+            color: white; /* Letra blanca para todos los action-button */
         }
 
         .action-button i {
@@ -248,7 +269,6 @@
 
         .edit-button {
             background-color: #60a5fa; /* Azul */
-            color: white;
         }
         .edit-button:hover {
             background-color: #3b82f6; /* Azul más oscuro */
@@ -256,7 +276,6 @@
 
         .delete-button {
             background-color: #f87171; /* Rojo */
-            color: white;
         }
         .delete-button:hover {
             background-color: #ef4444; /* Rojo más oscuro */
@@ -264,11 +283,27 @@
 
         .status-button {
             background-color: #a78bfa; /* Morado */
-            color: white;
         }
         .status-button:hover {
             background-color: #8b5cf6; /* Morado más oscuro */
         }
+
+         /* NUEVOS ESTILOS PARA BOTONES DE PAGO Y FACTURACIÓN */
+         .add-payment-button {
+             background-color: #10b981; /* Verde */
+         }
+         .add-payment-button:hover {
+             background-color: #059669; /* Verde más oscuro */
+         }
+
+         .billing-button {
+             background-color: #3b82f6; /* Azul */
+         }
+         .billing-button:hover {
+             background-color: #2563eb; /* Azul más oscuro */
+         }
+         /* FIN NUEVOS ESTILOS */
+
 
          /* Estilo para el icono de tuerca */
          .gear-icon {
@@ -818,7 +853,7 @@
          .history-section {
              margin-top: 25px;
              padding-top: 15px;
-             border-top: 1px solid #d1d5db;
+             border-top: 1px solid #d1d1db; /* Cambio de color para diferenciar */
          }
 
          .history-section h3 {
@@ -864,35 +899,32 @@
              border: none;
          }
 
-         .generate-invoice-button {
-             background-color: #3b82f6; /* Azul */
-             color: white;
-         }
-         .generate-invoice-button:hover {
-             background-color: #2563eb; /* Azul más oscuro */
-         }
-
-         .save-invoice-button {
+         /* Aplicar estilos de action-button a los botones específicos */
+         .generate-invoice-button.action-button {
              background-color: #10b981; /* Verde */
-             color: white;
          }
-         .save-invoice-button:hover {
+         .generate-invoice-button.action-button:hover {
              background-color: #059669; /* Verde más oscuro */
          }
 
-         .view-invoices-button {
-             background-color: #6366f1; /* Indigo */
-             color: white;
+         .save-invoice-button.action-button {
+             background-color: #10b981; /* Verde */
          }
-         .view-invoices-button:hover {
+         .save-invoice-button.action-button:hover {
+             background-color: #059669; /* Verde más oscuro */
+         }
+
+         .view-invoices-button.action-button {
+             background-color: #6366f1; /* Indigo */
+         }
+         .view-invoices-button.action-button:hover {
              background-color: #4f46e5; /* Indigo más oscuro */
          }
 
-         .generate-pdf-button {
+         .generate-pdf-button.action-button {
              background-color: #ef4444; /* Rojo */
-             color: white;
          }
-         .generate-pdf-button:hover {
+         .generate-pdf-button.action-button:hover {
              background-color: #dc2626; /* Rojo más oscuro */
          }
 
@@ -931,7 +963,8 @@
 
         <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios</h1>
 
-        <i class="fas fa-cog settings-button" id="settings-button" title="Configuración"></i>
+        <div class="top-icons">
+            <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i> <i class="fas fa-cog settings-button" id="settings-button" title="Configuración"></i> </div>
 
 
         <div class="filter-buttons">
@@ -1242,11 +1275,11 @@
             </form>
 
             <div class="history-section">
-                 <h3>Historial de Pagos</h3>
+                 <h3>Historial de Pagos Recientes</h3>
                  <ul id="payment-history-list">
                      <li>Cargando historial...</li>
                  </ul>
-                 <button class="view-history-button mt-4" id="view-all-payments-button" style="display: none;">Ver Historial Completo</button>
+                 <button class="view-history-button mt-4 action-button view-invoices-button" id="view-all-payments-button" style="display: none;">Ver Historial Completo</button>
             </div>
         </div>
     </div>
@@ -1277,7 +1310,7 @@
                     <input type="date" id="billing-end-date" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="generate-invoice-button" id="generate-invoice-button">Generar Factura</button>
+                    <button type="button" class="generate-invoice-button action-button save-changes-button" id="generate-invoice-button">Generar Factura</button>
                 </div>
             </form>
 
@@ -1286,17 +1319,17 @@
                  <div id="generated-invoice-details">
                      </div>
                  <div class="billing-buttons">
-                     <button type="button" class="save-invoice-button" id="save-invoice-button">Guardar Factura</button>
-                     <button type="button" class="generate-pdf-button" id="generate-pdf-button">Generar PDF</button>
+                     <button type="button" class="save-invoice-button action-button save-changes-button" id="save-invoice-button">Guardar Factura</button>
+                     <button type="button" class="generate-pdf-button action-button delete-button" id="generate-pdf-button"><i class="fas fa-file-pdf"></i> Generar PDF</button>
                  </div>
             </div>
 
              <div class="history-section">
-                 <h3>Historial de Facturas</h3>
+                 <h3>Historial de Facturas Recientes</h3>
                  <ul id="invoice-history-list">
                      <li>Cargando historial...</li>
                  </ul>
-                 <button class="view-history-button mt-4" id="view-all-invoices-button" style="display: none;">Ver Historial Completo</button>
+                 <button class="view-history-button mt-4 action-button view-invoices-button" id="view-all-invoices-button" style="display: none;">Ver Historial Completo</button>
              </div>
         </div>
     </div>
@@ -1348,6 +1381,7 @@
         const filterButtonsContainer = document.querySelector('.filter-buttons'); // Contenedor de botones de filtro
         const filterButtons = document.querySelectorAll('.filter-button'); // Botones de filtro
         const settingsButton = document.getElementById('settings-button'); // Botón de configuración
+        const chatButton = document.getElementById('chat-button'); // NUEVO: Botón de chat
         const clickTooltipMessage = document.getElementById('click-tooltip-message'); // Elemento para el tooltip en click
 
         // --- NUEVO ELEMENTO: Mensaje grande y animado ---
@@ -1905,9 +1939,7 @@
                         <button class="action-button status-button" data-id="${userDoc.id}" data-current-status="${estado}" title="${estado === 'activo' ? 'Marcar como Retirado' : 'Marcar como Activo'}">
                              <i class="fas ${estado === 'activo' ? 'fa-user-slash' : 'fa-user'}"></i>
                         </button>
-                         <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-money-bill-wave"></i></button>
-                         <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice-dollar"></i></button>
-                         </div>
+                         <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-dollar-sign"></i></button> <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice"></i></button> </div>
                     <i class="fas fa-cog gear-icon" data-id="${userDoc.id}" title="Mostrar Acciones"></i>
                 </td>
             `;
@@ -2244,7 +2276,7 @@
                 } else if (actionButton.classList.contains('delete-button')) {
                     // Acción de Eliminar
                     console.log("Botón Eliminar clickeado para usuario:", userId);
-                    if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.')) {
+                    if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible mientras no se implemente la funcionalidad de recuperación.')) {
                         deleteUser(userId);
                     }
 
@@ -2340,7 +2372,10 @@
                     // Mostrar/ocultar campo fechaRetiro basado en el estado
                     if (editEstadoSelect.value === 'retirado') {
                         editFechaRetiroGroup.style.display = 'block';
-                        editFechaRetiroInput.value = formatDate(userData.fechaRetiro);
+                        // Opcional: establecer la fecha actual por defecto si se cambia a retirado
+                        if (!editFechaRetiroInput.value) {
+                             editFechaRetiroInput.valueAsDate = new Date();
+                        }
                     } else {
                         editFechaRetiroGroup.style.display = 'none';
                         editFechaRetiroInput.value = ''; // Limpiar si no está retirado
@@ -3573,6 +3608,7 @@
              showStatusMessage('Guardando pago...', 'info');
 
              try {
+                 console.log("Attempting to save payment:", newPayment); // Log data before saving
                  await pagosCollection.add(newPayment);
                  showStatusMessage('Pago guardado con éxito!', 'success');
                  addPaymentForm.reset(); // Resetear formulario después de guardar
@@ -3584,29 +3620,35 @@
 
              } catch (error) {
                  console.error("Error al guardar pago:", error);
-                 showStatusMessage('Error al guardar pago: ' + error.message, 'error');
+                 showStatusMessage('Error al guardar pago: ' + error.message, 'error'); // Show specific error message
              }
         });
 
         // Función para cargar y mostrar historial de pagos
         async function loadPaymentHistory(userId, listElement, limit = null) {
-             listElement.innerHTML = '<li>Cargando historial...</li>';
+             console.log(`loadPaymentHistory called for userId: ${userId}, limit: ${limit}`); // Debugging start
+             listElement.innerHTML = '<li>Cargando historial...</li>'; // Show loading message immediately
              try {
                  let query = pagosCollection.where('userId', '==', userId).orderBy('fecha', 'desc');
                  if (limit) {
                      query = query.limit(limit);
                  }
+                 console.log("loadPaymentHistory: Executing query for userId:", userId); // Log the query execution
                  const snapshot = await query.get();
 
-                 listElement.innerHTML = ''; // Limpiar lista
+                 console.log(`loadPaymentHistory: Fetched ${snapshot.docs.length} payment documents for userId ${userId}.`); // Debugging count
+
+                 listElement.innerHTML = ''; // Clear loading message
 
                  if (snapshot.empty) {
                      listElement.innerHTML = '<li>No hay historial de pagos para este usuario.</li>';
+                     console.log("loadPaymentHistory: No payment history found for userId", userId); // Debugging empty
                      return;
                  }
 
                  snapshot.forEach(doc => {
                      const payment = doc.data();
+                     console.log("loadPaymentHistory: Processing payment doc:", doc.id, payment); // Debugging each doc
                      const listItem = document.createElement('li');
                      // Mostrar fecha formateada, valor y novedad
                      listItem.innerHTML = `
@@ -3616,11 +3658,11 @@
                      `;
                      listElement.appendChild(listItem);
                  });
-
+                 console.log("loadPaymentHistory: History list populated."); // Debugging end successful
              } catch (error) {
-                 console.error("Error al cargar historial de pagos:", error);
+                 console.error(`Error al cargar historial de pagos para userId ${userId}:`, error);
                  listElement.innerHTML = '<li>Error al cargar historial de pagos.</li>';
-                 showStatusMessage('Error al cargar historial de pagos.', 'error');
+                 showStatusMessage('Error al cargar historial de pagos: ' + error.message, 'error'); // Show specific error message
              }
         }
 
@@ -3797,7 +3839,7 @@
 
              } catch (error) {
                  console.error("Error al generar factura:", error);
-                 showStatusMessage('Error al generar factura: ' + error.message, 'error');
+                 showStatusMessage('Error al generar factura: ' + error.message, 'error'); // Show specific error message
                  generatedInvoiceDetails.innerHTML = 'Error al generar factura.';
                  generatedInvoiceSection.style.display = 'block';
                  saveInvoiceButton.style.display = 'none';
@@ -3837,6 +3879,7 @@
              showStatusMessage('Guardando factura...', 'info');
 
              try {
+                 console.log("Attempting to save invoice:", newInvoice); // Log data before saving
                  await facturasCollection.add(newInvoice);
                  showStatusMessage('Factura guardada con éxito!', 'success');
                  // Opcional: Limpiar la sección de factura generada después de guardar
@@ -3852,7 +3895,7 @@
 
              } catch (error) {
                  console.error("Error al guardar factura:", error);
-                 showStatusMessage('Error al guardar factura: ' + error.message, 'error');
+                 showStatusMessage('Error al guardar factura: ' + error.message, 'error'); // Show specific error message
              }
         });
 
@@ -3890,23 +3933,29 @@
 
         // Función para cargar y mostrar historial de facturas
         async function loadInvoiceHistory(userId, listElement, limit = null) {
-             listElement.innerHTML = '<li>Cargando historial...</li>';
+             console.log(`loadInvoiceHistory called for userId: ${userId}, limit: ${limit}`); // Debugging start
+             listElement.innerHTML = '<li>Cargando historial...</li>'; // Show loading message immediately
              try {
                  let query = facturasCollection.where('userId', '==', userId).orderBy('createdAt', 'desc');
                  if (limit) {
                      query = query.limit(limit);
                  }
+                 console.log("loadInvoiceHistory: Executing query for userId:", userId); // Log the query execution
                  const snapshot = await query.get();
 
-                 listElement.innerHTML = ''; // Limpiar lista
+                 console.log(`loadInvoiceHistory: Fetched ${snapshot.docs.length} invoice documents for userId ${userId}.`); // Debugging count
+
+                 listElement.innerHTML = ''; // Clear loading message
 
                  if (snapshot.empty) {
                      listElement.innerHTML = '<li>No hay historial de facturas para este usuario.</li>';
+                     console.log("loadInvoiceHistory: No invoice history found for userId", userId); // Debugging empty
                      return;
                  }
 
                  snapshot.forEach(doc => {
                      const invoice = doc.data();
+                      console.log("loadInvoiceHistory: Processing invoice doc:", doc.id, invoice); // Debugging each doc
                      const listItem = document.createElement('li');
                      // Mostrar resumen de la factura y botones de acción
                      listItem.innerHTML = `
@@ -3922,11 +3971,12 @@
                      `;
                      listElement.appendChild(listItem);
                  });
+                 console.log("loadInvoiceHistory: History list populated."); // Debugging end successful
 
              } catch (error) {
-                 console.error("Error al cargar historial de facturas:", error);
+                 console.error(`Error al cargar historial de facturas para userId ${userId}:`, error);
                  listElement.innerHTML = '<li>Error al cargar historial de facturas.</li>';
-                 showStatusMessage('Error al cargar historial de facturas.', 'error');
+                 showStatusMessage('Error al cargar historial de facturas: ' + error.message, 'error'); // Show specific error message
              }
         }
 
@@ -4037,6 +4087,16 @@
                  showStatusMessage('Error al generar PDF: ' + error.message, 'error');
              }
          }
+
+        // --- NUEVA FUNCIONALIDAD: Abrir ventana de Chat ---
+        chatButton.addEventListener('click', () => {
+            const chatUrl = 'https://soavanzar.github.io/FACBA/chat.html';
+            const windowName = 'FACBAChatWindow'; // Nombre único para la ventana del chat
+
+            // Abre la ventana. Si ya existe una ventana con ese nombre, la reutiliza.
+            window.open(chatUrl, windowName);
+        });
+        // --- FIN NUEVA FUNCIONALIDAD ---
 
 
         // --- Inicialización ---
