@@ -76,10 +76,6 @@
             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
         }
 
-        .settings-button {
-            color: #4b5563; /* Color gris oscuro para la tuerca */
-        }
-
         .settings-button:hover {
             color: #1f2937; /* Gris más oscuro al pasar el ratón */
             transform: rotate(15deg); /* Pequeña rotación al pasar el ratón */
@@ -986,6 +982,10 @@
              white-space: nowrap; /* Evita que los botones se rompan */
              gap: 5px; /* Espacio entre botones */
              align-items: center; /* Centra los botones verticalmente */
+             /* Asegurar visibilidad y opacidad cuando se muestra */
+             opacity: 0;
+             visibility: hidden;
+             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
          }
 
          #invoice-history-list li .invoice-actions.show,
@@ -1016,6 +1016,7 @@
              cursor: pointer;
              transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
              z-index: 11; /* Asegura que esté por encima del contenedor de acciones (cuando está oculto) */
+             display: inline-block; /* Asegurar que la tuerca se muestre por defecto */
          }
 
          #invoice-history-list li .gear-icon:hover,
@@ -4497,6 +4498,7 @@
                         if (invoiceActionsContainer && gearIcon) {
                              invoiceActionsContainer.classList.add('show');
                              gearIcon.style.display = 'none'; // Ocultar la tuerca
+                             console.log(`Invoice actions shown for invoice: ${invoiceId}`); // Debugging
                         }
 
                    } else if (target.closest('.action-button')) {
