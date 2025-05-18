@@ -14,558 +14,106 @@
             overflow: hidden; /* Prevenir scroll del body */
             /* Establecer la fuente principal */
             font-family: 'Roboto', sans-serif; /* Usar Roboto, con sans-serif como fallback moderno */
+            background-color: #f0f2f5; /* Fondo gris claro para el body en PC */
         }
 
-        /* Estilos generales y de contenedor */
+        /* Estilos generales y de contenedor (aplican por defecto a PC y pantallas grandes) */
         #chat-container {
-            width: 100%; /* Ocupar todo el ancho disponible hasta el max-width */
-            max-width: 700px; /* Aumentar el ancho máximo */
+            width: 90%; /* Ocupar un porcentaje del ancho en PC */
+            max-width: 1200px; /* Ancho máximo más amplio para PC */
+            height: 90vh; /* Altura reducida para dejar margen */
+            max-height: 90vh;
             background-color: #ffffff; /* Fondo blanco limpio */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra más suave */
-            border-radius: 15px; /* Bordes más redondeados */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+            border-radius: 10px; /* Bordes redondeados */
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* Altura inicial al 100% del viewport */
-            height: 100vh; /* Usar 100vh inicialmente */
-            max-height: 100vh; /* Asegurar que no exceda 100vh */
+            margin: 5vh auto; /* Centrar el contenedor vertical y horizontalmente en PC */
             box-sizing: border-box;
-             padding: 20px; /* Añadir padding aquí en lugar del body */
         }
 
-        /* Estilos para la sección de ingreso de nombre */
+        /* Estilos para la sección de ingreso de nombre (PC) */
         #name-prompt {
-            padding: 30px 20px; /* Más padding */
+            padding: 50px 30px; /* Más padding */
             text-align: center;
-            background-color: #e5e5ea; /* Gris claro */
-            border-bottom: 1px solid #d1d1d6; /* Borde sutil */
-            flex-shrink: 0; /* Evitar que se encoja */
+            background-color: #ffffff; /* Fondo blanco */
+            flex-grow: 1; /* Permitir que ocupe el espacio disponible */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Centrar contenido */
+            width: 100%; /* Ocupar el ancho completo del contenedor */
+            box-sizing: border-box;
         }
 
         #name-prompt h2 {
             margin-top: 0;
-            color: #1c1c1e; /* Texto oscuro */
-            font-size: 1.5em; /* Aumentar tamaño del título */
+            color: #333; /* Texto oscuro */
+            font-size: 2em; /* Aumentar tamaño del título */
+            margin-bottom: 25px; /* Espacio debajo del título */
         }
 
         #name-prompt input {
-            padding: 12px 15px; /* Más padding */
-            margin-right: 10px;
-            border: 1px solid #d1d1d6;
-            border-radius: 8px; /* Bordes redondeados */
-            font-size: 1.1em; /* Aumentar tamaño de fuente */
+            padding: 15px 20px; /* Más padding */
+            margin-bottom: 20px; /* Espacio debajo del input */
+            border: 1px solid #ccc;
+            border-radius: 6px; /* Bordes redondeados */
+            font-size: 1.2em; /* Aumentar tamaño de fuente */
             box-sizing: border-box; /* Incluir padding y border */
+            width: 60%; /* Ajustar ancho del input */
+            max-width: 400px; /* Ancho máximo para el input */
+            text-align: center; /* Centrar texto en el input */
         }
 
         #name-prompt button {
-            padding: 12px 20px; /* Más padding */
-            background-color: #007aff; /* Azul de Apple */
+            padding: 15px 30px; /* Más padding */
+            background-color: #1a73e8; /* Azul de Google */
             color: white;
             border: none;
-            border-radius: 8px; /* Bordes redondeados */
+            border-radius: 6px; /* Bordes redondeados */
             cursor: pointer;
-            font-size: 1.1em; /* Aumentar tamaño de fuente */
-            transition: background-color 0.2s ease-in-out;
+            font-size: 1.2em; /* Aumentar tamaño de fuente */
+            transition: background-color 0.3s ease-in-out;
         }
 
         #name-prompt button:hover {
-            background-color: #0056b3; /* Azul más oscuro */
-        }
-
-        /* Estilos para el encabezado del chat */
-        #chat-header {
-            display: flex;
-            justify-content: space-between; /* Espacio entre título/online y botón de settings */
-            align-items: center;
-            padding: 0 20px 10px 20px; /* Padding superior, sin padding lateral extra */
-            flex-shrink: 0;
-            position: relative; /* Para posicionar el dropdown */
-        }
-
-         #chat-header h2 {
-             margin: 0;
-             font-size: 1.3em;
-             color: #1c1c1e;
-         }
-
-         #online-users {
-             font-size: 0.9em;
-             color: #8e8e93;
-             margin-top: 5px;
-             min-height: 1.2em; /* Reserva espacio */
-         }
-
-
-        /* Estilos para la caja de chat (mensajes) */
-        #chat-box {
-            flex-grow: 1; /* Permite que la caja de chat ocupe el espacio restante */
-            padding: 0 20px; /* Padding lateral */
-            overflow-y: auto; /* Habilita el scroll vertical si los mensajes exceden la altura */
-            border-bottom: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
-            gap: 12px; /* Más espacio entre mensajes */
-
-            /* Estilos para la imagen de fondo */
-            background-image: url('https://images.unsplash.com/photo-1518655048521-f130df041722?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* URL de imagen de fondo moderna y sobria */
-            background-size: cover; /* Cubrir el área del contenedor */
-            background-position: center; /* Centrar la imagen */
-            background-repeat: no-repeat; /* No repetir la imagen */
-             /* Padding inferior dinámico ajustado por JS */
-            padding-bottom: 20px; /* Padding inicial, se ajustará con JS */
-        }
-
-        /* Estilos para cada mensaje individual */
-        .message {
-            padding: 12px 18px; /* Aumentar padding del mensaje */
-            border-radius: 18px; /* Bordes más redondeados */
-            max-width: 85%; /* Aumentar ancho máximo */
-            word-wrap: break-word;
-            position: relative;
-            line-height: 1.5; /* Mejorar espaciado entre líneas */
-            font-size: 1.1em; /* Aumentar tamaño de fuente base del mensaje */
-            /* Añadir un fondo semi-transparente para que el texto sea legible sobre la imagen */
-            background-color: rgba(255, 255, 255, 0.9); /* Blanco con 90% de opacidad */
-            cursor: pointer; /* Indicar que se puede hacer clic para responder */
-            display: flex; /* Usar flexbox para organizar el contenido interno */
-            flex-direction: column; /* Apilar nombre, respuesta, y footer */
-            z-index: 1; /* Asegurar que los mensajes estén por encima */
-        }
-
-        .message .name {
-             font-size: 0.9em; /* Tamaño de fuente del nombre (relativo al 1.1em del mensaje) */
-             color: #3a3a3c; /* Color de texto sutil */
-             margin-bottom: 2px; /* Espacio debajo del nombre */
-             display: block;
-             font-weight: 600; /* Semi-negrita */
-        }
-
-        .message .text {
-            display: block;
-            font-size: 1em; /* Tamaño de fuente del texto (relativo al 1.1em del mensaje) */
-            /* margin-bottom: 4px; Eliminado, el margen ahora está en el footer */
-             flex-grow: 1; /* Permitir que el texto ocupe espacio */
-             min-width: 0; /* Permitir que el texto se encoja y envuelva */
-             margin-right: auto; /* Empujar la hora/checks a la derecha */
-             padding-right: 8px; /* Espacio entre texto y hora/checks */
-             /* Asegurar que el texto se envuelva correctamente */
-             overflow-wrap: break-word;
-             word-break: break-word;
-        }
-
-         /* Estilos para los enlaces dentro de los mensajes */
-        .message a {
-            color: #007aff; /* Color azul para enlaces */
-            text-decoration: none; /* Sin subrayado por defecto */
-        }
-
-        .message a:hover {
-            text-decoration: underline; /* Subrayado al pasar el ratón */
+            background-color: #0f62da; /* Azul más oscuro */
         }
 
 
-         /* Contenedor para texto, hora y checkmarks */
-         .message-footer {
-             display: flex;
-             align-items: center; /* Alinear verticalmente */
-             justify-content: flex-end; /* Alinear a la derecha */
-             flex-wrap: wrap; /* Permitir que los elementos se envuelvan si no hay espacio */
-             /* gap: 5px; */ /* Espacio entre elementos del footer */
-             margin-top: 4px; /* Espacio arriba del footer */
-         }
-
-
-        .message .timestamp {
-            font-size: 0.7em; /* Tamaño de fuente de la hora (relativo al 1.1em del mensaje) */
-            color: #8e8e93; /* Gris tenue */
-            /* text-align: right; Eliminado, manejado por flexbox */
-            display: inline-block; /* O inline, ambos funcionan con flexbox */
-             /* margin-top: 4px; Eliminado, el margen está en el footer */
-             flex-shrink: 0; /* Evitar que se encoja */
-             margin-left: 4px; /* Espacio a la izquierda del timestamp */
-        }
-
-         /* Estilos para los checkmarks */
-         .message .checkmarks {
-             font-size: 0.8em; /* Tamaño de los checkmarks */
-             color: #007aff; /* Color azul para checkmarks */
-             margin-left: 4px; /* Espacio a la izquierda */
-             vertical-align: middle; /* Alinear verticalmente */
-             display: inline; /* O inline-block */
-             flex-shrink: 0; /* Evitar que se encoja */
-         }
-
-
-        /* Estilos para mensajes recibidos */
-        .message.received {
-            background-color: rgba(229, 229, 234, 0.9); /* Gris claro con 90% de opacidad */
-            align-self: flex-start;
-            border-bottom-left-radius: 5px; /* Esquina inferior izquierda menos redondeada */
-        }
-
-        /* Estilos para mensajes enviados */
-        .message.sent {
-            background-color: rgba(0, 122, 255, 0.9); /* Azul con 90% de opacidad */
-            color: white; /* Texto blanco */
-            align-self: flex-end;
-            border-bottom-right-radius: 5px; /* Esquina inferior derecha menos redondeada */
-        }
-
-         /* Estilos para mensajes enviados - elementos internos */
-        .message.sent .name,
-        .message.sent .text,
-        .message.sent .timestamp {
-            /* color: white !important; Removido para probar inline style */
-        }
-         .message.sent .timestamp {
-             /* color: rgba(255, 255, 255, 0.8) !important; Removido para probar inline style */
-         }
-         .message.sent .checkmarks {
-             color: white !important; /* Checkmarks blancos en mensajes enviados, forzar */
-         }
-
-        /* Estilos para el contenedor del video de YouTube y otros embeds */
-        .video-preview-container {
-            margin-top: 8px; /* Espacio entre el texto y el video */
-            margin-bottom: 4px; /* Espacio entre el video y el footer */
-            width: 100%; /* Ocupar el ancho del mensaje */
-            aspect-ratio: 16 / 9; /* Mantener relación de aspecto 16:9 */
-            overflow: hidden; /* Asegurar que el iframe o video no se salga */
-            border-radius: 8px; /* Bordes redondeados para la previsualización */
-        }
-
-        .video-preview-container iframe,
-        .video-preview-container video {
-            width: 100%;
-            height: 100%;
-            border: none; /* Eliminar borde */
-        }
-
-
-        /* Contenedor fijo para el área de input y el indicador de escribiendo */
-        #bottom-fixed-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%; /* Ocupar todo el ancho */
-            max-width: 700px; /* Igual que el contenedor principal */
-            box-sizing: border-box; /* Incluir padding en el ancho */
-            margin: 0 auto; /* Centrar horizontalmente */
-            z-index: 5; /* Asegurar que esté por encima de la caja de chat */
-            display: flex; /* Usar flexbox */
-            flex-direction: column; /* Apilar elementos verticalmente */
-             /* background-color: #f9f9f9; Eliminado el color de fondo */
-             border-top: 1px solid #eee; /* Borde superior */
-             padding: 10px 20px; /* Padding interno */
-        }
-
-        /* --- Debugging Styles for typing indicator --- */
-        #typing-indicator {
-            font-size: 0.9em; /* Aumentar tamaño */
-            color: #8e8e93; /* Gris tenue */
-            padding: 0 5px; /* Padding interno */
-            min-height: 1.2em; /* Reserva espacio */
-            text-align: right; /* Alinear a la derecha */
-            margin-bottom: 5px; /* Añadir margen debajo del indicador */
-            /* border: 1px dashed blue; /* Debugging border */ */
-            /* background-color: rgba(0, 0, 255, 0.1); /* Debugging background */ */
-        }
-        /* --- End Debugging Styles --- */
-
-
-        /* Estilos para el área de entrada de mensajes (ahora dentro del contenedor fijo) */
-        .message-input-area {
-            display: flex;
-            /* flex-direction: column; Eliminado, el contenedor padre ya es flex-direction: column */
-            /* padding: 15px 20px; Eliminado, el padding está en el contenedor fijo */
-            /* background-color: #f9f9f9; Eliminado, el fondo está en el contenedor fijo */
-            /* border-top: 1px solid #eee; Eliminado, el borde está en el contenedor fijo */
-            align-items: center; /* Centrar horizontalmente */
-            gap: 10px; /* Espacio entre elementos */
-            flex-shrink: 0; /* Evita que el área de entrada se encoja */
-            /* Propiedades de position: fixed restauradas */
-            /* Eliminado: position, bottom, left, right, width, max-width, box-sizing, margin, z-index */
-        }
-
-
-        /* Contenedor para el input y los botones */
-        .input-container {
-            display: flex; /* Alinear elementos horizontalmente */
-            align-items: flex-end; /* Alinear verticalmente los elementos al final (bottom) */
-            gap: 10px; /* Espacio entre input y botones */
-            width: 100%; /* Ocupar todo el ancho disponible */
-        }
-
-
-        /* Estilos para el TEXTAREA */
-        .message-input-area textarea {
-            flex-grow: 1; /* Permite que el textarea ocupe el espacio restante */
-            /* Ajuste de padding para hacerlo menos "gordo" */
-            padding: 8px 15px;
-            border: 1px solid #d1d1d6;
-            border-radius: 20px; /* Bordes muy redondeados */
-            font-size: 1.1em;
-            box-sizing: border-box;
-            outline: none; /* Eliminar contorno al enfocar */
-            transition: border-color 0.2s ease-in-out;
-            line-height: 1.5; /* Igual que los mensajes para consistencia */
-            resize: none; /* Deshabilitar el redimensionamiento manual por el usuario */
-            min-height: 40px; /* Altura mínima similar a la del input original */
-            max-height: 120px; /* Altura máxima para evitar que crezca demasiado */
-            overflow-y: auto; /* Mostrar scrollbar si el contenido excede max-height */
-        }
-         .message-input-area textarea:focus {
-             border-color: #007aff; /* Borde azul al enfocar */
-         }
-
-
-         .message-input-area .input-buttons {
-             display: flex; /* Alinear botones horizontalmente */
-             gap: 5px; /* Espacio entre los botones */
-             align-items: center; /* Centrar verticalmente los botones */
-             flex-shrink: 0; /* Evitar que los botones se encoja */
-         }
-
-         /* Estilo base para los botones de icono */
-        .message-input-area button {
-            padding: 10px; /* Padding uniforme para botones de icono */
-            background-color: #e5e5ea; /* Fondo gris claro para botones de icono */
-            color: #007aff; /* Color azul para iconos */
-            border: none;
-            border-radius: 50%; /* Botones redondos */
-            cursor: pointer;
-            /* Ajuste de tamaño fijo para botones redondos */
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.2s ease-in-out;
-        }
-
-         /* Estilo específico para el botón de enviar */
-         #send-button {
-             background-color: #007aff; /* Fondo azul para enviar */
-             color: white; /* Texto blanco */
-             border-radius: 20px; /* Bordes redondeados */
-             padding: 10px 20px; /* Padding horizontal */
-             width: auto; /* Ancho automático */
-             height: auto; /* Altura automática */
-         }
-
-         #send-button:hover {
-             background-color: #0056b3;
-         }
-
-         /* Estilo específico para el botón de emoji */
-         #emoji-button {
-             /* Ya tienen estilos base de .message-input-area button */
-         }
-
-         #emoji-button svg {
-             width: 22px; /* Tamaño del icono SVG */
-             height: 22px; /* Tamaño del icono SVG */
-             fill: #3a3a3c; /* Color del icono oscuro */
-         }
-          #emoji-button:hover {
-              background-color: #d1d1d6; /* Gris un poco más oscuro al pasar el ratón */
-          }
-
-        /* Estilos para el botón de limpiar chat */
-        /* Ahora dentro del dropdown */
-        #settings-dropdown button { /* Aplicar a todos los botones dentro del dropdown */
-            padding: 10px 15px; /* Padding para elemento de menú */
-            background-color: transparent; /* Fondo transparente */
-            color: #1c1c1e; /* Color de texto oscuro */
-            border: none;
-            border-radius: 0; /* Sin bordes redondeados */
-            cursor: pointer;
-            font-size: 1em; /* Tamaño de fuente estándar */
-            margin: 0; /* Sin margen */
-            width: 100%; /* Ocupar todo el ancho del dropdown */
-            text-align: left; /* Alinear texto a la izquierda */
-            transition: background-color 0.1s ease-in-out;
-            display: block; /* Asegurar que sea un bloque para ocupar el ancho */
-        }
-
-        #settings-dropdown button:hover { /* Aplicar a todos los botones al pasar el ratón */
-            background-color: #e5e5ea; /* Fondo gris claro al pasar el ratón */
-        }
-
-        /* Estilo específico para el botón de limpiar chat al pasar el ratón */
-        #settings-dropdown #clear-chat-button:hover {
-             color: #ff3b30; /* Color rojo al pasar el ratón */
-        }
-
-
-        /* Oculta la interfaz de chat inicialmente */
-        #chat-interface {
-            display: none;
-            flex-direction: column;
-            flex-grow: 1; /* Asegura que la interfaz de chat ocupe el espacio disponible */
-             /* Ajuste clave: Darle una altura al contenedor flex para que los hijos flex-grow funcionen */
-            height: 100%;
-            position: relative; /* Necesario para posicionar el selector de emojis si se pone fuera del input-area */
-        }
-
-        /* Estilos para el selector de emojis */
-        #emoji-picker {
-            display: none; /* Oculto por defecto */
-            position: absolute;
-            /* bottom se ajusta dinámicamente en JS */
-            left: 20px; /* Alinear a la izquierda */
-            background-color: #fff;
-            border: 1px solid #d1d1d6;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 10; /* Asegurar que esté por encima de otros elementos */
-            max-height: 200px; /* Altura máxima para scroll */
-            overflow-y: auto; /* Habilitar scroll si hay muchos emojis */
-            width: calc(100% - 40px); /* Ocupar el ancho del contenedor con padding */
-            box-sizing: border-box;
-            flex-wrap: wrap; /* Permite que los emojis se envuelvan */
-            gap: 5px; /* Espacio entre emojis */
-        }
-
-        #emoji-picker span {
-            cursor: pointer;
-            font-size: 1.5em; /* Tamaño de los emojis */
-            padding: 3px;
-            border-radius: 4px;
-            transition: background-color 0.1s ease-in-out;
-        }
-
-        #emoji-picker span:hover {
-            background-color: #e5e5ea;
-        }
-
-        /* Estilos para la vista previa del mensaje al responder */
-        #reply-preview {
-            display: none; /* Oculto por defecto */
-            background-color: #e5e5ea; /* Fondo gris claro */
-            border-left: 4px solid #007aff; /* Barra azul a la izquierda */
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 10px; /* Espacio debajo de la vista previa */
-            width: 100%; /* Ocupar todo el ancho */
-            box-sizing: border-box;
-            position: relative; /* Para posicionar el botón de cerrar */
-        }
-
-        #reply-preview .reply-name {
-            font-size: 0.9em;
-            color: #3a3a3c;
-            font-weight: 600;
-            margin-bottom: 2px;
-            display: block;
-        }
-
-        #reply-preview .reply-text {
-            font-size: 1em;
-            color: #1c1c1e;
-            display: block;
-            /* Limitar el texto para que no sea demasiado largo */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #reply-preview #cancel-reply-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #8e8e93; /* Color gris */
-            font-size: 1.2em;
-        }
-
-        #reply-preview #cancel-reply-button:hover {
-            color: #3a3a3c; /* Gris más oscuro al pasar el ratón */
-        }
-
-        /* Estilos para mostrar el contenido de la respuesta dentro de un mensaje */
-        .message .reply-content {
-            background-color: rgba(0, 0, 0, 0.05); /* Fondo ligeramente oscuro */
-            border-left: 4px solid rgba(0, 122, 255, 0.5); /* Barra azul semi-transparente */
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 8px; /* Espacio debajo del contenido de respuesta */
-            font-size: 0.9em; /* Tamaño de fuente más pequeño */
-            word-wrap: break-word;
-        }
-
-        .message.sent .reply-content {
-             border-left-color: rgba(255, 255, 255, 0.5); /* Barra blanca semi-transparente en mensajes enviados */
-        }
-
-
-        .message .reply-content .reply-name {
-            font-weight: 600;
-            margin-bottom: 2px;
-            display: block;
-            color: #3a3a3c; /* Color de texto sutil */
-        }
-         .message.sent .reply-content .reply-name {
-             color: rgba(255, 255, 255, 0.8); /* Color de texto sutil en mensajes enviados */
-         }
-
-
-        .message .reply-content .reply-text {
-            display: block;
-            color: #1c1c1e; /* Texto oscuro */
-            /* Limitar el texto para que no sea demasiado largo */
-             white-space: nowrap;
-             overflow: hidden;
-             text-overflow: ellipsis;
-        }
-         .message.sent .reply-content .reply-text {
-             color: white; /* Texto blanco en mensajes enviados */
-         }
-
-
-        /* Estilos para el menú desplegable de configuración */
-        #settings-dropdown {
-            display: none; /* Oculto por defecto */
-            position: absolute;
-            /* bottom y right se ajustan dinámicamente en JS o se calculan */
-            background-color: #fff;
-            border: 1px solid #d1d1d6;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 10; /* Asegurar que esté por encima de otros elementos */
-            min-width: 150px; /* Ancho mínimo del menú */
-            padding: 5px 0; /* Padding interno */
-            flex-direction: column; /* Elementos apilados verticalmente */
-            top: 40px; /* Posicionar debajo del botón de settings */
-            right: 20px; /* Alinear a la derecha del chat-header */
-        }
-
-
-        /* Media query para pantallas más pequeñas (Android) */
+        /* Media query para pantallas pequeñas (Android) */
         @media (max-width: 768px) {
             body {
                 padding: 0; /* Eliminar padding del body en móviles */
+                background-color: #ffffff; /* Fondo blanco en móviles */
             }
             #chat-container {
-                max-width: 100vw; /* Ocupar todo el ancho del viewport */
+                width: 100vw; /* Ocupar todo el ancho del viewport */
+                max-width: 100vw;
+                height: 100vh;
+                max-height: 100vh;
                 border-radius: 0; /* Eliminar bordes redondeados en pantalla completa */
                  padding: 0; /* Eliminar padding del contenedor en móviles */
-                 height: 100vh;
-                 max-height: 100vh;
+                 margin: 0; /* Eliminar margen en móviles */
+                 /* Asegurar que name-prompt o chat-interface ocupen el espacio */
+                 justify-content: flex-start; /* Alinear contenido al inicio */
+                 align-items: stretch; /* Estirar elementos para ocupar el ancho */
             }
 
             #name-prompt {
                 padding: 20px 15px;
+                 /* Asegurar que name-prompt ocupe el espacio cuando es visible */
+                 flex-grow: 1;
+                 justify-content: center; /* Centrar contenido verticalmente */
+                 align-items: center; /* Centrar contenido horizontalmente */
+                 background-color: #e5e5ea; /* Gris claro en móviles */
+                 border-bottom: 1px solid #d1d1d6; /* Borde sutil en móviles */
+            }
+
+            #name-prompt h2 {
+                 font-size: 1.5em; /* Tamaño de título original en móviles */
+                 margin-bottom: 15px;
             }
 
             #name-prompt input,
@@ -577,12 +125,21 @@
              #name-prompt input[type="text"] { /* Especificar input de texto */
                  margin-right: 5px;
                  align-self: center; /* Centrar verticalmente */
+                 width: 80%; /* Ancho original en móviles */
+                 max-width: none; /* Sin ancho máximo específico en móviles */
+                 text-align: left; /* Alinear texto a la izquierda en móviles */
              }
 
              /* Contenedor fijo para el área de input y el indicador de escribiendo en móviles */
              #bottom-fixed-area {
+                 position: fixed; /* Fixed en móviles */
+                 bottom: 0;
+                 left: 0;
+                 right: 0;
                  max-width: 100vw;
                  padding: 10px 15px; /* Ajustar padding para móviles */
+                 background-color: #f9f9f9; /* Fondo claro en móviles */
+                 border-top: 1px solid #eee; /* Borde superior en móviles */
              }
 
 
@@ -684,6 +241,32 @@
              }
         }
 
+        /* Estilos para el encabezado del chat (PC) */
+        #chat-header {
+            display: flex;
+            justify-content: space-between; /* Espacio entre título/online y botón de settings */
+            align-items: center;
+            padding: 15px 30px; /* Más padding en PC */
+            background-color: #1a73e8; /* Fondo azul */
+            color: white; /* Texto blanco */
+            flex-shrink: 0;
+            position: relative; /* Para posicionar el dropdown */
+            border-bottom: none; /* Sin borde inferior en PC */
+        }
+
+         #chat-header h2 {
+             margin: 0;
+             font-size: 1.4em;
+             color: white; /* Texto blanco */
+         }
+
+         #online-users {
+             font-size: 0.9em;
+             color: rgba(255, 255, 255, 0.8); /* Gris claro */
+             margin-top: 3px;
+             min-height: 1.2em; /* Reserva espacio */
+         }
+
          /* Estilos para el botón de configuración en general */
          #settings-button {
              /* Ajuste de tamaño y posición */
@@ -698,14 +281,380 @@
              border-radius: 50%; /* Botón redondo */
              cursor: pointer;
              font-size: 1.5em; /* Tamaño para el emoji */
-             color: #1c1c1e; /* Color oscuro para el emoji */
+             color: white; /* Color blanco para el emoji en el header azul */
              /* Añadido para intentar centrar el emoji */
              line-height: 1;
              vertical-align: middle;
+             transition: background-color 0.2s ease-in-out;
          }
 
          #settings-button:hover {
-             background-color: #e5e5ea; /* Fondo gris claro al pasar el ratón */
+             background-color: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente al pasar el ratón */
+         }
+
+         /* Estilos para el dropdown de settings (PC) */
+         #settings-dropdown {
+             position: absolute;
+             top: 55px; /* Posicionar debajo del header */
+             right: 15px; /* Alinear a la derecha */
+             background-color: #ffffff; /* Fondo blanco */
+             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+             border-radius: 5px;
+             display: none; /* Oculto por defecto */
+             flex-direction: column;
+             z-index: 10; /* Asegurar que esté por encima de otros elementos */
+             overflow: hidden; /* Asegurar que los bordes redondeados se apliquen */
+         }
+
+         #settings-dropdown button {
+             padding: 10px 20px;
+             border: none;
+             background-color: transparent;
+             text-align: left;
+             cursor: pointer;
+             font-size: 1em;
+             color: #333;
+             transition: background-color 0.2s ease-in-out;
+         }
+
+         #settings-dropdown button:hover {
+             background-color: #f0f0f0; /* Fondo gris claro al pasar el ratón */
+         }
+
+
+        /* Estilos para la caja de chat (mensajes) (PC) */
+        #chat-box {
+            flex-grow: 1; /* Permite que la caja de chat ocupe el espacio restante */
+            padding: 20px 30px; /* Más padding en PC */
+            overflow-y: auto; /* Habilita el scroll vertical si los mensajes exceden la altura */
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Más espacio entre mensajes */
+
+            /* Estilos para la imagen de fondo */
+            background-image: url('https://images.unsplash.com/photo-1518655048521-f130df041722?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* URL de imagen de fondo moderna y sobria */
+            background-size: cover; /* Cubrir el área del contenedor */
+            background-position: center; /* Centrar la imagen */
+            background-repeat: no-repeat; /* No repetir la imagen */
+             /* Padding inferior dinámico ajustado por JS */
+            padding-bottom: 20px; /* Padding inicial, se ajustará con JS */
+        }
+
+        /* Estilos para cada mensaje individual (PC) */
+        .message {
+            padding: 14px 20px; /* Aumentar padding del mensaje */
+            border-radius: 20px; /* Bordes más redondeados */
+            max-width: 70%; /* Reducir ancho máximo en PC para conversaciones más densas */
+            word-wrap: break-word;
+            position: relative;
+            line-height: 1.6; /* Mejorar espaciado entre líneas */
+            font-size: 1.1em; /* Tamaño de fuente base del mensaje */
+            /* Añadir un fondo semi-transparente para que el texto sea legible sobre la imagen */
+            background-color: rgba(255, 255, 255, 0.95); /* Blanco con 95% de opacidad */
+            cursor: pointer; /* Indicar que se puede hacer clic para responder */
+            display: flex; /* Usar flexbox para organizar el contenido interno */
+            flex-direction: column; /* Apilar nombre, respuesta, y footer */
+            z-index: 1; /* Asegurar que los mensajes estén por encima */
+            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+        }
+
+        .message .name {
+             font-size: 0.95em; /* Tamaño de fuente del nombre */
+             color: #333; /* Color de texto sutil */
+             margin-bottom: 3px; /* Espacio debajo del nombre */
+             display: block;
+             font-weight: 600; /* Semi-negrita */
+        }
+
+        .message .text {
+            display: block;
+            font-size: 1em; /* Tamaño de fuente del texto */
+             flex-grow: 1; /* Permitir que el texto ocupe espacio */
+             min-width: 0; /* Permitir que el texto se encoja y envuelva */
+             margin-right: auto; /* Empujar la hora/checks a la derecha */
+             padding-right: 10px; /* Espacio entre texto y hora/checks */
+             /* Asegurar que el texto se envuelva correctamente */
+             overflow-wrap: break-word;
+             word-break: break-word;
+        }
+
+         /* Estilos para los enlaces dentro de los mensajes */
+        .message a {
+            color: #1a73e8; /* Color azul de Google para enlaces */
+            text-decoration: none; /* Sin subrayado por defecto */
+        }
+
+        .message a:hover {
+            text-decoration: underline; /* Subrayado al pasar el ratón */
+        }
+
+
+         /* Contenedor para texto, hora y checkmarks */
+         .message-footer {
+             display: flex;
+             align-items: center; /* Alinear verticalmente */
+             justify-content: flex-end; /* Alinear a la derecha */
+             flex-wrap: wrap; /* Permitir que los elementos se envuelvan si no hay espacio */
+             gap: 6px; /* Espacio entre elementos del footer */
+             margin-top: 5px; /* Espacio arriba del footer */
+         }
+
+
+        .message .timestamp {
+            font-size: 0.75em; /* Tamaño de fuente de la hora */
+            color: #888; /* Gris tenue */
+            display: inline-block;
+             flex-shrink: 0; /* Evitar que se encoja */
+        }
+
+         /* Estilos para los checkmarks */
+         .message .checkmarks {
+             font-size: 0.85em; /* Tamaño de los checkmarks */
+             color: #1a73e8; /* Color azul de Google para checkmarks */
+             vertical-align: middle; /* Alinear verticalmente */
+             display: inline;
+             flex-shrink: 0; /* Evitar que se encoja */
+         }
+
+
+        /* Estilos para mensajes recibidos (PC) */
+        .message.received {
+            background-color: #e9e9eb; /* Gris claro */
+            align-self: flex-start;
+            border-bottom-left-radius: 6px; /* Esquina inferior izquierda menos redondeada */
+        }
+
+        /* Estilos para mensajes enviados (PC) */
+        .message.sent {
+            background-color: #1a73e8; /* Azul de Google */
+            color: white; /* Texto blanco */
+            align-self: flex-end;
+            border-bottom-right-radius: 6px; /* Esquina inferior derecha menos redondeada */
+        }
+
+         /* Estilos para mensajes enviados - elementos internos */
+        .message.sent .name,
+        .message.sent .text,
+        .message.sent .timestamp {
+             color: white !important; /* Forzar texto blanco */
+        }
+         .message.sent .timestamp {
+             color: rgba(255, 255, 255, 0.8) !important; /* Gris claro en mensajes enviados */
+         }
+         .message.sent .checkmarks {
+             color: white !important; /* Checkmarks blancos en mensajes enviados, forzar */
+         }
+
+         /* Estilos para el contenido de respuesta */
+         .reply-content {
+             border-left: 4px solid #1a73e8; /* Barra azul */
+             padding-left: 8px;
+             margin-bottom: 8px; /* Espacio debajo del contenido de respuesta */
+             opacity: 0.8; /* Ligeramente transparente */
+             font-size: 0.9em;
+         }
+
+         .reply-content .reply-name {
+             font-weight: bold;
+             color: inherit; /* Heredar color del mensaje */
+             display: block; /* Nombre en su propia línea */
+             margin-bottom: 2px;
+         }
+
+         .reply-content .reply-text {
+             color: inherit; /* Heredar color del mensaje */
+             display: block; /* Texto en su propia línea */
+             white-space: nowrap; /* Evitar salto de línea */
+             overflow: hidden; /* Ocultar exceso */
+             text-overflow: ellipsis; /* Mostrar puntos suspensivos */
+         }
+
+
+        /* Estilos para el contenedor del video de YouTube y otros embeds */
+        .video-preview-container {
+            margin-top: 10px; /* Espacio entre el texto y el video */
+            margin-bottom: 6px; /* Espacio entre el video y el footer */
+            width: 100%; /* Ocupar el ancho del mensaje */
+            aspect-ratio: 16 / 9; /* Mantener relación de aspecto 16:9 */
+            overflow: hidden; /* Asegurar que el iframe o video no se salga */
+            border-radius: 8px; /* Bordes redondeados para la previsualización */
+             background-color: #000; /* Fondo negro para videos */
+        }
+
+        .video-preview-container iframe,
+        .video-preview-container video {
+            width: 100%;
+            height: 100%;
+            border: none; /* Eliminar borde */
+        }
+
+
+        /* Contenedor para el área de input y el indicador de escribiendo (PC) */
+        #bottom-fixed-area {
+            position: relative; /* Relativo al chat-container en PC */
+            bottom: auto;
+            left: auto;
+            right: auto;
+            width: 100%; /* Ocupar todo el ancho del contenedor padre */
+            max-width: none; /* Sin ancho máximo específico en PC */
+            box-sizing: border-box;
+            margin: 0; /* Sin margen */
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff; /* Fondo blanco */
+            border-top: 1px solid #eee; /* Borde superior */
+            padding: 10px 30px; /* Padding en PC */
+        }
+
+         /* Estilos para el indicador de escribiendo (PC) */
+         #typing-indicator {
+             font-size: 0.9em;
+             color: #555;
+             height: 1.2em; /* Reserva espacio */
+             margin-bottom: 8px; /* Espacio debajo del indicador */
+             text-align: left; /* Alinear a la izquierda en PC */
+             padding: 0 5px; /* Padding lateral */
+         }
+
+         /* Estilos para la vista previa de respuesta (PC) */
+         #reply-preview {
+             display: none; /* Oculto por defecto */
+             background-color: #f0f0f0; /* Fondo gris claro */
+             border-left: 4px solid #1a73e8; /* Barra azul */
+             padding: 10px 15px;
+             margin-bottom: 10px; /* Espacio debajo de la vista previa */
+             border-radius: 5px;
+             align-items: center;
+             justify-content: space-between;
+             font-size: 0.95em;
+             color: #555;
+         }
+
+         #reply-preview .reply-name {
+             font-weight: bold;
+             margin-right: 5px;
+         }
+
+         #reply-preview .reply-text {
+             flex-grow: 1;
+             white-space: nowrap;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             margin-right: 10px;
+         }
+
+         #reply-preview #cancel-reply-button {
+             background-color: transparent;
+             border: none;
+             font-size: 1.2em;
+             cursor: pointer;
+             color: #888;
+             padding: 0;
+             line-height: 1;
+         }
+
+         #reply-preview #cancel-reply-button:hover {
+             color: #555;
+         }
+
+
+         /* Estilos para el área de input de mensaje (PC) */
+         .message-input-area {
+             display: flex;
+             gap: 10px; /* Espacio entre textarea y botones */
+             align-items: flex-end; /* Alinear elementos al final (bottom) */
+             flex-shrink: 0;
+         }
+
+         .message-input-area textarea {
+             flex-grow: 1; /* Permitir que el textarea ocupe el espacio restante */
+             padding: 12px 15px; /* Padding en PC */
+             border: 1px solid #ccc;
+             border-radius: 20px; /* Bordes más redondeados */
+             font-size: 1.1em; /* Tamaño de fuente en PC */
+             min-height: 45px; /* Altura mínima */
+             max-height: 150px; /* Altura máxima */
+             resize: none; /* Deshabilitar redimensionamiento manual */
+             overflow-y: auto; /* Habilitar scroll vertical si es necesario */
+             box-sizing: border-box;
+         }
+
+         .message-input-area .input-buttons {
+             display: flex;
+             gap: 8px; /* Espacio entre botones */
+             align-items: flex-end; /* Alinear botones al final */
+             flex-shrink: 0;
+         }
+
+         #emoji-button, #send-button {
+             width: auto; /* Ancho automático basado en contenido */
+             height: 45px; /* Altura igual a la mínima del textarea */
+             padding: 0 15px; /* Padding horizontal */
+             border-radius: 20px; /* Bordes redondeados */
+             cursor: pointer;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             transition: background-color 0.2s ease-in-out;
+         }
+
+         #emoji-button {
+             background-color: #f0f0f0; /* Fondo gris claro */
+             border: none;
+             font-size: 1.3em; /* Tamaño del emoji */
+             color: #555;
+         }
+
+         #emoji-button:hover {
+             background-color: #e0e0e0; /* Gris más oscuro */
+         }
+
+         #emoji-button svg {
+             width: 24px; /* Aumentar tamaño del SVG */
+             height: 24px;
+             fill: #555; /* Color del SVG */
+         }
+
+         #send-button {
+             background-color: #1a73e8; /* Azul de Google */
+             color: white;
+             border: none;
+             font-size: 1.1em;
+             font-weight: 500;
+         }
+
+         #send-button:hover {
+             background-color: #0f62da; /* Azul más oscuro */
+         }
+
+
+         /* Estilos para el selector de emojis (PC) */
+         #emoji-picker {
+             position: absolute;
+             bottom: 70px; /* Ajustar posición encima del área de input */
+             left: 30px; /* Alinear a la izquierda */
+             background-color: #ffffff;
+             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+             border-radius: 8px;
+             padding: 10px;
+             display: none; /* Oculto por defecto */
+             flex-wrap: wrap;
+             gap: 5px;
+             max-width: 300px; /* Ancho máximo del selector */
+             z-index: 10;
+         }
+
+         #emoji-picker span {
+             cursor: pointer;
+             font-size: 1.5em;
+             padding: 5px;
+             border-radius: 4px;
+             transition: background-color 0.1s ease-in-out;
+         }
+
+         #emoji-picker span:hover {
+             background-color: #f0f0f0;
          }
 
 
@@ -725,7 +674,7 @@
             <button id="start-chat-button">Entrar al Chat</button>
         </div>
 
-        <div id="chat-interface">
+        <div id="chat-interface" style="display: none; flex-direction: column; width: 100%; height: 100%;">
             <div id="chat-header">
                  <div>
                      <h2>FACBA</h2>
@@ -742,8 +691,6 @@
                 </div>
             <div id="bottom-fixed-area">
                 <div id="typing-indicator"></div>
-                 <div id="emoji-picker">
-                     </div>
                  <div id="reply-preview">
                      <span class="reply-name"></span>
                      <span class="reply-text"></span>
@@ -827,10 +774,13 @@
 
         // --- Lógica de Ingreso de Nombre ---
         startChatButton.addEventListener('click', () => {
+            console.log("startChatButton clicked"); // Debugging log
             const enteredName = nameInput.value.trim(); // Obtener el nombre y eliminar espacios en blanco
+            console.log("Entered name:", enteredName); // Debugging log
             if (enteredName) {
                 userName = enteredName;
                 namePrompt.style.display = 'none'; // Ocultar la sección de nombre
+                // Asegurarse de que chatInterface se muestre como flex para el layout de chat
                 chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
                 messageInput.focus(); // Poner el foco en el campo de mensaje
                 // Opcional: Guardar el nombre en localStorage para recordarlo
@@ -846,6 +796,7 @@
         // Permitir presionar Enter en el campo de nombre
         nameInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+                console.log("Name input keypress: Enter"); // Debugging log
                 startChatButton.click(); // Simular clic en el botón
             }
         });
@@ -881,6 +832,7 @@
             if (!timestamp) return ''; // Manejar caso sin timestamp
             const date = new Date(timestamp);
             const hours = date.getHours().toString().padStart(2, '0');
+            // Corrected: use getMinutes() once
             const minutes = date.getMinutes().toString().padStart(2, '0');
             return `${hours}:${minutes}`;
         }
@@ -932,12 +884,16 @@
         }
 
         // Listener para el botón de enviar texto
-        sendButton.addEventListener('click', sendMessage);
+        sendButton.addEventListener('click', () => {
+            console.log("sendButton clicked"); // Debugging log
+            sendMessage();
+        });
 
         // Permitir presionar Enter en el campo de mensaje de texto (solo si no hay Shift)
         messageInput.addEventListener('keypress', (event) => {
             // Si es Enter y no Shift+Enter
             if (event.key === 'Enter' && !event.shiftKey) {
+                console.log("Message input keypress: Enter (no Shift)"); // Debugging log
                 event.preventDefault(); // Prevenir el salto de línea por defecto
                 sendMessage(); // Enviar el mensaje
             }
@@ -1198,7 +1154,7 @@
             } else {
                 textSpan.style.color = '#1c1c1e'; // Color oscuro para mensajes recibidos
             }
-            console.log(`[${userName}] textSpan for message ${messageId} inline styles applied -> Color: ${textSpan.style.color}, Visibility: ${textSpan.style.visibility}, Display: ${textSpan.style.display}`); // Log inline styles
+            // Removed computed style log here as it might be too early.
 
 
             const timestampSpan = document.createElement('span');
@@ -1238,7 +1194,7 @@
             if (youtubeUrlMatch && youtubeUrlMatch[1]) {
                 const videoId = youtubeUrlMatch[1];
                 const iframe = document.createElement('iframe');
-                iframe.src = `https://www.youtube.com/embed/${videoId}`; // URL de incrustación estándar de YouTube
+                iframe.src = `http://www.youtube.com/embed/${videoId}`; // Corrected YouTube embed URL
                 iframe.setAttribute('allowfullscreen', ''); // Permitir pantalla completa
                 iframe.setAttribute('loading', 'lazy'); // Carga diferida
                 contentElement = iframe;
@@ -1375,19 +1331,31 @@
 
         // Función para reproducir el sonido de notificación
         function playNotificationSound() {
-             if (notificationSound && audioUnlocked) { // Solo reproducir si el audio está desbloqueado
-                 notificationSound.currentTime = 0; // Reiniciar el sonido si ya se está reproduciendo
-                 notificationSound.play().catch(error => {
-                     console.error("Error al reproducir el sonido:", error);
-                     // Esto a menudo ocurre si el navegador bloquea el autoplay
-                 });
-             } else if (!audioUnlocked) {
-                 console.log("Audio not unlocked yet. Cannot play sound.");
-             }
+             console.log("Attempting to play notification sound. audioUnlocked:", audioUnlocked); // Debugging log
+             if (notificationSound && notificationSound.readyState >= 2 && audioUnlocked) { // readyState 2 means enough data is available
+                 const playPromise = notificationSound.play();
+
+                 if (playPromise !== undefined) {
+                     playPromise.then(() => {
+                         // Playback started successfully
+                         console.log("Notification sound played successfully."); // Debugging log
+                     }).catch(error => {
+                         // Playback failed
+                         console.error("Notification sound playback failed:", error); // Debugging log
+                     });
+                 }
+            } else if (!notificationSound) {
+                console.log("Notification sound element not found."); // Debugging log
+            } else if (notificationSound.readyState < 2) {
+                 console.log("Notification sound not ready yet. readyState:", notificationSound.readyState); // Debugging log
+            } else if (!audioUnlocked) {
+                 console.log("Audio is locked. Cannot play sound."); // Debugging log
+            }
         }
 
         // Función para intentar desbloquear el audio con una interacción del usuario
         function unlockAudio() {
+            console.log("Attempting to unlock audio."); // Debugging log
             if (notificationSound && notificationSound.readyState >= 2 && !audioUnlocked) { // readyState 2 means enough data is available
                 notificationSound.volume = 0; // Set volume to 0
                 const playPromise = notificationSound.play();
@@ -1410,13 +1378,13 @@
                     });
                 }
             } else if (audioUnlocked) {
-                 console.log("Audio already unlocked.");
+                 console.log("Audio already unlocked. Removing listeners."); // Debugging log
                  // Remove listeners if already unlocked
                  document.removeEventListener('click', unlockAudio);
                  document.removeEventListener('touchstart', unlockAudio);
                  sendButton.removeEventListener('click', unlockAudio); // Remove from send button too
             } else {
-                 console.log("Notification sound not ready or not found.");
+                 console.log("Notification sound not ready or not found for unlock attempt."); // Debugging log
             }
         }
 
@@ -1424,6 +1392,7 @@
         // --- Lógica para Limpiar Chat con Clave (Realtime Database) ---
         // El listener ahora está asociado al botón dentro del dropdown
         clearChatButton.addEventListener('click', () => {
+            console.log("clearChatButton clicked"); // Debugging log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1432,6 +1401,7 @@
 
             // Verificar la clave
             if (enteredPassword === CLEAR_CHAT_PASSWORD) {
+                console.log("Password correct. Attempting to clear chat."); // Debugging log
                 // Si la clave es correcta, eliminar el nodo 'messages' de Realtime Database
                 messagesRef.remove()
                     .then(() => {
@@ -1451,6 +1421,7 @@
 
         // --- Lógica para Cambiar Nombre ---
         changeNameButton.addEventListener('click', () => {
+            console.log("changeNameButton clicked"); // Debugging log
             // Ocultar el dropdown antes de mostrar el prompt
             settingsDropdown.style.display = 'none';
 
@@ -1482,6 +1453,7 @@
 
             // Añadir listener para insertar el emoji en el input
             emojiSpan.addEventListener('click', () => {
+                console.log("Emoji clicked:", emoji); // Debugging log
                 insertEmoji(emoji);
                 // Opcional: Ocultar el selector después de seleccionar un emoji
                 // emojiPicker.style.display = 'none';
@@ -1490,6 +1462,7 @@
 
         // Función para insertar emoji en el textarea en la posición del cursor
         function insertEmoji(emoji) {
+            console.log("insertEmoji function called with:", emoji); // Debugging log
             const textarea = messageInput;
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -1510,18 +1483,35 @@
 
         // Listener para el botón de emoji para mostrar/ocultar el selector
         emojiButton.addEventListener('click', (event) => {
+            console.log("emojiButton clicked"); // Debugging log
             // Prevenir que el clic en el botón cierre el selector inmediatamente
             event.stopPropagation();
              // Ocultar el dropdown de settings si está visible
              settingsDropdown.style.display = 'none';
 
             if (emojiPicker.style.display === 'flex') {
+                console.log("Hiding emoji picker."); // Debugging log
                 emojiPicker.style.display = 'none';
             } else {
+                console.log("Showing emoji picker."); // Debugging log
                 // Posicionar el selector justo encima de la barra de input
                 // bottom del selector = altura del área de input + padding/margen
                 const inputAreaHeight = bottomFixedArea.offsetHeight; // Usar la altura del contenedor fijo
+                // Adjusted bottom position slightly if needed
                 emojiPicker.style.bottom = `${inputAreaHeight + 10}px`; // 10px de margen
+                 // Adjusted left position to be relative to the button or input area
+                 const buttonRect = emojiButton.getBoundingClientRect();
+                 const bottomAreaRect = bottomFixedArea.getBoundingClientRect();
+                 // Position relative to the left edge of the bottom area, aligned with the button's left edge
+                 emojiPicker.style.left = `${buttonRect.left - bottomAreaRect.left}px`;
+                 // Ensure it doesn't go off the right edge
+                 const pickerWidth = emojiPicker.offsetWidth;
+                 const rightEdge = bottomAreaRect.width - pickerWidth;
+                 if (parseFloat(emojiPicker.style.left) > rightEdge) {
+                     emojiPicker.style.left = `${rightEdge}px`;
+                 }
+
+
                 emojiPicker.style.display = 'flex';
             }
         });
@@ -1530,11 +1520,17 @@
         document.addEventListener('click', (event) => {
             // Si el clic no fue dentro del selector de emojis ni en el botón de emoji
             if (!emojiPicker.contains(event.target) && event.target !== emojiButton) {
-                emojiPicker.style.display = 'none';
+                if (emojiPicker.style.display === 'flex') {
+                     console.log("Clicked outside emoji picker/button. Hiding picker."); // Debugging log
+                     emojiPicker.style.display = 'none';
+                }
             }
              // Si el clic no fue dentro del dropdown de settings ni en el botón de settings
              if (!settingsDropdown.contains(event.target) && event.target !== settingsButton) {
-                 settingsDropdown.style.display = 'none';
+                 if (settingsDropdown.style.display === 'flex') {
+                     console.log("Clicked outside settings dropdown/button. Hiding dropdown."); // Debugging log
+                     settingsDropdown.style.display = 'none';
+                 }
              }
         });
 
@@ -1564,6 +1560,7 @@
 
         // Listener para el evento 'focus' en el input de mensaje
         messageInput.addEventListener('focus', () => {
+             console.log("messageInput focused."); // Debugging log
              // Intentar scrollear la caja de chat al final cuando el input recibe foco
              // Esto ayuda a asegurar que la barra de input sea visible
              setTimeout(() => {
@@ -1577,6 +1574,7 @@
 
         // Función para iniciar el modo de respuesta
         function startReply(messageData) {
+            console.log("startReply function called with:", messageData); // Debugging log
             replyingToMessage = messageData; // Almacenar los datos del mensaje
             replyNameSpan.textContent = messageData.name + ':';
             // Mostrar un fragmento del texto o indicar que es un archivo
@@ -1590,6 +1588,7 @@
 
         // Función para cancelar el modo de respuesta
         function cancelReply() {
+            console.log("cancelReply function called."); // Debugging log
             replyingToMessage = null; // Limpiar la referencia al mensaje
             replyPreview.style.display = 'none'; // Ocultar la vista previa
             replyNameSpan.textContent = '';
@@ -1599,21 +1598,27 @@
         }
 
         // Listener para el botón de cancelar respuesta
-        cancelReplyButton.addEventListener('click', cancelReply);
+        cancelReplyButton.addEventListener('click', () => {
+            console.log("cancelReplyButton clicked"); // Debugging log
+            cancelReply();
+        });
 
 
         // --- Lógica del Botón de Configuración y Dropdown ---
 
         // Listener para el botón de configuración para mostrar/ocultar el dropdown
         settingsButton.addEventListener('click', (event) => {
+            console.log("settingsButton clicked"); // Debugging log
             // Prevenir que el clic en el botón cierre el dropdown inmediatamente
             event.stopPropagation();
              // Ocultar el selector de emojis si está visible
              emojiPicker.style.display = 'none';
 
             if (settingsDropdown.style.display === 'flex') {
+                console.log("Hiding settings dropdown."); // Debugging log
                 settingsDropdown.style.display = 'none';
             } else {
+                console.log("Showing settings dropdown."); // Debugging log
                 // Posicionar el dropdown justo debajo y a la derecha del botón de settings
                 // Esto se maneja principalmente con CSS position: absolute y top/right
                 settingsDropdown.style.display = 'flex';
@@ -1627,7 +1632,11 @@
 
         // --- Lógica de Presencia (Usuarios en Línea) ---
         function setupPresence() {
-             if (!userName) return;
+             console.log("setupPresence function called."); // Debugging log
+             if (!userName) {
+                 console.log("setupPresence: userName not set. Skipping."); // Debugging log
+                 return;
+             }
 
              const userPresenceRef = presenceRef.child(userName);
 
@@ -1644,17 +1653,20 @@
              // Establecer la presencia a false cuando el usuario abandona la página (cierra pestaña, navega)
              window.addEventListener('beforeunload', () => {
                  console.log(`[${userName}] beforeunload event detected. Setting presence to false.`);
-                 userPresenceRef.set(false); // Establecer a false explícitamente
+                 // Use set(false) instead of remove() for explicit offline status
+                 userPresenceRef.set(false);
              });
 
              window.addEventListener('unload', () => {
                  console.log(`[${userName}] unload event detected. Setting presence to false.`);
-                 userPresenceRef.set(false); // Establecer a false explícitamente
+                 // Use set(false) instead of remove() for explicit offline status
+                 userPresenceRef.set(false);
              });
 
 
              // Escuchar cambios en el nodo de presencia para actualizar la lista de usuarios en línea
              presenceRef.on('value', (snapshot) => {
+                 console.log("Presence data changed:", snapshot.val()); // Debugging log
                  const onlineUsers = snapshot.val();
                  const usersOnline = [];
 
@@ -1684,17 +1696,28 @@
         const savedName = localStorage.getItem('chatName');
         if (savedName) {
             nameInput.value = savedName; // Rellenar el campo de nombre
+            console.log("Found saved name:", savedName); // Debugging log
             // No llamar a startChatButton.click() aquí, initializeChat se llama en window.onload
+        } else {
+             console.log("No saved name found."); // Debugging log
         }
 
         // Ajustes iniciales al cargar la página
         window.onload = function() {
+             console.log("window.onload fired."); // Debugging log
              // Si hay un nombre guardado, inicializar el chat
              if (localStorage.getItem('chatName')) {
                  userName = localStorage.getItem('chatName');
                  namePrompt.style.display = 'none'; // Ocultar la sección de nombre
+                 // Asegurarse de que chatInterface se muestre como flex al inicio si hay nombre guardado
                  chatInterface.style.display = 'flex'; // Mostrar la interfaz de chat
+                 console.log("Saved name found, showing chat interface."); // Debugging log
                  initializeChat(); // Inicializar la carga de mensajes y listeners
+             } else {
+                  // Si no hay nombre guardado, mostrar el name-prompt y ocultar el chat-interface
+                  namePrompt.style.display = 'flex';
+                  chatInterface.style.display = 'none';
+                  console.log("No saved name, showing name prompt."); // Debugging log
              }
              // Ajustar el padding inferior del chatBox al cargar
              adjustChatBoxPadding();
@@ -1704,7 +1727,7 @@
              document.addEventListener('touchstart', unlockAudio, { once: true });
              sendButton.addEventListener('click', unlockAudio, { once: true }); // Also try on send button click
 
-
+             console.log("Initial setup complete."); // Debugging log
         };
 
 
