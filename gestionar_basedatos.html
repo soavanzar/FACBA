@@ -261,17 +261,10 @@
             transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
             border: none; /* Sin borde por defecto */
             color: white; /* Letra blanca para todos los action-button */
-            /* TEMPORARY DEBUG STYLE FOR BUTTONS */
-            background-color: rgba(0, 0, 255, 0.5) !important; /* Blue semi-transparent background */
-            border: 1px dashed yellow !important; /* Yellow dashed border */
-            /* END TEMPORARY DEBUG STYLE */
         }
 
         .action-button i {
              margin-right: 4px; /* Espacio entre icono y texto */
-             /* TEMPORARY DEBUG STYLE FOR ICONS */
-             border: 1px solid purple !important; /* Purple border around icons */
-             /* END TEMPORARY DEBUG STYLE */
         }
 
         .edit-button {
@@ -993,10 +986,6 @@
              opacity: 0;
              visibility: hidden;
              transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-             /* TEMPORAL DEBUGGING STYLES */
-             background-color: rgba(255, 255, 0, 0.5) !important; /* Fondo amarillo semi-transparente */
-             border: 1px solid red !important; /* Borde rojo */
-             /* FIN TEMPORAL DEBUGGING STYLES */
          }
 
          #invoice-history-list li .invoice-actions.show,
@@ -1013,18 +1002,12 @@
          {
              padding: 5px 10px;
              font-size: 0.85rem;
-              /* TEMPORARY DEBUG STYLE FOR BUTTONS */
-             background-color: rgba(0, 0, 255, 0.5) !important; /* Blue semi-transparent background */
-             border: 1px dashed yellow !important; /* Yellow dashed border */
-             /* END TEMPORARY DEBUG STYLE */
          }
 
          #invoice-history-list li .invoice-actions button i,
          #full-invoice-history-list li .invoice-actions button i /* NUEVO */
          {
-              /* TEMPORARY DEBUG STYLE FOR ICONS */
-              border: 1px solid purple !important; /* Purple border around icons */
-              /* END TEMPORARY DEBUG STYLE */
+              /* No hay estilos de depuración aquí */
          }
 
 
@@ -4508,7 +4491,7 @@
 
                    if (target.classList.contains('gear-icon')) {
                         // Acción de mostrar/ocultar botones al hacer clic en la tuerca
-                        console.log("Gear icon clicked for invoice:", invoiceId);
+                        console.log("Invoice Gear icon clicked for invoice:", invoiceId); // Added "Invoice" for clarity
                         // Ocultar todos los contenedores de acciones de factura abiertos
                         document.querySelectorAll('#invoice-history-list li .invoice-actions.show, #full-invoice-history-list li .invoice-actions.show').forEach(container => {
                              container.classList.remove('show');
@@ -4521,17 +4504,24 @@
 
                         // Mostrar el contenedor de acciones para este item de factura
                         if (invoiceActionsContainer && gearIcon) {
+                             // --- Add debugging logs BEFORE showing ---
+                            console.log(`Attempting to show invoice actions for invoice: ${invoiceId}`);
+                            // --- End debugging logs BEFORE showing ---
+
                              invoiceActionsContainer.classList.add('show');
                              gearIcon.style.display = 'none'; // Ocultar la tuerca
-                             console.log(`Invoice actions shown for invoice: ${invoiceId}`); // Debugging
-                             // --- NUEVOS LOGS DE DEBUGGING ---
-                             const computedStyle = getComputedStyle(invoiceActionsContainer);
-                             console.log(`Invoice Actions Computed Style for ${invoiceId}:`);
-                             console.log(`  display: ${computedStyle.display}`);
-                             console.log(`  opacity: ${computedStyle.opacity}`);
-                             console.log(`  visibility: ${computedStyle.visibility}`);
-                             console.log(`Gear Icon Display for ${invoiceId}: ${getComputedStyle(gearIcon).display}`);
-                             // --- FIN NUEVOS LOGS DE DEBUGGING ---
+
+                             // --- Add debugging logs AFTER showing ---
+                             // Wait a tiny bit for the browser to compute styles after adding the class
+                            setTimeout(() => {
+                                const computedStyle = getComputedStyle(invoiceActionsContainer);
+                                console.log(`Invoice Actions Computed Style for ${invoiceId} AFTER adding 'show':`);
+                                console.log(`  display: ${computedStyle.display}`);
+                                console.log(`  opacity: ${computedStyle.opacity}`);
+                                console.log(`  visibility: ${computedStyle.visibility}`);
+                                console.log(`Gear Icon Display for ${invoiceId} AFTER hiding: ${getComputedStyle(gearIcon).display}`);
+                            }, 50); // Small delay
+                            // --- End debugging logs AFTER showing ---
                         }
 
                    } else if (target.closest('.action-button')) {
