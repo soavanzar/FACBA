@@ -261,10 +261,17 @@
             transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
             border: none; /* Sin borde por defecto */
             color: white; /* Letra blanca para todos los action-button */
+            /* TEMPORARY DEBUG STYLE FOR BUTTONS */
+            background-color: rgba(0, 0, 255, 0.5) !important; /* Blue semi-transparent background */
+            border: 1px dashed yellow !important; /* Yellow dashed border */
+            /* END TEMPORARY DEBUG STYLE */
         }
 
         .action-button i {
              margin-right: 4px; /* Espacio entre icono y texto */
+             /* TEMPORARY DEBUG STYLE FOR ICONS */
+             border: 1px solid purple !important; /* Purple border around icons */
+             /* END TEMPORARY DEBUG STYLE */
         }
 
         .edit-button {
@@ -978,7 +985,7 @@
              padding: 5px; /* Espaciado interno */
              border-radius: 6px; /* Bordes redondeados */
              box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Sombra */
-             z-index: 10; /* Asegura que esté por encima del contenido de la lista */
+             z-index: 21 !important; /* Aumentar z-index para asegurar que esté encima */
              white-space: nowrap; /* Evita que los botones se rompan */
              gap: 5px; /* Espacio entre botones */
              align-items: center; /* Centra los botones verticalmente */
@@ -986,6 +993,10 @@
              opacity: 0;
              visibility: hidden;
              transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+             /* TEMPORAL DEBUGGING STYLES */
+             background-color: rgba(255, 255, 0, 0.5) !important; /* Fondo amarillo semi-transparente */
+             border: 1px solid red !important; /* Borde rojo */
+             /* FIN TEMPORAL DEBUGGING STYLES */
          }
 
          #invoice-history-list li .invoice-actions.show,
@@ -1002,7 +1013,20 @@
          {
              padding: 5px 10px;
              font-size: 0.85rem;
+              /* TEMPORARY DEBUG STYLE FOR BUTTONS */
+             background-color: rgba(0, 0, 255, 0.5) !important; /* Blue semi-transparent background */
+             border: 1px dashed yellow !important; /* Yellow dashed border */
+             /* END TEMPORARY DEBUG STYLE */
          }
+
+         #invoice-history-list li .invoice-actions button i,
+         #full-invoice-history-list li .invoice-actions button i /* NUEVO */
+         {
+              /* TEMPORARY DEBUG STYLE FOR ICONS */
+              border: 1px solid purple !important; /* Purple border around icons */
+              /* END TEMPORARY DEBUG STYLE */
+         }
+
 
          /* Icono de tuerca dentro de los items de historial de factura */
          #invoice-history-list li .gear-icon,
