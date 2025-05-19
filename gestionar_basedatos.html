@@ -4500,6 +4500,14 @@
                              invoiceActionsContainer.classList.add('show');
                              gearIcon.style.display = 'none'; // Ocultar la tuerca
                              console.log(`Invoice actions shown for invoice: ${invoiceId}`); // Debugging
+                             // --- NUEVOS LOGS DE DEBUGGING ---
+                             const computedStyle = getComputedStyle(invoiceActionsContainer);
+                             console.log(`Invoice Actions Computed Style for ${invoiceId}:`);
+                             console.log(`  display: ${computedStyle.display}`);
+                             console.log(`  opacity: ${computedStyle.opacity}`);
+                             console.log(`  visibility: ${computedStyle.visibility}`);
+                             console.log(`Gear Icon Display for ${invoiceId}: ${getComputedStyle(gearIcon).display}`);
+                             // --- FIN NUEVOS LOGS DE DEBUGGING ---
                         }
 
                    } else if (target.closest('.action-button')) {
