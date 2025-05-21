@@ -788,30 +788,6 @@
              color: #1f2937;
          }
 
-         /* Estilos para el mensaje temporal de tooltip en click */
-         .click-tooltip-message {
-             position: fixed; /* Fixed position to float over content */
-             top: 20px; /* Position from the top */
-             left: 50%; /* Center horizontally */
-             transform: translateX(-50%); /* Adjust for exact centering */
-             background-color: rgba(0, 0, 0, 0.8); /* Dark background */
-             color: white; /* White text */
-             padding: 10px 15px;
-             border-radius: 8px;
-             font-size: 0.9rem;
-             z-index: 1001; /* Ensure it's above modals */
-             opacity: 0; /* Start hidden */
-             visibility: hidden;
-             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-             max-width: 90%; /* Max width on small screens */
-             text-align: center;
-         }
-
-         .click-tooltip-message.show {
-             opacity: 1;
-             visibility: visible;
-         }
-
          /* Estilos específicos para los nuevos modales de Pago y Facturación */
          #add-payment-modal .modal-content,
          #billing-modal .modal-content,
@@ -986,6 +962,11 @@
              opacity: 0;
              visibility: hidden;
              transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+             /* TEMPORARY DEBUGGING STYLES */
+             background-color: rgba(255, 0, 0, 0.5) !important; /* Semi-transparent red */
+             border: 2px solid blue !important; /* Blue border */
+             /* END TEMPORARY DEBUGGING STYLES */
          }
 
          #invoice-history-list li .invoice-actions.show,
@@ -4522,6 +4503,16 @@
                                 console.log(`  z-index: ${computedStyle.zIndex}`); // Log z-index
                                 console.log(`  pointer-events: ${computedStyle.pointerEvents}`); // Log pointer-events
 
+                                const rect = invoiceActionsContainer.getBoundingClientRect();
+                                console.log(`Invoice Actions Bounding Rect for ${invoiceId}:`);
+                                console.log(`  width: ${rect.width}px`);
+                                console.log(`  height: ${rect.height}px`);
+                                console.log(`  x: ${rect.x}px, y: ${rect.y}px`);
+                                console.log(`  top: ${rect.top}px, left: ${rect.left}px`);
+                                console.log(`  right: ${rect.right}px, bottom: ${rect.bottom}px`);
+                                console.log(`  Number of children in invoiceActionsContainer: ${invoiceActionsContainer.children.length}`);
+
+
                                 const gearComputedStyle = getComputedStyle(gearIcon);
                                 console.log(`Gear Icon Computed Style for ${invoiceId} AFTER hiding:`);
                                 console.log(`  display: ${gearComputedStyle.display}`);
@@ -5061,7 +5052,7 @@
               const updatedData = {
                   codigo: invoiceCode,
                   fechaInicio: firebase.firestore.Timestamp.fromDate(startDate), // Guardar como Timestamp
-                  fechaFin: firebase.firestore.Timestamp.fromDate(endDate), // Guardar como Timestamp
+                  fechaFin: firebase.firestore.firestore.Timestamp.fromDate(endDate), // Guardar como Timestamp
                   detalles: invoiceDetails,
                   updatedAt: firebase.firestore.FieldValue.serverTimestamp()
               };
