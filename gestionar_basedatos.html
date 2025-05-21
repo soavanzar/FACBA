@@ -4519,7 +4519,17 @@
                                 console.log(`  display: ${computedStyle.display}`);
                                 console.log(`  opacity: ${computedStyle.opacity}`);
                                 console.log(`  visibility: ${computedStyle.visibility}`);
-                                console.log(`Gear Icon Display for ${invoiceId} AFTER hiding: ${getComputedStyle(gearIcon).display}`);
+                                console.log(`  z-index: ${computedStyle.zIndex}`); // Log z-index
+                                console.log(`  pointer-events: ${computedStyle.pointerEvents}`); // Log pointer-events
+
+                                const gearComputedStyle = getComputedStyle(gearIcon);
+                                console.log(`Gear Icon Computed Style for ${invoiceId} AFTER hiding:`);
+                                console.log(`  display: ${gearComputedStyle.display}`);
+                                console.log(`  opacity: ${gearComputedStyle.opacity}`);
+                                console.log(`  visibility: ${gearComputedStyle.visibility}`);
+                                console.log(`  z-index: ${gearComputedStyle.zIndex}`); // Log z-index
+                                console.log(`  pointer-events: ${gearComputedStyle.pointerEvents}`); // Log pointer-events
+
                             }, 50); // Small delay
                             // --- End debugging logs AFTER showing ---
                         }
