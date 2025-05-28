@@ -65,15 +65,17 @@
             z-index: 10; /* Asegura que esté por encima del contenido */
         }
 
-        /* Estilo para el nuevo icono de chat */
-        .chat-button {
+        /* Estilo para el nuevo icono de chat y configuración */
+        .chat-button,
+        .settings-button {
             font-size: 2.5rem; /* Tamaño del icono */
             cursor: pointer;
             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-            color: #3b82f6; /* Color azul para el chat */
+            color: #3b82f6; /* Color azul para los iconos */
         }
 
-        .chat-button:hover {
+        .chat-button:hover,
+        .settings-button:hover {
             color: #2563eb; /* Azul más oscuro al pasar el ratón */
             transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
         }
@@ -84,6 +86,24 @@
             text-align: center;
             margin-bottom: 25px;
             color: #1f2937;
+        }
+
+        /* Search input styling */
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         /* --- Estilos de Tabla con CSS Grid (Vista de Escritorio) --- */
@@ -463,14 +483,16 @@
         #payment-history-modal .modal-content,
         #invoice-history-modal .modal-content,
         #edit-payment-modal .modal-content,
-        #edit-invoice-modal .modal-content {
+        #edit-invoice-modal .modal-content,
+        #emplanillados-modal .modal-content { /* Added emplanillados modal */
             max-width: 600px; /* Aumentar ancho para formularios/historiales */
         }
 
         #payment-history-list,
         #invoice-history-list,
         #full-payment-history-list,
-        #full-invoice-history-list {
+        #full-invoice-history-list,
+        #emplanillados-list { /* Added emplanillados list */
             list-style: none;
             padding: 0;
             margin-top: 20px;
@@ -480,7 +502,8 @@
         #payment-history-list li,
         #invoice-history-list li,
         #full-payment-history-list li,
-        #full-invoice-history-list li {
+        #full-invoice-history-list li,
+        #emplanillados-list li { /* Added emplanillados list item */
             padding: 10px 0;
             border-bottom: 1px solid #e5e7eb;
             font-size: 0.95rem;
@@ -494,14 +517,16 @@
         #payment-history-list li:last-child,
         #invoice-history-list li:last-child,
         #full-payment-history-list li:last-child,
-        #full-invoice-history-list li:last-child {
+        #full-invoice-history-list li:last-child,
+        #emplanillados-list li:last-child { /* Added emplanillados list item */
             border-bottom: none;
         }
 
         #payment-history-list li span,
         #invoice-history-list li span,
         #full-payment-history-list li span,
-        #full-invoice-history-list li span {
+        #full-invoice-history-list li span,
+        #emplanillados-list li span { /* Added emplanillados list item */
             margin-right: 15px; /* Espacio entre elementos */
         }
 
@@ -591,16 +616,29 @@
         /* Estilos para la lista de historial de facturas */
         #invoice-history-list li,
         #full-invoice-history-list li {
-            flex-direction: column; /* Apilar elementos en cada item de factura */
-            align-items: flex-start; /* Alinear a la izquierda */
-            position: relative; /* Necesario para posicionar los botones */
-            padding-right: 40px; /* Espacio para los botones */
+            display: flex;
+            flex-direction: row; /* Asegura que los elementos estén en una fila */
+            justify-content: space-between; /* Empuja el contenido y las acciones a los extremos */
+            align-items: center; /* Alinea verticalmente los elementos */
+            position: relative;
+            padding: 10px 15px; /* Ajustar padding para que los botones tengan espacio */
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.95rem;
+            color: #374151;
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+        }
+
+        #invoice-history-list li:last-child,
+        #full-invoice-history-list li:last-child {
+            border-bottom: none;
         }
 
         #invoice-history-list li .invoice-summary,
         #full-invoice-history-list li .invoice-summary {
-            width: 100%; /* Ocupar todo el ancho */
-            margin-bottom: 10px; /* Espacio debajo del resumen */
+            width: auto; /* Permitir que el resumen ocupe el espacio necesario */
+            margin-bottom: 0; /* Eliminar margen inferior si es necesario */
+            flex-grow: 1; /* Permitir que el resumen crezca */
+            margin-right: 15px; /* Espacio entre el resumen y los botones */
         }
 
         /* Contenedor de acciones dentro de los items de historial de factura */
@@ -614,65 +652,65 @@
             border-radius: 0; /* Sin bordes */
             box-shadow: none; /* Sin sombra */
             z-index: auto; /* Z-index automático */
-            white-space: normal; /* Permitir que el texto se envuelva */
-            gap: 5px; /* Espacio entre botones */
+            white-space: nowrap; /* Evitar que los botones se envuelvan */
+            gap: 8px; /* Espacio entre botones */
             align-items: center; /* Centra los botones verticalmente */
             opacity: 1;
             visibility: visible;
             margin-left: auto; /* Empuja los botones a la derecha */
+            flex-shrink: 0; /* Evitar que los botones se encojan */
         }
 
-        #invoice-history-list li .invoice-actions button,
-        #full-invoice-history-list li .invoice-actions button {
-            padding: 5px 10px;
-            font-size: 0.85rem;
-        }
-
-        /* NUEVOS ESTILOS: Botones de acción en listas de historial */
-        .history-item-actions {
-            display: flex;
-            gap: 8px; /* Espacio entre botones */
-            align-items: center;
-            margin-left: auto; /* Empuja los botones a la derecha */
-        }
-
+        /* NUEVOS ESTILOS para los botones de acción en listas de historial (pagos y facturas) */
         .history-item-actions .action-button {
-            padding: 4px 8px; /* Padding más pequeño para botones en lista */
-            font-size: 0.75rem; /* Tamaño de fuente más pequeño */
-            color: white;
+            padding: 6px 12px; /* Un poco más de padding */
+            font-size: 0.8rem; /* Tamaño de fuente ligeramente mayor */
+            font-weight: 600;
+            border-radius: 8px; /* Bordes más redondeados */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Sombra más visible */
+            transition: all 0.2s ease-in-out;
+            color: white; /* Texto blanco por defecto */
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Espacio entre icono y texto */
+        }
+
+        .history-item-actions .action-button:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* Sombra más grande al pasar el ratón */
+            transform: translateY(-2px); /* Efecto de "levantar" */
         }
 
         /* Estilos específicos para los botones de editar y eliminar en las listas de historial */
         .history-item-actions .edit-payment-button,
         .history-item-actions .edit-invoice-button {
-            background-color: #60a5fa; /* Azul */
+            background-color: #3b82f6; /* Azul más vibrante */
         }
         .history-item-actions .edit-payment-button:hover,
         .history-item-actions .edit-invoice-button:hover {
-            background-color: #3b82f6; /* Azul más oscuro */
+            background-color: #2563eb; /* Azul más oscuro */
         }
 
         .history-item-actions .delete-payment-button,
         .history-item-actions .delete-invoice-button {
-            background-color: #f87171; /* Rojo */
+            background-color: #ef4444; /* Rojo vibrante */
         }
         .history-item-actions .delete-payment-button:hover,
         .history-item-actions .delete-invoice-button:hover {
-            background-color: #ef4444; /* Rojo más oscuro */
+            background-color: #dc2626; /* Rojo más oscuro */
         }
 
         .history-item-actions .view-invoice-details-button {
-            background-color: #6366f1; /* Indigo */
+            background-color: #4f46e5; /* Indigo más oscuro */
         }
         .history-item-actions .view-invoice-details-button:hover {
-            background-color: #4f46e5; /* Indigo más oscuro */
+            background-color: #3f36c6; /* Indigo aún más oscuro */
         }
 
         .history-item-actions .generate-invoice-pdf-button {
-            background-color: #ef4444; /* Rojo */
+            background-color: #dc2626; /* Rojo para PDF */
         }
         .history-item-actions .generate-invoice-pdf-button:hover {
-            background-color: #dc2626; /* Rojo más oscuro */
+            background-color: #b91c1c; /* Rojo más oscuro para PDF */
         }
 
         /* Ajuste para que los detalles del pago/factura y los botones de acción estén en la misma línea si hay espacio */
@@ -695,40 +733,53 @@
             flex-shrink: 0; /* Evitar que se encojan demasiado */
         }
 
+        /* Estilos para la lista de emplanillados */
+        #emplanillados-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        #emplanillados-list li:last-child {
+            border-bottom: none;
+        }
+
+        #emplanillados-list li input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2); /* Make checkbox slightly larger */
+        }
+
+        #emplanillados-list li .user-info {
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
         /* En pantallas pequeñas, volver a apilar */
         @media (max-width: 767px) {
             #payment-history-list li,
-            #full-payment-history-list li {
+            #full-payment-history-list li,
+            #invoice-history-list li, /* Aplicar también a facturas en móvil */
+            #full-invoice-history-list li,
+            #emplanillados-list li { /* Apply to emplanillados list item */
                 flex-direction: column;
                 align-items: flex-start;
+                padding-right: 15px; /* Ajustar padding derecho en móvil */
             }
             #payment-history-list li span,
-            #full-payment-history-list li span {
+            #full-payment-history-list li span,
+            #invoice-history-list li .invoice-summary, /* Ajustar resumen de factura en móvil */
+            #full-invoice-history-list li .invoice-summary,
+            #emplanillados-list li .user-info { /* Apply to emplanillados user info */
                 margin-right: 0;
                 margin-bottom: 5px; /* Espacio entre detalles apilados */
             }
             #payment-history-list li .history-item-actions,
-            #full-payment-history-list li .history-item-actions {
-                width: 100%; /* Ocupa todo el ancho */
-                justify-content: flex-end; /* Alinear botones a la derecha */
-                margin-top: 10px; /* Espacio encima de los botones */
-            }
-
-            /* Asegurar que los elementos de la factura se apilen correctamente en móvil */
-            #invoice-history-list li,
-            #full-invoice-history-list li {
-                flex-direction: column; /* Apilar */
-                align-items: flex-start; /* Alinear a la izquierda */
-                padding-right: 15px; /* Reducir padding derecho en móvil */
-            }
-            #invoice-history-list li .invoice-summary,
-            #full-invoice-history-list li .invoice-summary {
-                margin-bottom: 10px; /* Espacio debajo del resumen */
-            }
-            #invoice-history-list li .invoice-actions,
-            #full-invoice-history-list li .invoice-actions {
-                position: static; /* Posicionamiento estático en móvil */
-                transform: none; /* Eliminar transformación */
+            #full-payment-history-list li .history-item-actions,
+            #invoice-history-list li .invoice-actions, /* Ajustar acciones de factura en móvil */
+            #full-invoice-history-list li .invoice-actions,
+            #emplanillados-list li .emplanillado-actions { /* Apply to emplanillados actions */
                 width: 100%; /* Ocupa todo el ancho */
                 justify-content: flex-end; /* Alinear botones a la derecha */
                 margin-top: 10px; /* Espacio encima de los botones */
@@ -750,7 +801,10 @@
 
         <div class="top-icons">
             <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
+            <i class="fas fa-cog settings-button" id="settings-button" title="Configuración"></i>
         </div>
+
+        <input type="text" id="user-search-input" class="search-input" placeholder="Buscar usuario por nombre o identificación...">
 
         <div class="table-container">
             <table class="user-table">
@@ -948,6 +1002,29 @@
         </div>
     </div>
 
+    <div id="emplanillados-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-emplanillados-modal">&times;</span>
+            <h2>Gestionar Emplanillados</h2>
+            <div class="modal-form-group">
+                <label for="emplanillados-company-filter">Filtrar por Empresa:</label>
+                <select id="emplanillados-company-filter" class="w-full p-2 border rounded">
+                    <option value="">Todas las Empresas</option>
+                    </select>
+            </div>
+            <div class="history-section">
+                <h3>Usuarios Emplanillados</h3>
+                <ul id="emplanillados-list">
+                    <li>Cargando usuarios...</li>
+                </ul>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="cancel-emplanillados">Cerrar</button>
+                <button type="button" class="save-changes-button" id="remove-from-planilla-button">Eliminar de Planilla</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -979,6 +1056,8 @@
         // Get DOM elements
         const userTableBody = document.getElementById('user-table-body');
         const chatButton = document.getElementById('chat-button');
+        const settingsButton = document.getElementById('settings-button'); // NEW: Settings button
+        const userSearchInput = document.getElementById('user-search-input'); // NEW: Search input
 
         // Large animated status message
         const largeStatusMessage = document.getElementById('large-status-message');
@@ -1044,6 +1123,14 @@
         const editInvoiceStartDateInput = document.getElementById('edit-invoice-start-date');
         const editInvoiceEndDateInput = document.getElementById('edit-invoice-end-date');
         const editInvoiceDetailsTextarea = document.getElementById('edit-invoice-details');
+
+        // NEW: Emplanillados Modal Elements
+        const emplanilladosModal = document.getElementById('emplanillados-modal');
+        const closeEmplanilladosModalButton = document.getElementById('close-emplanillados-modal');
+        const cancelEmplanilladosButton = document.getElementById('cancel-emplanillados');
+        const emplanilladosCompanyFilter = document.getElementById('emplanillados-company-filter');
+        const emplanilladosList = document.getElementById('emplanillados-list');
+        const removeFromPlanillaButton = document.getElementById('remove-from-planilla-button');
 
         // Maps to store entity names (for display in table and selects)
         let empresasMap = new Map();
@@ -1242,11 +1329,14 @@
          * but kept for potential future expansion).
          */
         async function populateSelects() {
-            // This function is kept minimal as only payment/billing modals need select options
-            // For now, it's not strictly needed for this simplified view, but good practice to keep
-            // if any future fields in payment/billing forms require dynamic entity selection.
-            // Current payment/billing modals do not have entity selectors, so this function's direct
-            // impact is limited, but loadLookupMaps is essential.
+            // Populate company filter in emplanillados modal
+            emplanilladosCompanyFilter.innerHTML = '<option value="">Todas las Empresas</option>';
+            empresasMap.forEach((name, id) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                emplanilladosCompanyFilter.appendChild(option);
+            });
         }
 
         /**
@@ -1270,8 +1360,8 @@
          */
         function renderUserRow(userDoc) {
             const user = userDoc.data();
-            console.log(`[renderUserRow] Procesando usuario ID: ${userDoc.id}, Nombre: "${user.nombre || 'N/A'}"`);
-            console.log(`[renderUserRow] Datos completos del usuario ID ${userDoc.id}:`, user);
+            // console.log(`[renderUserRow] Procesando usuario ID: ${userDoc.id}, Nombre: "${user.nombre || 'N/A'}"`);
+            // console.log(`[renderUserRow] Datos completos del usuario ID ${userDoc.id}:`, user);
 
             const row = document.createElement('tr');
             row.dataset.id = userDoc.id;
@@ -1281,7 +1371,7 @@
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
             const ibcFormatted = formatCurrency(user.ibc);
 
-            console.log(`[renderUserRow] Empresa ID: ${user.empresaId || 'N/A'}, Valor a Pagar: ${user.valorAPagar || 'N/A'}, IBC: ${user.ibc || 'N/A'}`);
+            // console.log(`[renderUserRow] Empresa ID: ${user.empresaId || 'N/A'}, Valor a Pagar: ${user.valorAPagar || 'N/A'}, IBC: ${user.ibc || 'N/A'}`);
 
             // Determine EPS Info
             const epsName = epsMap.get(user.epsId);
@@ -1290,7 +1380,7 @@
             const epsIcon = isEpsAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + epsTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + epsTooltip + '"></i>';
-            console.log(`[renderUserRow] EPS ID: ${user.epsId || 'N/A'}, EPS Name: "${epsName || 'N/A'}", isEpsAssigned: ${isEpsAssigned}`);
+            // console.log(`[renderUserRow] EPS ID: ${user.epsId || 'N/A'}, EPS Name: "${epsName || 'N/A'}", isEpsAssigned: ${isEpsAssigned}`);
 
 
             // Determine ARL Info (including Risk in tooltip)
@@ -1300,7 +1390,7 @@
             const arlIcon = isArlAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + arlTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + arlTooltip + '"></i>';
-            console.log(`[renderUserRow] ARL ID: ${user.arlId || 'N/A'}, ARL Name: "${arlName || 'N/A'}", Riesgo: "${user.riesgo || 'N/A'}", isArlAssigned: ${isArlAssigned}`);
+            // console.log(`[renderUserRow] ARL ID: ${user.arlId || 'N/A'}, ARL Name: "${arlName || 'N/A'}", Riesgo: "${user.riesgo || 'N/A'}", isArlAssigned: ${isArlAssigned}`);
 
 
             // Determine AFP Info
@@ -1310,7 +1400,7 @@
             const afpIcon = isAfpAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + afpTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + afpTooltip + '"></i>';
-            console.log(`[renderUserRow] AFP ID: ${user.afpId || 'N/A'}, AFP Name: "${afpName || 'N/A'}", isAfpAssigned: ${isAfpAssigned}`);
+            // console.log(`[renderUserRow] AFP ID: ${user.afpId || 'N/A'}, AFP Name: "${afpName || 'N/A'}", isAfpAssigned: ${isAfpAssigned}`);
 
 
             // Determine CCF Info
@@ -1320,7 +1410,7 @@
             const ccfIcon = isCcfAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + ccfTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + ccfTooltip + '"></i>';
-            console.log(`[renderUserRow] CCF ID: ${user.ccfId || 'N/A'}, CCF Name: "${ccfName || 'N/A'}", isCcfAssigned: ${isCcfAssigned}`);
+            // console.log(`[renderUserRow] CCF ID: ${user.ccfId || 'N/A'}, CCF Name: "${ccfName || 'N/A'}", isCcfAssigned: ${isCcfAssigned}`);
 
 
             // Determine 'hasPlanilla' status from user data
@@ -1329,7 +1419,7 @@
             const planillaIcon = hasPlanilla ?
                                  '<i class="fas fa-check-square text-green-500 status-icon" title="Tiene Planilla"></i>' :
                                  '<i class="fas fa-square text-red-500 status-icon" title="No tiene Planilla"></i>';
-            console.log(`[renderUserRow] hasPlanilla: ${user.hasPlanilla}, Planilla Icon: ${planillaIcon}`);
+            // console.log(`[renderUserRow] hasPlanilla: ${user.hasPlanilla}, Planilla Icon: ${planillaIcon}`);
 
 
             // Add data-label for table responsiveness
@@ -1352,25 +1442,33 @@
         }
 
         /**
-         * Renders all users in the main table.
+         * Renders all users in the main table based on current search filter.
          */
         function renderUsers() {
             userTableBody.innerHTML = ''; // Clear current table
-            console.log(`[renderUsers] Intentando renderizar. Total de usuarios en allUserDocs: ${allUserDocs.length}`);
+            const searchTerm = userSearchInput.value.toLowerCase();
+            const filteredUsers = allUserDocs.filter(doc => {
+                const user = doc.data();
+                const userName = (user.nombre || '').toLowerCase();
+                const userIdentification = (user.identificacion || '').toLowerCase();
+                return userName.includes(searchTerm) || userIdentification.includes(searchTerm);
+            });
 
-            if (allUserDocs.length === 0) {
+            console.log(`[renderUsers] Intentando renderizar. Total de usuarios filtrados: ${filteredUsers.length}`);
+
+            if (filteredUsers.length === 0) {
                 const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="10" class="text-center text-gray-500">No hay usuarios registrados.</td>`;
+                noDataRow.innerHTML = `<td colspan="10" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
                 userTableBody.appendChild(noDataRow);
-                console.log('[renderUsers] allUserDocs está vacío. Se mostrará el mensaje "No hay usuarios registrados."');
+                console.log('[renderUsers] No hay usuarios que coincidan con la búsqueda.');
                 return;
             }
 
-            allUserDocs.forEach(doc => {
+            filteredUsers.forEach(doc => {
                 const row = renderUserRow(doc);
                 userTableBody.appendChild(row);
             });
-            console.log(`[renderUsers] Renderizados ${allUserDocs.length} usuarios en la tabla.`);
+            console.log(`[renderUsers] Renderizados ${filteredUsers.length} usuarios en la tabla.`);
         }
 
         /**
@@ -1379,7 +1477,8 @@
         async function loadUsersTable() {
             console.log('--- Iniciando carga de tabla de usuarios ---');
             await loadLookupMaps(); // Load maps before the first table load
-            console.log('Mapas de entidades cargados. Procediendo con datos de usuario.');
+            await populateSelects(); // Populate new selects
+            console.log('Mapas de entidades y selects cargados. Procediendo con datos de usuario.');
 
             // Use onSnapshot to listen for real-time changes
             usersCollection.orderBy('nombre').onSnapshot(snapshot => {
@@ -1394,6 +1493,9 @@
                 showStatusMessage('Error al cargar usuarios.', 'error');
             });
         }
+
+        // NEW: Search input event listener
+        userSearchInput.addEventListener('input', renderUsers);
 
         // --- Payment and Billing Functionality (Maintained) ---
 
@@ -1505,7 +1607,7 @@
                 // No need to explicitly call loadUsersTable() here, it's handled by Firebase.
                 await loadPaymentHistory(userId, paymentHistoryList, 5); // Reload payment history in modal
             } catch (error) {
-                console.error("Error saving payment or updating planilla status:", error);
+                console.error("Error al guardar pago o actualizar planilla:", error);
                 showStatusMessage('Error al guardar pago o actualizar planilla: ' + error.message, 'error');
             }
         });
@@ -1546,7 +1648,7 @@
                     listElement.appendChild(listItem);
                 });
             } catch (error) {
-                console.error(`Error loading payment history for userId ${userId}:`, error);
+                console.error(`Error al cargar historial de pagos para userId ${userId}:`, error);
                 listElement.innerHTML = '<li>Error al cargar historial de pagos.</li>';
                 showStatusMessage('Error al cargar historial de pagos: ' + error.message, 'error');
             }
@@ -1643,7 +1745,7 @@
                     hideEditPaymentModal();
                 }
             } catch (error) {
-                console.error("Error loading payment data for edit:", error);
+                console.error("Error al cargar datos del pago para edición:", error);
                 showStatusMessage('Error al cargar datos del pago para edición.', 'error');
                 hideEditPaymentModal();
             }
@@ -1684,7 +1786,7 @@
                     await loadPaymentHistory(userId, fullPaymentHistoryList);
                 }
             } catch (error) {
-                console.error("Error saving payment changes:", error);
+                console.error("Error al guardar cambios del pago:", error);
                 showStatusMessage('Error al guardar cambios del pago: ' + error.message, 'error');
             }
         });
@@ -1706,7 +1808,7 @@
                     await loadPaymentHistory(userId, fullPaymentHistoryList);
                 }
             } catch (error) {
-                console.error("Error deleting payment:", error);
+                console.error("Error al eliminar pago:", error);
                 showStatusMessage('Error al eliminar pago: ' + error.message, 'error');
             }
         }
@@ -1948,17 +2050,17 @@
                             Período: ${formatDate(invoice.fechaInicio)} al ${formatDate(invoice.fechaFin)}<br>
                             Fecha Guardada: ${formatDateTime(invoice.createdAt)}
                         </div>
-                        <div class="invoice-actions">
-                            <button class="action-button view-invoice-details-button" data-id="${doc.id}" data-user-id="${userId}" title="Ver Detalles">Ver Detalles</button>
+                        <div class="invoice-actions history-item-actions">
+                            <button class="action-button view-invoice-details-button" data-id="${doc.id}" data-user-id="${userId}" title="Ver Detalles"><i class="fas fa-eye"></i> Ver</button>
                             <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" data-user-id="${userId}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
-                            <button class="action-button edit-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Factura"><i class="fas fa-edit"></i></button>
-                            <button class="action-button delete-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
+                            <button class="action-button edit-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Factura"><i class="fas fa-edit"></i> Editar</button>
+                            <button class="action-button delete-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i> Eliminar</button>
                         </div>
                     `;
                     listElement.appendChild(listItem);
                 });
             } catch (error) {
-                console.error(`Error loading invoice history for userId ${userId}:`, error);
+                console.error(`Error al cargar historial de facturas para userId ${userId}:`, error);
                 listElement.innerHTML = '<li>Error al cargar historial de facturas.</li>';
                 showStatusMessage('Error al cargar historial de facturas: ' + error.message, 'error');
             }
@@ -2007,7 +2109,7 @@
                 }
             }
             catch (error) {
-                console.error("Error loading invoice details:", error);
+                console.error("Error al cargar detalles de factura:", error);
                 showStatusMessage('Error al cargar detalles de factura: ' + error.message, 'error');
             }
         }
@@ -2396,7 +2498,7 @@
                     hideEditInvoiceModal();
                 }
             } catch (error) {
-                console.error("Error loading invoice data for edit:", error);
+                console.error("Error al cargar datos de la factura para edición:", error);
                 showStatusMessage('Error al cargar datos de la factura para edición.', 'error');
                 hideEditInvoiceModal();
             }
@@ -2486,6 +2588,101 @@
             window.open(chatUrl, windowName);
         });
         // --- FIN NUEVA FUNCIONALIDAD ---
+
+        // --- NEW: Emplanillados Functionality ---
+        settingsButton.addEventListener('click', showEmplanilladosModal);
+
+        function showEmplanilladosModal() {
+            emplanilladosModal.classList.add('show');
+            loadEmplanilladosList(); // Load list when modal opens
+        }
+
+        function hideEmplanilladosModal() {
+            emplanilladosModal.classList.remove('show');
+            emplanilladosList.innerHTML = ''; // Clear list when modal closes
+            emplanilladosCompanyFilter.value = ''; // Reset filter
+        }
+
+        closeEmplanilladosModalButton.addEventListener('click', hideEmplanilladosModal);
+        cancelEmplanilladosButton.addEventListener('click', hideEmplanilladosModal);
+        emplanilladosModal.addEventListener('click', (e) => {
+            if (e.target === emplanilladosModal) {
+                hideEmplanilladosModal();
+            }
+        });
+
+        emplanilladosCompanyFilter.addEventListener('change', loadEmplanilladosList);
+
+        async function loadEmplanilladosList() {
+            emplanilladosList.innerHTML = '<li>Cargando usuarios emplanillados...</li>';
+            try {
+                let query = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                const selectedCompanyId = emplanilladosCompanyFilter.value;
+
+                if (selectedCompanyId) {
+                    query = query.where('empresaId', '==', selectedCompanyId);
+                }
+
+                const snapshot = await query.get();
+                emplanilladosList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    emplanilladosList.innerHTML = '<li>No hay usuarios emplanillados que coincidan con los criterios.</li>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const listItem = document.createElement('li');
+                    listItem.dataset.id = doc.id;
+                    const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
+                    listItem.innerHTML = `
+                        <input type="checkbox" data-user-id="${doc.id}" class="emplanillado-checkbox">
+                        <div class="user-info">
+                            <strong>${user.nombre || 'N/A'}</strong> (${user.identificacion || 'N/A'})
+                            <br>
+                            Empresa: ${empresaNombre}
+                        </div>
+                    `;
+                    emplanilladosList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error("Error al cargar usuarios emplanillados:", error);
+                emplanilladosList.innerHTML = '<li>Error al cargar usuarios emplanillados.</li>';
+                showStatusMessage('Error al cargar usuarios emplanillados: ' + error.message, 'error');
+            }
+        }
+
+        removeFromPlanillaButton.addEventListener('click', async () => {
+            const selectedCheckboxes = emplanilladosList.querySelectorAll('.emplanillado-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showStatusMessage('Selecciona al menos un usuario para eliminar de planilla.', 'info');
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de que deseas eliminar a ${selectedCheckboxes.length} usuario(s) de planilla?`)) {
+                return;
+            }
+
+            showStatusMessage('Eliminando usuarios de planilla...', 'info');
+            const updates = [];
+            selectedCheckboxes.forEach(checkbox => {
+                const userId = checkbox.dataset.userId;
+                updates.push(usersCollection.doc(userId).update({
+                    hasPlanilla: false,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }));
+            });
+
+            try {
+                await Promise.all(updates);
+                showStatusMessage('Usuarios eliminados de planilla con éxito!', 'success');
+                loadEmplanilladosList(); // Reload the list after update
+            } catch (error) {
+                console.error("Error al eliminar usuarios de planilla:", error);
+                showStatusMessage('Error al eliminar usuarios de planilla: ' + error.message, 'error');
+            }
+        });
 
 
         // --- Inicialización ---
