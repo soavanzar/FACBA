@@ -962,11 +962,6 @@
              opacity: 0;
              visibility: hidden;
              transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-
-             /* TEMPORARY DEBUGGING STYLES */
-             background-color: rgba(255, 0, 0, 0.5) !important; /* Semi-transparent red */
-             border: 2px solid blue !important; /* Blue border */
-             /* END TEMPORARY DEBUGGING STYLES */
          }
 
          #invoice-history-list li .invoice-actions.show,
@@ -983,12 +978,6 @@
          {
              padding: 5px 10px;
              font-size: 0.85rem;
-         }
-
-         #invoice-history-list li .invoice-actions button i,
-         #full-invoice-history-list li .invoice-actions button i /* NUEVO */
-         {
-              /* No hay estilos de depuración aquí */
          }
 
 
@@ -1148,6 +1137,31 @@
                }
 
 
+         }
+
+         /* Estilos para el tooltip de clic (el mensaje temporal en la parte superior) */
+         #click-tooltip-message {
+             position: fixed;
+             top: 20px; /* Ajustado para estar más arriba */
+             left: 50%;
+             transform: translateX(-50%);
+             background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semi-transparente */
+             color: white;
+             padding: 8px 15px;
+             border-radius: 8px;
+             font-size: 0.9rem;
+             z-index: 1000;
+             opacity: 0;
+             visibility: hidden;
+             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+             white-space: nowrap; /* Evita que el texto se envuelva */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra sutil */
+             border: 1px solid rgba(255, 255, 255, 0.3); /* Añadido un borde sutil para mayor visibilidad */
+         }
+
+         #click-tooltip-message.show {
+             opacity: 1;
+             visibility: visible;
          }
 
     </style>
@@ -2492,13 +2506,15 @@
         userTableBody.addEventListener('click', async (e) => {
             const target = e.target;
 
-            // Check if the clicked element or its parent is a status icon
+            // --- INICIO DE LA LÓGICA PARA MOSTRAR EL NOMBRE DE EPS/CCF/ARL/AFP ---
+            // Verifica si el elemento clickeado o su padre es un ícono de estado (chulo/X)
             if (target.classList.contains('status-icon') || target.parentElement.classList.contains('status-icon')) {
                 const iconElement = target.classList.contains('status-icon') ? target : target.parentElement;
-                const tooltipText = iconElement.title; // Get the tooltip text from the title attribute
-                showClickTooltipMessage(tooltipText); // Show the temporary message
-                return; // Stop further processing for status icon clicks
+                const tooltipText = iconElement.title; // Obtiene el texto del atributo 'title' del ícono
+                showClickTooltipMessage(tooltipText); // Muestra el mensaje temporal en la parte superior
+                return; // Detiene el procesamiento adicional para los clics en íconos de estado
             }
+            // --- FIN DE LA LÓGICA PARA MOSTRAR EL NOMBRE DE EPS/CCF/ARL/AFP ---
 
 
             const userId = target.dataset.id || target.closest('.action-button, .gear-icon')?.dataset.id;
@@ -2590,23 +2606,23 @@
              const isClickInsideActionCell = e.target.closest('.action-cell');
              const isActionButton = e.target.closest('.action-button');
              const isGearIcon = e.target.closest('.gear-icon');
-             const isStatusIcon = e.target.closest('.status-icon'); // Also check for status icons
+             const isStatusIcon = e.target.closest('.status-icon'); // También verificar íconos de estado
              const isClickInsideInvoiceListItem = e.target.closest('#invoice-history-list li, #full-invoice-history-list li'); // Check if click is inside an invoice list item
              const isClickInsideInvoiceActions = e.target.closest('.invoice-actions'); // Check if click is inside invoice actions container
              const isClickInsideInvoiceGear = e.target.closest('#invoice-history-list li .gear-icon, #full-invoice-history-list li .gear-icon'); // Check if click is on invoice gear icon
 
 
-             // If the click was not inside an action cell, or if it was on an action button/gear/status icon
-             // within an action cell, we don't hide the buttons for that specific cell.
-             // But we want to hide ANY other open action button containers.
+             // Si el clic no fue dentro de una celda de acción, o si fue en un botón de acción/engranaje/ícono de estado
+             // dentro de una celda de acción, no ocultamos los botones para esa celda específica.
+             // Pero queremos ocultar CUALQUIER otro contenedor de botones de acción abierto.
 
              if (!isClickInsideActionCell || isActionButton || isGearIcon || isStatusIcon) {
                  document.querySelectorAll('.action-buttons-container.show').forEach(container => {
                       const parentCell = container.closest('.action-cell');
-                      // Hide only if the click was NOT on the gear icon of *this* cell
+                      // Ocultar solo si el clic NO fue en el ícono de engranaje de *esta* celda
                       if (!isGearIcon || (isGearIcon && parentCell !== isClickInsideActionCell)) {
                             container.classList.remove('show');
-                            // Show the corresponding gear icon
+                            // Mostrar el ícono de engranaje correspondiente
                             if (parentCell) {
                                 parentCell.querySelector('.gear-icon').style.display = 'inline-block';
                             }
@@ -2614,14 +2630,14 @@
                  });
              }
 
-             // Also hide invoice action buttons if the click is outside an invoice list item or within its actions/gear
+             // También ocultar los botones de acción de factura si el clic está fuera de un elemento de lista de factura o dentro de sus acciones/engranaje
              if (!isClickInsideInvoiceListItem || isClickInsideInvoiceActions || isClickInsideInvoiceGear) {
                  document.querySelectorAll('#invoice-history-list li .invoice-actions.show, #full-invoice-history-list li .invoice-actions.show').forEach(container => {
                       const parentListItem = container.closest('li');
-                      // Hide only if the click was NOT on the gear icon of *this* list item
+                      // Ocultar solo si el clic NO fue en el ícono de engranaje de *este* elemento de lista
                       if (!isClickInsideInvoiceGear || (isClickInsideInvoiceGear && parentListItem !== isClickInsideInvoiceListItem)) {
                            container.classList.remove('show');
-                           // Show the corresponding gear icon
+                           // Mostrar el ícono de engranaje correspondiente
                            if (parentListItem) {
                                 parentListItem.querySelector('.gear-icon').style.display = 'inline-block';
                            }
@@ -2629,8 +2645,8 @@
                  });
              }
 
-             // If the click was on the gear icon, the logic to show/hide was already handled in the userTableBody listener
-             // If the click was on a status icon, the tooltip message was handled, no action buttons to hide here.
+             // Si el clic fue en el ícono de engranaje, la lógica para mostrar/ocultar ya se manejó en el listener de userTableBody
+             // Si el clic fue en un ícono de estado, el mensaje del tooltip se manejó, no hay botones de acción que ocultar aquí.
          });
 
 
@@ -2648,21 +2664,21 @@
                     editNombreInput.value = userData.nombre || '';
                     editTipoIdentificacionSelect.value = userData.tipoIdentificacion || '';
                     editIdentificacionInput.value = userData.identificacion || '';
-                    editEmpresaSelect.value = userData.empresaId || ''; // Seleccionar por ID
-                    editArlSelect.value = userData.arlId || ''; // Seleccionar por ID de ARL
+                    editEmpresaSelect.value = userData.empresaId || null; // Seleccionar por ID
+                    editArlSelect.value = userData.arlId || null; // Seleccionar por ID de ARL
                     editRiesgoInput.value = userData.riesgo || '';
-                    editEpsSelect.value = userData.epsId || ''; // Seleccionar por ID de EPS
-                    editCcfSelect.value = userData.ccfId || ''; // Seleccionar por ID de CCF
-                    editAfpSelect.value = userData.afpId || ''; // Seleccionar por ID de AFP
+                    editEpsSelect.value = userData.epsId || null; // Seleccionar por ID de EPS
+                    editCcfSelect.value = userData.ccfId || null; // Seleccionar por ID de CCF
+                    editAfpSelect.value = userData.afpId || null; // Seleccionar por ID de AFP
                     editFechaIngresoInput.value = formatDate(userData.fecha);
                     editFechaRegistroInput.value = formatDate(userData.ingreso);
-                    editAsesorSelect.value = userData.asesorId || ''; // Seleccionar por ID
+                    editAsesorSelect.value = userData.asesorId || null; // Seleccionar por ID
                     let valorAPagarNumeric = userData.valorAPagar;
                      if (typeof userData.valorAPagar === 'string') {
                          const cleanedString = userData.valorAPagar.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
-                         numericValue = parseFloat(cleanedString);
+                         valorAPagarNumeric = parseFloat(cleanedString);
                      }
-                    editValorAPagarInput.value = valorAPagarNumeric || ''; // Poner el valor numérico o vacío
+                    editValorAPagarInput.value = valorAPagarNumeric || 0; // Poner el valor numérico o 0
 
                     // Cargar valor de IBC
                     let ibcNumeric = userData.ibc;
@@ -2670,7 +2686,7 @@
                          const cleanedString = userData.ibc.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
                          ibcNumeric = parseFloat(cleanedString);
                     }
-                    editIbcInput.value = ibcNumeric || ''; // Poner el valor numérico o vacío para IBC
+                    editIbcInput.value = ibcNumeric || 0; // Poner el valor numérico o 0 para IBC
 
 
                     editEstadoSelect.value = userData.estado || 'activo'; // Estado por defecto
