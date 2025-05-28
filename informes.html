@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Informes de Pagos - FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* Estilos CSS personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Necesario para posicionar los botones superiores */
+        }
+
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px;
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            max-width: 800px; /* Ancho máximo para el modal de reporte */
+            width: 90%; /* Ancho responsivo */
+            margin: 20px auto; /* Centra el contenedor y añade margen */
+            position: relative;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: absolute; /* Posicionamiento absoluto */
+            top: 20px; /* Ajusta según sea necesario */
+            left: 30px; /* Ajusta según sea necesario */
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Contenedor para los iconos superiores */
+        .top-icons {
+            position: absolute; /* Posicionamiento absoluto */
+            top: 20px; /* Ajusta según sea necesario */
+            right: 30px; /* Ajusta según sea necesario */
+            display: flex; /* Usa flexbox para alinear los iconos */
+            gap: 15px; /* Espacio entre iconos */
+            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        /* Estilo para el nuevo icono de chat */
+        .chat-button {
+            font-size: 2.5rem; /* Tamaño del icono */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            color: #3b82f6; /* Color azul para el chat */
+        }
+
+        .chat-button:hover {
+            color: #2563eb; /* Azul más oscuro al pasar el ratón */
+            transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1f2937;
+        }
+
+        .modal-form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .modal-form-group input[type="date"],
+        .modal-form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .modal-form-group input:focus,
+        .modal-form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+        }
+
+        .report-options {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: flex-end; /* Alinea los elementos al final */
+        }
+
+        .report-options .modal-form-group {
+            flex: 1; /* Permite que los grupos de formulario se expandan */
+            min-width: 150px; /* Ancho mínimo para cada input */
+            margin-bottom: 0; /* Eliminar margen inferior para mejor alineación en flex */
+        }
+
+        .report-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .report-generate-button,
+        .report-preview-button {
+            background-color: #10b981; /* Verde */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border: none;
+            flex: 1; /* Permite que los botones se expandan */
+            min-width: 200px; /* Ancho mínimo para cada botón */
+        }
+
+        .report-generate-button:hover,
+        .report-preview-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+            transform: translateY(-2px);
+        }
+
+        .report-preview-button {
+            background-color: #3b82f6; /* Azul para el botón de previsualización */
+        }
+
+        .report-preview-button:hover {
+            background-color: #2563eb; /* Azul más oscuro */
+        }
+
+
+        .report-summary {
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            min-height: 80px;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+
+        .report-summary strong {
+            color: #1f2937;
+        }
+
+        /* --- NUEVOS ESTILOS PARA EL MENSAJE GRANDE Y ANIMADO --- */
+        #large-status-message {
+            position: fixed; /* Posición fija para estar siempre visible */
+            top: 50%; /* Centrar verticalmente */
+            left: 50%; /* Centrar horizontalmente */
+            transform: translate(-50%, -50%); /* Centrar */
+            padding: 30px 40px; /* Espaciado interno generoso */
+            border-radius: 15px; /* Bordes muy redondeados */
+            font-size: 1.8rem; /* Tamaño de fuente grande */
+            font-weight: 700; /* Peso de fuente negrita */
+            color: white; /* Texto blanco */
+            text-align: center; /* Centrar texto */
+            z-index: 2000; /* Asegurar que esté por encima de todo lo demás */
+            opacity: 0; /* Empezar invisible */
+            visibility: hidden; /* Ocultar completamente cuando no está visible */
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); /* Sombra pronunciada */
+            min-width: 300px; /* Ancho mínimo */
+            max-width: 90%; /* Ancho máximo en pantallas pequeñas */
+        }
+
+        #large-status-message.show {
+            opacity: 1; /* Mostrar */
+            visibility: visible; /* Hacer visible */
+            transform: translate(-50%, -50%);
+        }
+
+        #large-status-message.success {
+            background-color: #10b981; /* Verde */
+        }
+
+        #large-status-message.error {
+            background-color: #ef4444; /* Rojo */
+        }
+
+        #large-status-message.info {
+            background-color: #3b82f6; /* Azul para info */
+        }
+
+        /* Media query para pantallas más pequeñas en el modal de reporte */
+        @media (max-width: 767px) {
+            .report-options {
+                flex-direction: column; /* Apilar opciones en pantallas pequeñas */
+                align-items: stretch; /* Estirar elementos para ocupar el ancho */
+            }
+            .report-options .modal-form-group {
+                width: 100%; /* Ocupar todo el ancho */
+            }
+            .report-buttons-container {
+                flex-direction: column; /* Apilar botones en pantallas pequeñas */
+            }
+        }
+
+        /* Estilos para la tabla de reporte */
+        .report-table-container {
+            margin-top: 30px;
+            width: 100%;
+            overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .report-table th {
+            background-color: #eef2ff;
+            color: #1f2937;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .report-table tbody tr:hover {
+            background-color: #e5e7eb;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .report-table td {
+            font-size: 0.95rem;
+            color: #374151;
+        }
+
+        /* Colores de estado en la tabla */
+        .status-pagado { color: #10b981; font-weight: 600; } /* Verde */
+        .status-pendiente { color: #3b82f6; font-weight: 600; } /* Azul */
+        .status-con_deuda, .status-sin_pagos { color: #ef4444; font-weight: 600; } /* Rojo */
+
+        /* Responsive table for smaller screens */
+        @media (max-width: 767px) {
+            .report-table thead {
+                display: none; /* Hide table headers */
+            }
+
+            .report-table, .report-table tbody, .report-table tr, .report-table td {
+                display: block; /* Make table elements behave as blocks */
+                width: 100%;
+            }
+
+            .report-table tr {
+                margin-bottom: 15px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                background-color: #ffffff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                padding: 10px;
+            }
+
+            .report-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border: none;
+                border-bottom: 1px dashed #e5e7eb;
+            }
+
+            .report-table td:last-child {
+                border-bottom: none;
+            }
+
+            .report-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: calc(50% - 30px);
+                text-align: left;
+                font-weight: 600;
+                color: #4b5563;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Ir Atrás
+        </a>
+
+        <h1 class="font-bold text-center mb-8 text-gray-800">Generador de Informes de Pagos</h1>
+
+        <div class="top-icons">
+            <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
+        </div>
+
+        <div class="report-options">
+            <div class="modal-form-group">
+                <label for="report-start-date">Fecha Inicio:</label>
+                <input type="date" id="report-start-date" class="w-full" required>
+            </div>
+            <div class="modal-form-group">
+                <label for="report-end-date">Fecha Fin:</label>
+                <input type="date" id="report-end-date" class="w-full" required>
+            </div>
+            <div class="modal-form-group">
+                <label for="report-filter-status">Estado de Pago:</label>
+                <select id="report-filter-status" class="w-full">
+                    <option value="todos">Todos los Usuarios</option>
+                    <option value="pagados">Usuarios Pagados</option>
+                    <option value="pendientes">Usuarios Pendientes</option>
+                    <option value="con_deuda">Usuarios con Deuda</option>
+                    <option value="sin_pagos">Usuarios sin Pagos Registrados</option>
+                </select>
+            </div>
+            <div class="modal-form-group">
+                <label for="report-filter-empresa">Empresa:</label>
+                <select id="report-filter-empresa" class="w-full">
+                    <option value="">Todas las Empresas</option>
+                </select>
+            </div>
+            <div class="modal-form-group">
+                <label for="report-filter-asesor">Asesor:</label>
+                <select id="report-filter-asesor" class="w-full">
+                    <option value="">Todos los Asesores</option>
+                </select>
+            </div>
+        </div>
+        <div class="report-buttons-container">
+            <button class="report-preview-button" id="preview-report-button"><i class="fas fa-eye"></i> Ver Informe en Tabla</button>
+            <button class="report-generate-button" id="generate-report-pdf-button"><i class="fas fa-file-pdf"></i> Generar Informe PDF</button>
+        </div>
+
+        <div class="report-summary" id="report-summary">
+            Aquí se mostrará un resumen del informe a generar.
+        </div>
+
+        <div class="report-table-container">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Identificación</th>
+                        <th>Empresa</th>
+                        <th>Valor a Pagar</th>
+                        <th>Total Pagado</th>
+                        <th>Estado de Pago</th>
+                    </tr>
+                </thead>
+                <tbody id="report-table-body">
+                    <tr><td colspan="6" class="text-center text-gray-500">Selecciona un período y filtros para generar el informe.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="large-status-message"></div>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const db = firebase.firestore(); // Inicializar Firestore
+
+        // Referencias a las colecciones en Firestore
+        const usersCollection = db.collection('usuarios');
+        const pagosCollection = db.collection('pagos');
+        const empresasCollection = db.collection('empresas');
+        const asesoresCollection = db.collection('asesores');
+        const arlCollection = db.collection('arl');
+        const epsCollection = db.collection('eps');
+        const ccfCollection = db.collection('ccf');
+        const afpCollection = db.collection('afp');
+
+        // Obtener elementos del DOM
+        const chatButton = document.getElementById('chat-button');
+        const largeStatusMessage = document.getElementById('large-status-message');
+        let largeStatusTimeout;
+
+        const reportStartDateInput = document.getElementById('report-start-date');
+        const reportEndDateInput = document.getElementById('report-end-date');
+        const reportFilterStatusSelect = document.getElementById('report-filter-status');
+        const reportFilterEmpresaSelect = document.getElementById('report-filter-empresa');
+        const reportFilterAsesorSelect = document.getElementById('report-filter-asesor');
+        const generateReportPdfButton = document.getElementById('generate-report-pdf-button');
+        const previewReportButton = document.getElementById('preview-report-button'); // Nuevo botón de previsualización
+        const reportSummaryDiv = document.getElementById('report-summary');
+        const reportTableBody = document.getElementById('report-table-body');
+
+        // Mapas para almacenar nombres de entidades
+        let empresasMap = new Map();
+        let asesoresMap = new Map();
+        let arlMap = new Map();
+        let epsMap = new Map();
+        let ccfMap = new Map();
+        let afpMap = new Map();
+
+        // Variable global para almacenar los usuarios filtrados y con estado de pago calculado
+        let globalFilteredUsersForReport = [];
+
+        // --- Funciones de Utilidad ---
+
+        // Función para mostrar mensajes de estado
+        function showStatusMessage(message, type = 'info') {
+            clearTimeout(largeStatusTimeout);
+            largeStatusMessage.className = '';
+            largeStatusMessage.style.opacity = '0';
+            largeStatusMessage.style.visibility = 'hidden';
+            largeStatusMessage.textContent = '';
+
+            if (!message) return;
+
+            largeStatusMessage.textContent = message;
+            largeStatusMessage.classList.add(type, 'show');
+            largeStatusMessage.style.visibility = 'visible';
+            largeStatusMessage.style.opacity = '1';
+
+            largeStatusTimeout = setTimeout(() => {
+                largeStatusMessage.classList.remove('show');
+                setTimeout(() => {
+                    largeStatusMessage.style.visibility = 'hidden';
+                    largeStatusMessage.className = '';
+                    largeStatusMessage.textContent = '';
+                }, 500);
+            }, 5000);
+        }
+
+        // Función para formatear fechas (Firestore Timestamp a YYYY-MM-DD)
+        function formatDate(dateInput) {
+            if (!dateInput) return '';
+            let date;
+            if (dateInput.toDate) { // Check if it's a Firestore Timestamp
+                date = dateInput.toDate();
+            } else if (typeof dateInput === 'string') { // Handle string dates
+                date = new Date(dateInput);
+            } else if (dateInput instanceof Date) { // Handle Date objects
+                date = dateInput;
+            } else {
+                return ''; // Invalid input
+            }
+
+            if (isNaN(date.getTime())) {
+                return ''; // Return empty string if date is invalid
+            }
+
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para formatear números como moneda (COP)
+        function formatCurrency(number) {
+            let numericValue = number;
+            if (typeof number === 'string') {
+                const cleanedString = number.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+                numericValue = parseFloat(cleanedString);
+            }
+
+            if (numericValue === undefined || numericValue === null || isNaN(numericValue)) {
+                return '';
+            }
+
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(numericValue);
+        }
+
+        // Cargar mapas de todas las entidades (empresas, asesores, arl, eps, ccf, afp)
+        async function loadLookupMaps() {
+            try {
+                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
+                    empresasCollection.get(),
+                    asesoresCollection.get(),
+                    arlCollection.get(),
+                    epsCollection.get(),
+                    ccfCollection.get(),
+                    afpCollection.get()
+                ]);
+
+                empresasMap = new Map();
+                empresasSnapshot.forEach(doc => {
+                    empresasMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                asesoresMap = new Map();
+                asesoresSnapshot.forEach(doc => {
+                    asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                arlMap = new Map();
+                arlSnapshot.forEach(doc => {
+                    arlMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                epsMap = new Map();
+                epsSnapshot.forEach(doc => {
+                    epsMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                ccfMap = new Map();
+                ccfSnapshot.forEach(doc => {
+                    ccfMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                afpMap = new Map();
+                afpSnapshot.forEach(doc => {
+                    afpMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                console.log("Mapas de Entidades cargados.");
+            } catch (error) {
+                console.error("Error al cargar mapas:", error);
+                showStatusMessage('Error al cargar datos de referencia.', 'error');
+            }
+        }
+
+        // Poblar selectores de entidades en el modal de reporte
+        async function populateReportSelects() {
+            try {
+                // Empresas
+                reportFilterEmpresaSelect.innerHTML = '<option value="">Todas las Empresas</option>';
+                empresasMap.forEach((name, id) => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = name;
+                    reportFilterEmpresaSelect.appendChild(option);
+                });
+
+                // Asesores
+                reportFilterAsesorSelect.innerHTML = '<option value="">Todos los Asesores</option>';
+                asesoresMap.forEach((name, id) => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = name;
+                    reportFilterAsesorSelect.appendChild(option);
+                });
+
+                console.log("Selectores de reporte poblados.");
+            } catch (error) {
+                console.error("Error al poblar selectores de reporte:", error);
+                showStatusMessage('Error al cargar opciones de empresa/asesor.', 'error');
+            }
+        }
+
+        // --- Funcionalidad de Generar Informe de Pagos ---
+
+        // Update report summary when inputs change
+        reportStartDateInput.addEventListener('change', updateReportSummary);
+        reportEndDateInput.addEventListener('change', updateReportSummary);
+        reportFilterStatusSelect.addEventListener('change', updateReportSummary);
+        reportFilterEmpresaSelect.addEventListener('change', updateReportSummary);
+        reportFilterAsesorSelect.addEventListener('change', updateReportSummary);
+
+        function updateReportSummary() {
+            const startDate = reportStartDateInput.value;
+            const endDate = reportEndDateInput.value;
+            const filterStatus = reportFilterStatusSelect.value;
+            const filterEmpresa = reportFilterEmpresaSelect.value;
+            const filterAsesor = reportFilterAsesorSelect.value;
+
+            let statusText = '';
+            switch (filterStatus) {
+                case 'todos': statusText = 'Todos los Usuarios'; break;
+                case 'pagados': statusText = 'Usuarios Pagados'; break;
+                case 'pendientes': statusText = 'Usuarios Pendientes (con pagos parciales)'; break;
+                case 'con_deuda': statusText = 'Usuarios con Deuda (sin pagos o pagos insuficientes)'; break;
+                case 'sin_pagos': statusText = 'Usuarios sin Pagos Registrados'; break;
+            }
+
+            const empresaText = filterEmpresa ? `Empresa: ${empresasMap.get(filterEmpresa) || 'Desconocida'}` : 'Todas las Empresas';
+            const asesorText = filterAsesor ? `Asesor: ${asesoresMap.get(filterAsesor) || 'Desconocido'}` : 'Todos los Asesores';
+
+            reportSummaryDiv.innerHTML = `
+                <strong>Criterios del Informe:</strong><br>
+                Período: ${startDate || 'N/A'} al ${endDate || 'N/A'}<br>
+                Estado de Pago: ${statusText}<br>
+                ${empresaText}<br>
+                ${asesorText}
+            `;
+        }
+
+        // Function to render the filtered users into the HTML table
+        function renderReportTable(users) {
+            reportTableBody.innerHTML = ''; // Clear existing rows
+
+            if (users.length === 0) {
+                reportTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-500">No hay usuarios que coincidan con los filtros.</td></tr>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+
+                let statusClass = '';
+                if (user.paymentStatus === 'Pagado' || user.paymentStatus === 'Pagado (No Requerido)') statusClass = 'status-pagado';
+                else if (user.paymentStatus === 'Pendiente') statusClass = 'status-pendiente';
+                else if (user.paymentStatus === 'Con Deuda' || user.paymentStatus === 'Sin Pagos Registrados') statusClass = 'status-con_deuda';
+
+                row.innerHTML = `
+                    <td data-label="Nombre">${user.nombre || 'Sin Nombre'}</td>
+                    <td data-label="Identificación">${user.identificacion || 'N/A'}</td>
+                    <td data-label="Empresa">${empresaNombre}</td>
+                    <td data-label="Valor a Pagar">${formatCurrency(user.requiredPayment)}</td>
+                    <td data-label="Total Pagado">${formatCurrency(user.totalPaid)}</td>
+                    <td data-label="Estado de Pago" class="${statusClass}">${user.paymentStatus}</td>
+                `;
+                reportTableBody.appendChild(row);
+            });
+        }
+
+        // --- Core function to fetch data, calculate status, and render table ---
+        async function generateReportDataAndRenderTable() {
+            const startDateString = reportStartDateInput.value;
+            const endDateString = reportEndDateInput.value;
+            const filterStatus = reportFilterStatusSelect.value;
+            const filterEmpresaId = reportFilterEmpresaSelect.value;
+            const filterAsesorId = reportFilterAsesorSelect.value;
+
+            if (!startDateString || !endDateString) {
+                showStatusMessage('Por favor, selecciona las fechas de inicio y fin para el informe.', 'error');
+                renderReportTable([]); // Clear table if dates are missing
+                return false; // Indicate failure
+            }
+
+            const startDate = new Date(startDateString + 'T00:00:00Z');
+            const endDate = new Date(endDateString + 'T23:59:59.999Z');
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                renderReportTable([]); // Clear table if dates are invalid
+                return false; // Indicate failure
+            }
+
+            showStatusMessage('Cargando datos del informe...', 'info');
+
+            try {
+                // 1. Obtener todos los usuarios
+                const usersSnapshot = await usersCollection.get();
+                let allUsers = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Apply Empresa and Asesor filters to allUsers
+                if (filterEmpresaId) {
+                    allUsers = allUsers.filter(user => user.empresaId === filterEmpresaId);
+                }
+                if (filterAsesorId) {
+                    allUsers = allUsers.filter(user => user.asesorId === filterAsesorId);
+                }
+
+                // 2. Obtener todos los pagos dentro del rango de fechas
+                const paymentsSnapshot = await pagosCollection
+                    .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(startDate))
+                    .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(endDate))
+                    .get();
+                const paymentsInPeriod = paymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // 3. Calcular el estado de pago para cada usuario
+                const usersWithPaymentStatus = allUsers.map(user => {
+                    const userPayments = paymentsInPeriod.filter(payment => payment.userId === user.id);
+                    const totalPaid = userPayments.reduce((sum, payment) => sum + (payment.valor || 0), 0);
+                    const requiredPayment = user.valorAPagar || 0;
+
+                    let paymentStatus = 'Sin Pagos Registrados';
+                    if (userPayments.length > 0) {
+                        if (totalPaid >= requiredPayment && requiredPayment > 0) {
+                            paymentStatus = 'Pagado';
+                        } else if (totalPaid > 0 && totalPaid < requiredPayment) {
+                            paymentStatus = 'Pendiente';
+                        } else if (requiredPayment > 0) {
+                            paymentStatus = 'Con Deuda';
+                        } else if (requiredPayment === 0) {
+                            paymentStatus = 'Pagado (No Requerido)';
+                        }
+                    } else if (requiredPayment > 0) {
+                        paymentStatus = 'Con Deuda';
+                    } else if (requiredPayment === 0) {
+                        paymentStatus = 'No Aplica';
+                    }
+
+                    return {
+                        ...user,
+                        totalPaid: totalPaid,
+                        requiredPayment: requiredPayment,
+                        paymentStatus: paymentStatus,
+                        payments: userPayments
+                    };
+                });
+
+                // 4. Filtrar usuarios según el estado de pago seleccionado
+                globalFilteredUsersForReport = usersWithPaymentStatus; // Store in global variable
+                if (filterStatus !== 'todos') {
+                    globalFilteredUsersForReport = usersWithPaymentStatus.filter(user => {
+                        if (filterStatus === 'pagados') return user.paymentStatus === 'Pagado' || user.paymentStatus === 'Pagado (No Requerido)';
+                        if (filterStatus === 'pendientes') return user.paymentStatus === 'Pendiente';
+                        if (filterStatus === 'con_deuda') return user.paymentStatus === 'Con Deuda';
+                        if (filterStatus === 'sin_pagos') return user.paymentStatus === 'Sin Pagos Registrados';
+                        return true;
+                    });
+                }
+
+                if (globalFilteredUsersForReport.length === 0) {
+                    showStatusMessage('No se encontraron usuarios para el informe con los criterios seleccionados.', 'info');
+                    renderReportTable([]);
+                    return false; // Indicate failure
+                }
+
+                // Display the data in the HTML table
+                renderReportTable(globalFilteredUsersForReport);
+                showStatusMessage('Informe cargado en la tabla. Listo para generar PDF.', 'success');
+                return true; // Indicate success
+
+            } catch (error) {
+                console.error("Error al cargar datos del informe:", error);
+                showStatusMessage('Error al cargar datos del informe: ' + error.message, 'error');
+                renderReportTable([]); // Clear table on error
+                return false; // Indicate failure
+            }
+        }
+
+        // Listener for the new "Ver Informe en Tabla" button
+        previewReportButton.addEventListener('click', generateReportDataAndRenderTable);
+
+        // Listener para generar el informe PDF
+        generateReportPdfButton.addEventListener('click', async () => {
+            // First, ensure data is loaded and table is rendered
+            const dataLoaded = await generateReportDataAndRenderTable();
+            if (!dataLoaded) {
+                showStatusMessage('No se puede generar el PDF sin datos. Por favor, verifica los filtros.', 'error');
+                return;
+            }
+
+            if (globalFilteredUsersForReport.length === 0) {
+                showStatusMessage('No hay datos en la tabla para generar el PDF.', 'info');
+                return;
+            }
+
+            showStatusMessage('Generando PDF...', 'info');
+
+            const startDateString = reportStartDateInput.value;
+            const endDateString = reportEndDateInput.value;
+            const startDate = new Date(startDateString + 'T00:00:00Z');
+            const endDate = new Date(endDateString + 'T23:59:59.999Z');
+            const filterEmpresaId = reportFilterEmpresaSelect.value;
+            const filterAsesorId = reportFilterAsesorSelect.value;
+
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+
+                const primaryColor = '#4f46e5';
+                const textColor = '#1f2937';
+                const accentColor = '#10b981';
+                const errorColor = '#ef4444';
+                const infoColor = '#3b82f6';
+
+                const margin = 15;
+                let y = margin;
+                const pageWidth = doc.internal.pageSize.getWidth();
+
+                // Header
+                doc.setFillColor(primaryColor);
+                doc.rect(0, 0, pageWidth, 20, 'F');
+                doc.setFontSize(18);
+                doc.setTextColor(255);
+                doc.text("Informe de Pagos FACBA", margin, 13);
+
+                y = 30;
+
+                // Report Criteria
+                doc.setFontSize(12);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Período del Informe:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${formatDate(startDate)} al ${formatDate(endDate)}`, margin + 65, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Estado de Pago Filtrado:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${reportFilterStatusSelect.options[reportFilterStatusSelect.selectedIndex].text}`, margin + 65, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Empresa Filtrada:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${filterEmpresaId ? (empresasMap.get(filterEmpresaId) || 'Desconocida') : 'Todas las Empresas'}`, margin + 65, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Asesor Filtrado:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${filterAsesorId ? (asesoresMap.get(filterAsesorId) || 'Desconocido') : 'Todos los Asesores'}`, margin + 65, y);
+                y += 15;
+
+                // Table of Users
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Detalle de Usuarios y Pagos", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                const tableColumn = ["Nombre", "Identificación", "Empresa", "Valor a Pagar", "Total Pagado", "Estado de Pago"];
+                const tableRows = globalFilteredUsersForReport.map(user => { // Use global variable
+                    const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
+                    let statusColor = textColor;
+                    if (user.paymentStatus === 'Pagado') statusColor = accentColor;
+                    else if (user.paymentStatus === 'Pagado (No Requerido)') statusColor = accentColor;
+                    else if (user.paymentStatus === 'Pendiente') statusColor = infoColor;
+                    else if (user.paymentStatus === 'Con Deuda' || user.paymentStatus === 'Sin Pagos Registrados') statusColor = errorColor;
+                    else if (user.paymentStatus === 'No Aplica') statusColor = textColor;
+
+                    return [
+                        user.nombre || 'Sin Nombre',
+                        user.identificacion || 'N/A',
+                        empresaNombre,
+                        formatCurrency(user.requiredPayment),
+                        formatCurrency(user.totalPaid),
+                        { content: user.paymentStatus, styles: { textColor: statusColor } }
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: y,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'striped',
+                    headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                    bodyStyles: { textColor: textColor },
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        0: { cellWidth: 30 },  // Nombre
+                        1: { cellWidth: 25 },  // Identificación
+                        2: { cellWidth: 'auto' }, // Empresa (auto-adjust)
+                        3: { cellWidth: 30 },  // Valor a Pagar
+                        4: { cellWidth: 30 },  // Total Pagado
+                        5: { cellWidth: 35 }   // Estado de Pago
+                    },
+                    didDrawPage: function(data) {
+                        let pageHeight = doc.internal.pageSize.getHeight();
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                    }
+                });
+
+                y = doc.autoTable.previous.finalY + 15;
+
+                // Summary Totals
+                const totalRequired = globalFilteredUsersForReport.reduce((sum, user) => sum + (user.requiredPayment || 0), 0);
+                const totalReceived = globalFilteredUsersForReport.reduce((sum, user) => sum + (user.totalPaid || 0), 0);
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Resumen General", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Total Valor a Pagar (Usuarios Filtrados): ${formatCurrency(totalRequired)}`, margin, y);
+                y += 7;
+                doc.text(`Total Pagos Recibidos (en el Período): ${formatCurrency(totalReceived)}`, margin, y);
+                y += 7;
+                doc.text(`Diferencia: ${formatCurrency(totalRequired - totalReceived)}`, margin, y);
+                y += 15;
+
+
+                // Footer (Company Info)
+                y = doc.internal.pageSize.getHeight() - 20;
+                doc.setFontSize(10);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'normal');
+                doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y);
+                doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5);
+
+                doc.save(`informe_pagos_${formatDate(startDate)}_al_${formatDate(endDate)}.pdf`);
+
+                showStatusMessage('Informe PDF generado con éxito!', 'success');
+            } catch (error) {
+                console.error("Error al generar PDF:", error);
+                showStatusMessage('Error al generar PDF: ' + error.message, 'error');
+            }
+        });
+
+        // --- NUEVA FUNCIONALIDAD: Abrir ventana de Chat ---
+        chatButton.addEventListener('click', () => {
+            const chatUrl = 'https://soavanzar.github.io/FACBA/chat.html';
+            const windowName = 'FACBAChatWindow';
+            window.open(chatUrl, windowName);
+        });
+        // --- FIN NUEVA FUNCIONALIDAD ---
+
+        // --- Inicialización ---
+        window.onload = async function() {
+            await loadLookupMaps(); // Cargar los mapas de entidades al inicio
+            await populateReportSelects(); // Poblar los selectores de empresa y asesor
+
+            // Set default dates for the current month
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            reportStartDateInput.value = formatDate(firstDayOfMonth);
+            reportEndDateInput.value = formatDate(lastDayOfMonth);
+            reportFilterStatusSelect.value = 'todos'; // Default to "Todos los Usuarios"
+            reportFilterEmpresaSelect.value = ''; // Default to "Todas las Empresas"
+            reportFilterAsesorSelect.value = ''; // Default to "Todos los Asesores"
+
+            updateReportSummary(); // Update summary initially
+            showStatusMessage('Generador de informes listo. Selecciona los criterios y genera el informe.', 'info');
+        };
+    </script>
+
+</body>
+</html>
