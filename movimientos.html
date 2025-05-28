@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Usuarios Simplificado - FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* Estilos CSS personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f2f2f7; /* Fondo gris muy claro */
+            color: #1c1c1e; /* Color de texto oscuro por defecto */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative; /* Necesario para posicionar los botones superiores */
+        }
+
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px;
+            border-radius: 12px; /* Bordes redondeados */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
+            max-width: 1200px; /* Ancho máximo para la tabla */
+            margin: 20px auto; /* Centra el contenedor y añade margen */
+            position: relative; /* Necesario para el contexto del botón de atrás */
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #d1d5db; /* Gris claro */
+            color: #1f2937; /* Gris oscuro */
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .back-button:hover {
+            background-color: #9ca3af; /* Gris más oscuro */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Contenedor para los iconos superiores */
+        .top-icons {
+            position: absolute; /* Posicionamiento absoluto */
+            top: 20px; /* Ajusta según sea necesario */
+            right: 30px; /* Ajusta según sea necesario */
+            display: flex; /* Usa flexbox para alinear los iconos */
+            gap: 15px; /* Espacio entre iconos */
+            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        /* Estilo para el nuevo icono de chat */
+        .chat-button {
+            font-size: 2.5rem; /* Tamaño del icono */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            color: #3b82f6; /* Color azul para el chat */
+        }
+
+        .chat-button:hover {
+            color: #2563eb; /* Azul más oscuro al pasar el ratón */
+            transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1f2937;
+        }
+
+        /* --- Estilos de Tabla con CSS Grid (Vista de Escritorio) --- */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse; /* Elimina el espacio entre bordes */
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
+            display: grid; /* Usar Grid para la tabla */
+            grid-template-columns: repeat(10, 1fr); /* 10 columnas flexibles: Nombre, Empresa, Valor a Pagar, IBC, EPS, ARL, AFP, CCF, Planilla, Acciones */
+            /* Definir áreas para thead y tbody */
+            grid-template-areas:
+                "header header header header header header header header header header"
+                "body body body body body body body body body body";
+            grid-auto-rows: auto; /* Ajustar altura de filas automáticamente */
+        }
+
+        .user-table thead {
+            display: contents; /* Permite que los th sean items del grid de la tabla */
+            grid-area: header; /* Asignar a la área de encabezado */
+        }
+
+        .user-table tbody {
+            display: contents; /* Permite que los td sean items del grid de la tabla */
+            grid-area: body; /* Asignar a la área del cuerpo */
+        }
+
+        .user-table tr {
+            display: contents; /* Permite que los th/td sean items del grid de thead/tbody */
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 12px 15px; /* Espaciado interno */
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* Borde inferior para filas */
+            display: block; /* Asegura que sean bloques dentro del grid */
+        }
+
+        .user-table th {
+            background-color: #eef2ff; /* Fondo azul/morado muy claro para encabezados */
+            color: #1f2937; /* Texto oscuro */
+            font-weight: 600;
+            text-transform: uppercase; /* Texto en mayúsculas */
+            font-size: 0.9rem;
+            grid-column: span 1;
+            border-right: 1px solid #d1d5db; /* Borde derecho */
+        }
+        .user-table th:last-child {
+            border-right: none; /* Sin borde derecho en el último encabezado */
+        }
+
+        .user-table tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* Fondo ligeramente diferente para filas pares (efecto cebra) */
+        }
+
+        .user-table tbody tr:hover {
+            background-color: #e5e7eb; /* Fondo gris claro al pasar el ratón */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .user-table td {
+            font-size: 0.95rem; /* Tamaño de fuente por defecto para escritorio */
+            color: #374151; /* Texto gris oscuro */
+            grid-column: span 1;
+            border-right: 1px solid #e5e7eb; /* Borde derecho */
+        }
+        .user-table td:last-child {
+            border-right: none; /* Sin borde derecho en la última celda */
+        }
+
+        /* Estilos para las celdas de acciones */
+        .action-cell {
+            text-align: center; /* Centra el contenido en la celda de acciones */
+            display: flex; /* Usar flexbox para alinear botones */
+            justify-content: center; /* Centrar los botones */
+            align-items: center; /* Alinear verticalmente */
+            gap: 8px; /* Espacio entre botones */
+        }
+
+        .action-button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            border: none; /* Sin borde por defecto */
+            color: white; /* Letra blanca para todos los action-button */
+        }
+
+        .action-button i {
+            margin-right: 4px; /* Espacio entre icono y texto */
+        }
+
+        /* NUEVOS ESTILOS PARA BOTONES DE PAGO Y FACTURACIÓN */
+        .add-payment-button {
+            background-color: #10b981; /* Verde */
+        }
+        .add-payment-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+        }
+
+        .billing-button {
+            background-color: #3b82f6; /* Azul */
+        }
+        .billing-button:hover {
+            background-color: #2563eb; /* Azul más oscuro */
+        }
+
+        /* Estilos para los iconos de estado (chulo/cruz) */
+        .status-icon {
+            font-size: 1.2rem; /* Tamaño del icono */
+            vertical-align: middle; /* Alinea verticalmente con el texto si lo hay */
+            margin: 0 auto; /* Centra si la celda lo permite */
+            display: block; /* Asegura que ocupe su propio espacio para centrar */
+            width: fit-content; /* Ajusta el ancho al contenido */
+        }
+
+        .text-green-500 { color: #10b981; /* Verde */ }
+        .text-red-500 { color: #ef4444; /* Rojo */ }
+
+        /* Estilos para los modales */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente más oscuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px; /* Ancho máximo del modal */
+            position: relative;
+            max-height: 90vh; /* Altura máxima para scroll */
+            overflow-y: auto; /* Habilita scroll si el contenido es largo */
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #9ca3af; /* Gris */
+            transition: color 0.2s ease-in-out;
+        }
+
+        .modal-close-button:hover {
+            color: #6b7280; /* Gris más oscuro */
+        }
+
+        .modal-content h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1f2937;
+        }
+
+        .modal-form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .modal-form-group input[type="text"],
+        .modal-form-group input[type="number"],
+        .modal-form-group input[type="date"],
+        .modal-form-group select,
+        .modal-form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .modal-form-group input:focus,
+        .modal-form-group select:focus,
+        .modal-form-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+        }
+
+        .save-changes-button {
+            background-color: #10b981; /* Verde */
+            color: white;
+        }
+        .save-changes-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+        }
+
+        .cancel-button {
+            background-color: #9ca3af; /* Gris */
+            color: white;
+        }
+        .cancel-button:hover {
+            background-color: #6b7280; /* Gris más oscuro */
+        }
+
+        /* --- NUEVOS ESTILOS PARA EL MENSAJE GRANDE Y ANIMADO --- */
+        #large-status-message {
+            position: fixed; /* Posición fija para estar siempre visible */
+            top: 50%; /* Centrar verticalmente */
+            left: 50%; /* Centrar horizontalmente */
+            transform: translate(-50%, -50%); /* Centrar */
+            padding: 30px 40px; /* Espaciado interno generoso */
+            border-radius: 15px; /* Bordes muy redondeados */
+            font-size: 1.8rem; /* Tamaño de fuente grande */
+            font-weight: 700; /* Peso de fuente negrita */
+            color: white; /* Texto blanco */
+            text-align: center; /* Centrar texto */
+            z-index: 2000; /* Asegurar que esté por encima de todo lo demás */
+            opacity: 0; /* Empezar invisible */
+            visibility: hidden; /* Ocultar completamente cuando no está visible */
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); /* Sombra pronunciada */
+            min-width: 300px; /* Ancho mínimo */
+            max-width: 90%; /* Ancho máximo en pantallas pequeñas */
+        }
+
+        #large-status-message.show {
+            opacity: 1; /* Mostrar */
+            visibility: visible; /* Hacer visible */
+            transform: translate(-50%, -50%);
+        }
+
+        #large-status-message.success {
+            background-color: #10b981; /* Verde */
+        }
+
+        #large-status-message.error {
+            background-color: #ef4444; /* Rojo */
+        }
+
+        #large-status-message.info {
+            background-color: #3b82f6; /* Azul para info */
+        }
+
+        /* --- Estilos Responsivos para la Tabla (Vista de Tarjeta en Móviles) --- */
+        @media (max-width: 767px) {
+            .user-table {
+                display: block; /* Volver a block en móvil */
+                grid-template-columns: none; /* Eliminar columnas de grid */
+                grid-template-areas: none; /* Eliminar áreas de grid */
+                box-shadow: none; /* Eliminar sombra de tabla en móvil */
+            }
+
+            .user-table thead {
+                display: none; /* Ocultar encabezados de tabla */
+            }
+
+            .user-table tbody {
+                display: block; /* Volver a block en móvil */
+            }
+
+            .user-table tr {
+                display: block; /* Hacer que los elementos de la tabla se comporten como bloques */
+                width: 100%; /* Ocupar todo el ancho */
+                margin-bottom: 20px; /* Más espacio entre filas apiladas (tarjetas) */
+                border: 1px solid #d1d5db; /* Borde alrededor de cada "tarjeta" de fila */
+                border-radius: 10px; /* Bordes más redondeados */
+                background-color: #ffffff; /* Fondo blanco para cada fila */
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra suave */
+                padding: 15px; /* Espaciado interno dentro de la tarjeta */
+            }
+
+            .user-table td {
+                display: flex; /* Usar Flexbox para cada celda */
+                justify-content: space-between; /* Espacio entre la etiqueta y el valor */
+                align-items: center; /* Alinear elementos verticalmente */
+                padding: 8px 15px; /* Espaciado interno para las celdas */
+                position: relative; /* Para posicionar la etiqueta */
+                border-bottom: 1px dashed #e5e7eb; /* Borde inferior punteado */
+                font-size: 0.9rem; /* Reducir tamaño de fuente para móviles */
+                border-right: none; /* Eliminar borde derecho en móvil */
+            }
+
+            .user-table td:last-child {
+                border-bottom: none; /* No borde inferior en la última celda */
+                padding-bottom: 0; /* Eliminar padding inferior en la última celda */
+                margin-top: 15px; /* Espacio encima de los botones de acción */
+            }
+
+            .user-table td::before {
+                content: attr(data-label); /* Mostrar el contenido del atributo data-label */
+                flex-basis: 120px; /* Base inicial de 120px */
+                flex-shrink: 0; /* Evitar que se encoja */
+                padding-right: 10px; /* Espacio entre etiqueta y contenido */
+                font-weight: 600; /* Peso de fuente semibold para la etiqueta */
+                color: #4b5563; /* Color gris oscuro para la etiqueta */
+                text-align: left; /* Alinear etiqueta a la izquierda */
+                position: static; /* Posicionamiento estático */
+                transform: none; /* Eliminar transformación */
+            }
+
+            /* Ajuste específico para la celda de acciones */
+            .action-cell {
+                display: flex; /* Mantener flex para los botones */
+                justify-content: center; /* Centrar los botones */
+                padding-left: 15px; /* Mantener padding izquierdo */
+            }
+
+            .action-cell::before {
+                content: ''; /* No mostrar etiqueta para la celda de acciones */
+                display: none; /* Ocultar el before en la celda de acciones */
+            }
+        }
+
+        /* Asegurar que los modales se vean bien en pantallas pequeñas */
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 20px; /* Reducir padding en pantallas muy pequeñas */
+            }
+
+            .modal-content h2 {
+                font-size: 1.5rem; /* Reducir tamaño del título del modal */
+            }
+
+            .modal-buttons {
+                flex-direction: column; /* Apilar botones en pantallas muy pequeñas */
+                gap: 8px; /* Reducir espacio entre botones apilados */
+            }
+
+            .modal-buttons button {
+                width: 100%; /* Hacer que los botones apilados ocupen todo el ancho */
+            }
+        }
+
+        /* Estilos específicos para los nuevos modales de Pago y Facturación */
+        #add-payment-modal .modal-content,
+        #billing-modal .modal-content,
+        #payment-history-modal .modal-content,
+        #invoice-history-modal .modal-content,
+        #edit-payment-modal .modal-content,
+        #edit-invoice-modal .modal-content {
+            max-width: 600px; /* Aumentar ancho para formularios/historiales */
+        }
+
+        #payment-history-list,
+        #invoice-history-list,
+        #full-payment-history-list,
+        #full-invoice-history-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        #payment-history-list li,
+        #invoice-history-list li,
+        #full-payment-history-list li,
+        #full-invoice-history-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.95rem;
+            color: #374151;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+        }
+
+        #payment-history-list li:last-child,
+        #invoice-history-list li:last-child,
+        #full-payment-history-list li:last-child,
+        #full-invoice-history-list li:last-child {
+            border-bottom: none;
+        }
+
+        #payment-history-list li span,
+        #invoice-history-list li span,
+        #full-payment-history-list li span,
+        #full-invoice-history-list li span {
+            margin-right: 15px; /* Espacio entre elementos */
+        }
+
+        /* Estilos para la sección de historial dentro de los modales */
+        .history-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #d1d1db; /* Cambio de color para diferenciar */
+        }
+
+        .history-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        /* Estilos para el área de visualización de factura generada */
+        #generated-invoice-details {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            min-height: 150px; /* Altura mínima */
+            white-space: pre-wrap; /* Respeta saltos de línea y espacios */
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* Fuente monoespaciada */
+            font-size: 0.9rem;
+            color: #374151;
+            overflow-x: auto; /* Permite scroll horizontal si es necesario */
+        }
+
+        #generated-invoice-details strong {
+            color: #1f2937;
+        }
+
+        /* Estilos para los botones específicos de facturación */
+        .billing-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .billing-buttons button {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+        }
+
+        /* Aplicar estilos de action-button a los botones específicos */
+        .generate-invoice-button.action-button {
+            background-color: #10b981; /* Verde */
+            color: white; /* Texto blanco */
+        }
+        .generate-invoice-button.action-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+        }
+
+        .save-invoice-button.action-button {
+            background-color: #10b981; /* Verde */
+            color: white; /* Texto blanco */
+        }
+        .save-invoice-button.action-button:hover {
+            background-color: #059669; /* Verde más oscuro */
+        }
+
+        .view-invoices-button.action-button {
+            background-color: #6366f1; /* Indigo */
+            color: white; /* Texto blanco */
+        }
+        .view-invoices-button.action-button:hover {
+            background-color: #4f46e5; /* Indigo más oscuro */
+        }
+
+        .generate-pdf-button.action-button {
+            background-color: #ef4444; /* Rojo */
+            color: white; /* Texto blanco */
+        }
+        .generate-pdf-button.action-button:hover {
+            background-color: #dc2626; /* Rojo más oscuro */
+        }
+
+        /* Estilos para la lista de historial de facturas */
+        #invoice-history-list li,
+        #full-invoice-history-list li {
+            flex-direction: column; /* Apilar elementos en cada item de factura */
+            align-items: flex-start; /* Alinear a la izquierda */
+            position: relative; /* Necesario para posicionar los botones */
+            padding-right: 40px; /* Espacio para los botones */
+        }
+
+        #invoice-history-list li .invoice-summary,
+        #full-invoice-history-list li .invoice-summary {
+            width: 100%; /* Ocupar todo el ancho */
+            margin-bottom: 10px; /* Espacio debajo del resumen */
+        }
+
+        /* Contenedor de acciones dentro de los items de historial de factura */
+        #invoice-history-list li .invoice-actions,
+        #full-invoice-history-list li .invoice-actions {
+            display: flex; /* Siempre visible */
+            position: static; /* Posicionamiento estático */
+            transform: none; /* Eliminar transformación */
+            background-color: transparent; /* Fondo transparente */
+            padding: 0; /* Sin padding */
+            border-radius: 0; /* Sin bordes */
+            box-shadow: none; /* Sin sombra */
+            z-index: auto; /* Z-index automático */
+            white-space: normal; /* Permitir que el texto se envuelva */
+            gap: 5px; /* Espacio entre botones */
+            align-items: center; /* Centra los botones verticalmente */
+            opacity: 1;
+            visibility: visible;
+            margin-left: auto; /* Empuja los botones a la derecha */
+        }
+
+        #invoice-history-list li .invoice-actions button,
+        #full-invoice-history-list li .invoice-actions button {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+
+        /* NUEVOS ESTILOS: Botones de acción en listas de historial */
+        .history-item-actions {
+            display: flex;
+            gap: 8px; /* Espacio entre botones */
+            align-items: center;
+            margin-left: auto; /* Empuja los botones a la derecha */
+        }
+
+        .history-item-actions .action-button {
+            padding: 4px 8px; /* Padding más pequeño para botones en lista */
+            font-size: 0.75rem; /* Tamaño de fuente más pequeño */
+            color: white;
+        }
+
+        /* Estilos específicos para los botones de editar y eliminar en las listas de historial */
+        .history-item-actions .edit-payment-button,
+        .history-item-actions .edit-invoice-button {
+            background-color: #60a5fa; /* Azul */
+        }
+        .history-item-actions .edit-payment-button:hover,
+        .history-item-actions .edit-invoice-button:hover {
+            background-color: #3b82f6; /* Azul más oscuro */
+        }
+
+        .history-item-actions .delete-payment-button,
+        .history-item-actions .delete-invoice-button {
+            background-color: #f87171; /* Rojo */
+        }
+        .history-item-actions .delete-payment-button:hover,
+        .history-item-actions .delete-invoice-button:hover {
+            background-color: #ef4444; /* Rojo más oscuro */
+        }
+
+        .history-item-actions .view-invoice-details-button {
+            background-color: #6366f1; /* Indigo */
+        }
+        .history-item-actions .view-invoice-details-button:hover {
+            background-color: #4f46e5; /* Indigo más oscuro */
+        }
+
+        .history-item-actions .generate-invoice-pdf-button {
+            background-color: #ef4444; /* Rojo */
+        }
+        .history-item-actions .generate-invoice-pdf-button:hover {
+            background-color: #dc2626; /* Rojo más oscuro */
+        }
+
+        /* Ajuste para que los detalles del pago/factura y los botones de acción estén en la misma línea si hay espacio */
+        #payment-history-list li,
+        #full-payment-history-list li {
+            flex-direction: row; /* Volver a fila si hay espacio */
+            justify-content: space-between; /* Espacio entre detalles y acciones */
+            align-items: center;
+        }
+
+        #payment-history-list li span,
+        #full-payment-history-list li span {
+            margin-right: 10px; /* Espacio entre los spans de detalles */
+            flex-shrink: 0; /* Evitar que se encojan demasiado */
+        }
+
+        #payment-history-list li .history-item-actions,
+        #full-payment-history-list li .history-item-actions {
+            margin-left: auto; /* Asegura que los botones estén a la derecha */
+            flex-shrink: 0; /* Evitar que se encojan demasiado */
+        }
+
+        /* En pantallas pequeñas, volver a apilar */
+        @media (max-width: 767px) {
+            #payment-history-list li,
+            #full-payment-history-list li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #payment-history-list li span,
+            #full-payment-history-list li span {
+                margin-right: 0;
+                margin-bottom: 5px; /* Espacio entre detalles apilados */
+            }
+            #payment-history-list li .history-item-actions,
+            #full-payment-history-list li .history-item-actions {
+                width: 100%; /* Ocupa todo el ancho */
+                justify-content: flex-end; /* Alinear botones a la derecha */
+                margin-top: 10px; /* Espacio encima de los botones */
+            }
+
+            /* Asegurar que los elementos de la factura se apilen correctamente en móvil */
+            #invoice-history-list li,
+            #full-invoice-history-list li {
+                flex-direction: column; /* Apilar */
+                align-items: flex-start; /* Alinear a la izquierda */
+                padding-right: 15px; /* Reducir padding derecho en móvil */
+            }
+            #invoice-history-list li .invoice-summary,
+            #full-invoice-history-list li .invoice-summary {
+                margin-bottom: 10px; /* Espacio debajo del resumen */
+            }
+            #invoice-history-list li .invoice-actions,
+            #full-invoice-history-list li .invoice-actions {
+                position: static; /* Posicionamiento estático en móvil */
+                transform: none; /* Eliminar transformación */
+                width: 100%; /* Ocupa todo el ancho */
+                justify-content: flex-end; /* Alinear botones a la derecha */
+                margin-top: 10px; /* Espacio encima de los botones */
+                background-color: transparent; /* Fondo transparente */
+                box-shadow: none; /* Sin sombra */
+                padding: 0; /* Sin padding */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Ir Atrás
+        </a>
+
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios Simplificado</h1>
+
+        <div class="top-icons">
+            <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
+        </div>
+
+        <div class="table-container">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Empresa</th>
+                        <th>Valor a Pagar</th>
+                        <th>IBC</th>
+                        <th>EPS</th>
+                        <th>ARL</th>
+                        <th>AFP</th>
+                        <th>CCF</th>
+                        <th>Planilla</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="large-status-message"></div>
+
+    <div id="add-payment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-add-payment-modal">&times;</span>
+            <h2>Agregar Pago</h2>
+            <form id="add-payment-form">
+                <input type="hidden" id="payment-user-id">
+                <div class="modal-form-group">
+                    <label for="payment-date">Fecha:</label>
+                    <input type="date" id="payment-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="payment-value">Valor (COP):</label>
+                    <input type="number" id="payment-value" step="0.01" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="payment-novelty">Novedad:</label>
+                    <select id="payment-novelty" required>
+                        <option value="">Selecciona</option>
+                        <option value="APO">APO</option>
+                        <option value="ING">ING</option>
+                        <option value="RET">RET</option>
+                        <option value="OTRO">OTRO</option>
+                    </select>
+                </div>
+                <div class="modal-form-group flex items-center mt-4">
+                    <input type="checkbox" id="payment-has-planilla" class="mr-2 h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="payment-has-planilla" class="text-gray-700 font-medium">Alistar en planilla</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-add-payment">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Pago</button>
+                </div>
+            </form>
+
+            <div class="history-section">
+                <h3>Historial de Pagos Recientes</h3>
+                <ul id="payment-history-list">
+                    <li>Cargando historial...</li>
+                </ul>
+                <button class="view-history-button mt-4 action-button view-invoices-button" id="view-all-payments-button" style="display: none;">Ver Historial Completo</button>
+            </div>
+        </div>
+    </div>
+    <div id="payment-history-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-payment-history-modal">&times;</span>
+            <h2 id="payment-history-modal-title">Historial de Pagos</h2>
+            <ul id="full-payment-history-list">
+                <li>Cargando historial...</li>
+            </ul>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="close-payment-history-modal-button">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    <div id="edit-payment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-edit-payment-modal">&times;</span>
+            <h2>Editar Pago</h2>
+            <form id="edit-payment-form">
+                <input type="hidden" id="edit-payment-id">
+                <input type="hidden" id="edit-payment-user-id">
+                <div class="modal-form-group">
+                    <label for="edit-payment-date">Fecha:</label>
+                    <input type="date" id="edit-payment-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-payment-value">Valor (COP):</label>
+                    <input type="number" id="edit-payment-value" step="0.01" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-payment-novelty">Novedad:</label>
+                    <select id="edit-payment-novelty" required>
+                        <option value="">Selecciona</option>
+                        <option value="APO">APO</option>
+                        <option value="ING">ING</option>
+                        <option value="RET">RET</option>
+                        <option value="OTRO">OTRO</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit-payment">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="billing-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-billing-modal">&times;</span>
+            <h2>Facturación</h2>
+            <form id="billing-form">
+                <input type="hidden" id="billing-user-id">
+                <div class="modal-form-group">
+                    <label for="billing-start-date">Fecha Inicio:</label>
+                    <input type="date" id="billing-start-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="billing-end-date">Fecha Fin:</label>
+                    <input type="date" id="billing-end-date" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="generate-invoice-button action-button" id="generate-invoice-button">Generar Factura</button>
+                </div>
+            </form>
+
+            <div class="history-section" id="generated-invoice-section" style="display: none;">
+                <h3>Detalles de Factura Generada</h3>
+                <div id="generated-invoice-details">
+                </div>
+                <div class="billing-buttons">
+                    <button type="button" class="save-invoice-button action-button" id="save-invoice-button" style="display: none;">Guardar Factura</button>
+                    <button type="button" class="generate-pdf-button action-button" id="generate-generated-pdf-button" style="display: none;"><i class="fas fa-file-pdf"></i> Generar PDF (Actual)</button>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h3>Historial de Facturas Recientes</h3>
+                <ul id="invoice-history-list">
+                    <li>Cargando historial...</li>
+                </ul>
+                <button class="view-history-button mt-4 action-button view-invoices-button" id="view-all-invoices-button" style="display: none;">Ver Historial Completo</button>
+            </div>
+        </div>
+    </div>
+    <div id="invoice-history-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-invoice-history-modal">&times;</span>
+            <h2 id="invoice-history-modal-title">Historial de Facturas</h2>
+            <ul id="full-invoice-history-list">
+                <li>Cargando historial...</li>
+            </ul>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="close-invoice-history-modal-button">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    <div id="edit-invoice-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-edit-invoice-modal">&times;</span>
+            <h2>Editar Factura</h2>
+            <form id="edit-invoice-form">
+                <input type="hidden" id="edit-invoice-id">
+                <input type="hidden" id="edit-invoice-user-id">
+                <div class="modal-form-group">
+                    <label for="edit-invoice-code">Código de Factura:</label>
+                    <input type="text" id="edit-invoice-code" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-invoice-start-date">Fecha Inicio:</label>
+                    <input type="date" id="edit-invoice-start-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-invoice-end-date">Fecha Fin:</label>
+                    <input type="date" id="edit-invoice-end-date" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-invoice-details">Detalles:</label>
+                    <textarea id="edit-invoice-details" rows="10" class="w-full p-2 border rounded"></textarea>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-button" id="cancel-edit-invoice">Cancelar</button>
+                    <button type="submit" class="save-changes-button">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+        const db = firebase.firestore(); // Initialize Firestore
+
+        // Firestore collection references
+        const usersCollection = db.collection('usuarios');
+        const empresasCollection = db.collection('empresas');
+        const asesoresCollection = db.collection('asesores');
+        const arlCollection = db.collection('arl');
+        const epsCollection = db.collection('eps');
+        const ccfCollection = db.collection('ccf');
+        const afpCollection = db.collection('afp');
+        const pagosCollection = db.collection('pagos');
+        const facturasCollection = db.collection('facturas');
+
+        // Get DOM elements
+        const userTableBody = document.getElementById('user-table-body');
+        const chatButton = document.getElementById('chat-button');
+
+        // Large animated status message
+        const largeStatusMessage = document.getElementById('large-status-message');
+        let largeStatusTimeout;
+
+        // Payment and Billing Modal elements
+        const addPaymentModal = document.getElementById('add-payment-modal');
+        const closeAddPaymentModalButton = document.getElementById('close-add-payment-modal');
+        const cancelAddPaymentButton = document.getElementById('cancel-add-payment');
+        const addPaymentForm = document.getElementById('add-payment-form');
+        const paymentUserIdInput = document.getElementById('payment-user-id');
+        const paymentDateInput = document.getElementById('payment-date');
+        const paymentValueInput = document.getElementById('payment-value');
+        const paymentNoveltySelect = document.getElementById('payment-novelty');
+        const paymentHasPlanillaCheckbox = document.getElementById('payment-has-planilla'); // NEW: Planilla checkbox
+        const paymentHistoryList = document.getElementById('payment-history-list');
+        const viewAllPaymentsButton = document.getElementById('view-all-payments-button');
+
+        const paymentHistoryModal = document.getElementById('payment-history-modal');
+        const closePaymentHistoryModalButton = document.getElementById('close-payment-history-modal');
+        const closePaymentHistoryModalButtonInModal = document.getElementById('close-payment-history-modal-button');
+        const fullPaymentHistoryList = document.getElementById('full-payment-history-list');
+        const paymentHistoryModalTitle = document.getElementById('payment-history-modal-title');
+
+        const editPaymentModal = document.getElementById('edit-payment-modal');
+        const closeEditPaymentModalButton = document.getElementById('close-edit-payment-modal');
+        const cancelEditPaymentButton = document.getElementById('cancel-edit-payment');
+        const editPaymentForm = document.getElementById('edit-payment-form');
+        const editPaymentIdInput = document.getElementById('edit-payment-id');
+        const editPaymentUserIdInput = document.getElementById('edit-payment-user-id');
+        const editPaymentDateInput = document.getElementById('edit-payment-date');
+        const editPaymentValueInput = document.getElementById('edit-payment-value');
+        const editPaymentNoveltySelect = document.getElementById('edit-payment-novelty');
+
+        const billingModal = document.getElementById('billing-modal');
+        const closeBillingModalButton = document.getElementById('close-billing-modal');
+        const billingForm = document.getElementById('billing-form');
+        const billingUserIdInput = document.getElementById('billing-user-id');
+        const billingStartDateInput = document.getElementById('billing-start-date');
+        const billingEndDateInput = document.getElementById('billing-end-date');
+        const generateInvoiceButton = document.getElementById('generate-invoice-button');
+        const generatedInvoiceSection = document.getElementById('generated-invoice-section');
+        const generatedInvoiceDetails = document.getElementById('generated-invoice-details');
+        const saveInvoiceButton = document.getElementById('save-invoice-button');
+        const generateGeneratedPdfButton = document.getElementById('generate-generated-pdf-button');
+
+        const invoiceHistoryList = document.getElementById('invoice-history-list');
+        const viewAllInvoicesButton = document.getElementById('view-all-invoices-button');
+
+        const invoiceHistoryModal = document.getElementById('invoice-history-modal');
+        const closeInvoiceHistoryModalButton = document.getElementById('close-invoice-history-modal');
+        const closeInvoiceHistoryModalButtonInModal = document.getElementById('close-invoice-history-modal-button');
+        const fullInvoiceHistoryList = document.getElementById('full-invoice-history-list');
+        const invoiceHistoryModalTitle = document.getElementById('invoice-history-modal-title');
+
+        const editInvoiceModal = document.getElementById('edit-invoice-modal');
+        const closeEditInvoiceModalButton = document.getElementById('close-edit-invoice-modal');
+        const cancelEditInvoiceButton = document.getElementById('cancel-edit-invoice');
+        const editInvoiceForm = document.getElementById('edit-invoice-form');
+        const editInvoiceIdInput = document.getElementById('edit-invoice-id');
+        const editInvoiceUserIdInput = document.getElementById('edit-invoice-user-id');
+        const editInvoiceCodeInput = document.getElementById('edit-invoice-code');
+        const editInvoiceStartDateInput = document.getElementById('edit-invoice-start-date');
+        const editInvoiceEndDateInput = document.getElementById('edit-invoice-end-date');
+        const editInvoiceDetailsTextarea = document.getElementById('edit-invoice-details');
+
+        // Maps to store entity names (for display in table and selects)
+        let empresasMap = new Map();
+        let asesoresMap = new Map();
+        let arlMap = new Map();
+        let epsMap = new Map();
+        let ccfMap = new Map();
+        let afpMap = new Map();
+
+        // Variable to store all user documents fetched by onSnapshot
+        let allUserDocs = [];
+        // Variable to store the currently selected user in a modal
+        let currentUserData = null;
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays an animated status message to the user.
+         * @param {string} message - The message to display.
+         * @param {'info' | 'success' | 'error'} type - The type of message (determines color).
+         */
+        function showStatusMessage(message, type = 'info') {
+            clearTimeout(largeStatusTimeout);
+            largeStatusMessage.className = ''; // Clear existing classes
+            largeStatusMessage.style.opacity = '0';
+            largeStatusMessage.style.visibility = 'hidden';
+            largeStatusMessage.textContent = '';
+
+            if (!message) return;
+
+            largeStatusMessage.textContent = message;
+            largeStatusMessage.classList.add(type, 'show');
+            largeStatusMessage.style.visibility = 'visible';
+            largeStatusMessage.style.opacity = '1';
+
+            largeStatusTimeout = setTimeout(() => {
+                largeStatusMessage.classList.remove('show');
+                setTimeout(() => {
+                    largeStatusMessage.style.visibility = 'hidden';
+                    largeStatusMessage.className = '';
+                    largeStatusMessage.textContent = '';
+                }, 500); // Allow transition to complete before clearing
+            }, 5000); // Message visible for 5 seconds
+        }
+
+        /**
+         * Formats a Firestore Timestamp or Date object into a YYYY-MM-DD string.
+         * This function is designed to prevent timezone issues when displaying dates
+         * from Firestore (which stores UTC) into date input fields.
+         * @param {firebase.firestore.Timestamp | Date | string} dateInput - The date to format.
+         * @returns {string} The formatted date string (YYYY-MM-DD) or empty string if invalid.
+         */
+        function formatDate(dateInput) {
+            if (!dateInput) return '';
+            let date;
+            if (dateInput.toDate) { // Check if it's a Firestore Timestamp
+                date = dateInput.toDate();
+            } else if (typeof dateInput === 'string') { // Handle string dates
+                const parts = dateInput.split('-');
+                if (parts.length === 3) {
+                    // Construct a Date object using UTC values to avoid local timezone offsets
+                    // when setting the value of an input type="date" field.
+                    date = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+                } else {
+                    // Fallback for other string formats, though YYYY-MM-DD is expected for inputs
+                    date = new Date(dateInput);
+                }
+            } else if (dateInput instanceof Date) { // Handle Date objects
+                date = dateInput;
+            } else {
+                return ''; // Invalid input
+            }
+
+            if (isNaN(date.getTime())) {
+                return ''; // Return empty string if date is invalid
+            }
+
+            // Get UTC components for YYYY-MM-DD format, which is required by input type="date"
+            const year = date.getUTCFullYear();
+            const month = ('0' + (date.getUTCMonth() + 1)).slice(-2);
+            const day = ('0' + date.getUTCDate()).slice(-2);
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Formats a Firestore Timestamp or Date object into a DD/MM/YYYY HH:mm string.
+         * @param {firebase.firestore.Timestamp | Date | string} timestamp - The timestamp or date to format.
+         * @returns {string} The formatted date and time string (DD/MM/YYYY HH:mm) or empty string if invalid.
+         */
+        function formatDateTime(timestamp) {
+            if (!timestamp) return '';
+            let date;
+            if (timestamp.toDate) {
+                date = timestamp.toDate();
+            } else if (typeof timestamp === 'string') {
+                date = new Date(timestamp);
+            } else {
+                date = new Date(timestamp);
+            }
+
+            if (isNaN(date.getTime())) {
+                return '';
+            }
+
+            const day = ('0' + date.getDate()).slice(-2);
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const year = date.getFullYear();
+            const hours = ('0' + date.getHours()).slice(-2);
+            const minutes = ('0' + date.getMinutes()).slice(-2);
+
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        /**
+         * Formats a number as Colombian Pesos (COP) currency.
+         * @param {number | string} number - The number to format.
+         * @returns {string} The formatted currency string.
+         */
+        function formatCurrency(number) {
+            let numericValue = number;
+            if (typeof number === 'string') {
+                // Clean the string to remove currency symbols, spaces, and handle comma as decimal
+                const cleanedString = number.replace(/COP/g, '').replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+                numericValue = parseFloat(cleanedString);
+            }
+
+            if (numericValue === undefined || numericValue === null || isNaN(numericValue)) {
+                return '';
+            }
+
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(numericValue);
+        }
+
+        // --- Initial Data Loading and Filtering ---
+
+        /**
+         * Loads all lookup data (companies, advisors, ARL, EPS, CCF, AFP) into Maps.
+         * This data is used to display human-readable names in the table and modals.
+         */
+        async function loadLookupMaps() {
+            console.log('Cargando mapas de entidades (empresas, asesores, ARL, EPS, CCF, AFP)...');
+            try {
+                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
+                    empresasCollection.get(),
+                    asesoresCollection.get(),
+                    arlCollection.get(),
+                    epsCollection.get(),
+                    ccfCollection.get(),
+                    afpCollection.get()
+                ]);
+
+                empresasMap = new Map();
+                empresasSnapshot.forEach(doc => {
+                    empresasMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                asesoresMap = new Map();
+                asesoresSnapshot.forEach(doc => {
+                    asesoresMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                arlMap = new Map();
+                arlSnapshot.forEach(doc => {
+                    arlMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                epsMap = new Map();
+                epsSnapshot.forEach(doc => {
+                    epsMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                ccfMap = new Map();
+                ccfSnapshot.forEach(doc => {
+                    ccfMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+
+                afpMap = new Map();
+                afpSnapshot.forEach(doc => {
+                    afpMap.set(doc.id, doc.data().nombre || 'Nombre Desconocido');
+                });
+                console.log('Mapas de entidades cargados con éxito.');
+            } catch (error) {
+                console.error("Error al cargar mapas de entidades:", error);
+                showStatusMessage('Error al cargar datos de referencia (empresas, asesores, ARL, EPS, CCF, AFP).', 'error');
+            }
+        }
+
+        /**
+         * Populates select dropdowns in modals with data from lookup maps.
+         * (Currently not used in this simplified view as modals don't have entity selects,
+         * but kept for potential future expansion).
+         */
+        async function populateSelects() {
+            // This function is kept minimal as only payment/billing modals need select options
+            // For now, it's not strictly needed for this simplified view, but good practice to keep
+            // if any future fields in payment/billing forms require dynamic entity selection.
+            // Current payment/billing modals do not have entity selectors, so this function's direct
+            // impact is limited, but loadLookupMaps is essential.
+        }
+
+        /**
+         * Checks if an entity ID is considered "not assigned" or if its corresponding name is unknown.
+         * @param {string} entityId - The ID of the entity.
+         * @param {Map<string, string>} entityMap - The map containing entity IDs and names.
+         * @returns {boolean} True if the entity is not assigned or its name is unknown.
+         */
+        const isNotAssignedOrUnknown = (entityId, entityMap) => {
+            if (entityId === null || entityId === '' || (typeof entityId === 'string' && entityId.trim().toUpperCase() === 'N/A')) {
+                return true;
+            }
+            const entityName = entityMap.get(entityId);
+            return entityName === undefined || entityName === null || entityName === '' || entityName === 'Nombre Desconocido' || (typeof entityName === 'string' && entityName.trim().toUpperCase() === 'N/A');
+        };
+
+        /**
+         * Renders a single user row in the main user table.
+         * @param {firebase.firestore.DocumentSnapshot} userDoc - The Firestore document snapshot for the user.
+         * @returns {HTMLTableRowElement} The created table row element.
+         */
+        function renderUserRow(userDoc) {
+            const user = userDoc.data();
+            console.log(`[renderUserRow] Procesando usuario ID: ${userDoc.id}, Nombre: "${user.nombre || 'N/A'}"`);
+            console.log(`[renderUserRow] Datos completos del usuario ID ${userDoc.id}:`, user);
+
+            const row = document.createElement('tr');
+            row.dataset.id = userDoc.id;
+
+            // Get entity names using the maps
+            const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
+            const valorAPagarFormatted = formatCurrency(user.valorAPagar);
+            const ibcFormatted = formatCurrency(user.ibc);
+
+            console.log(`[renderUserRow] Empresa ID: ${user.empresaId || 'N/A'}, Valor a Pagar: ${user.valorAPagar || 'N/A'}, IBC: ${user.ibc || 'N/A'}`);
+
+            // Determine EPS Info
+            const epsName = epsMap.get(user.epsId);
+            const isEpsAssigned = !isNotAssignedOrUnknown(user.epsId, epsMap);
+            const epsTooltip = isEpsAssigned ? (epsName || 'EPS Asignada (Nombre Desconocido)') : 'EPS No Asignada';
+            const epsIcon = isEpsAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + epsTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + epsTooltip + '"></i>';
+            console.log(`[renderUserRow] EPS ID: ${user.epsId || 'N/A'}, EPS Name: "${epsName || 'N/A'}", isEpsAssigned: ${isEpsAssigned}`);
+
+
+            // Determine ARL Info (including Risk in tooltip)
+            const arlName = arlMap.get(user.arlId);
+            const isArlAssigned = !isNotAssignedOrUnknown(user.arlId, arlMap);
+            const arlTooltip = isArlAssigned ? `${(arlName || 'ARL Asignada (Nombre Desconocido)')}${user.riesgo ? ' - ' + user.riesgo : ''}` : 'ARL No Asignada';
+            const arlIcon = isArlAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + arlTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + arlTooltip + '"></i>';
+            console.log(`[renderUserRow] ARL ID: ${user.arlId || 'N/A'}, ARL Name: "${arlName || 'N/A'}", Riesgo: "${user.riesgo || 'N/A'}", isArlAssigned: ${isArlAssigned}`);
+
+
+            // Determine AFP Info
+            const afpName = afpMap.get(user.afpId);
+            const isAfpAssigned = !isNotAssignedOrUnknown(user.afpId, afpMap);
+            const afpTooltip = isAfpAssigned ? (afpName || 'AFP Asignada (Nombre Desconocido)') : 'AFP No Asignada';
+            const afpIcon = isAfpAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + afpTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + afpTooltip + '"></i>';
+            console.log(`[renderUserRow] AFP ID: ${user.afpId || 'N/A'}, AFP Name: "${afpName || 'N/A'}", isAfpAssigned: ${isAfpAssigned}`);
+
+
+            // Determine CCF Info
+            const ccfName = ccfMap.get(user.ccfId);
+            const isCcfAssigned = !isNotAssignedOrUnknown(user.ccfId, ccfMap);
+            const ccfTooltip = isCcfAssigned ? (ccfName || 'CCF Asignada (Nombre Desconocido)') : 'CCF No Asignada';
+            const ccfIcon = isCcfAssigned ?
+                            '<i class="fas fa-check-circle text-green-500 status-icon" title="' + ccfTooltip + '"></i>' :
+                            '<i class="fas fa-times-circle text-red-500 status-icon" title="' + ccfTooltip + '"></i>';
+            console.log(`[renderUserRow] CCF ID: ${user.ccfId || 'N/A'}, CCF Name: "${ccfName || 'N/A'}", isCcfAssigned: ${isCcfAssigned}`);
+
+
+            // Determine 'hasPlanilla' status from user data
+            // It will be true if user.hasPlanilla is explicitly true, otherwise false.
+            const hasPlanilla = user.hasPlanilla === true;
+            const planillaIcon = hasPlanilla ?
+                                 '<i class="fas fa-check-square text-green-500 status-icon" title="Tiene Planilla"></i>' :
+                                 '<i class="fas fa-square text-red-500 status-icon" title="No tiene Planilla"></i>';
+            console.log(`[renderUserRow] hasPlanilla: ${user.hasPlanilla}, Planilla Icon: ${planillaIcon}`);
+
+
+            // Add data-label for table responsiveness
+            row.innerHTML = `
+                <td data-label="Nombre">${user.nombre || 'N/A'}</td>
+                <td data-label="Empresa">${empresaNombre || 'N/A'}</td>
+                <td data-label="Valor a Pagar">${valorAPagarFormatted || 'N/A'}</td>
+                <td data-label="IBC">${ibcFormatted || 'N/A'}</td>
+                <td data-label="EPS">${epsIcon}</td>
+                <td data-label="ARL">${arlIcon}</td>
+                <td data-label="AFP">${afpIcon}</td>
+                <td data-label="CCF">${ccfIcon}</td>
+                <td data-label="Planilla">${planillaIcon}</td>
+                <td class="action-cell" data-label="Acciones">
+                    <button class="action-button add-payment-button" data-id="${userDoc.id}" title="Agregar Pago"><i class="fas fa-dollar-sign"></i> Pago</button>
+                    <button class="action-button billing-button" data-id="${userDoc.id}" title="Facturación"><i class="fas fa-file-invoice"></i> Factura</button>
+                </td>
+            `;
+            return row;
+        }
+
+        /**
+         * Renders all users in the main table.
+         */
+        function renderUsers() {
+            userTableBody.innerHTML = ''; // Clear current table
+            console.log(`[renderUsers] Intentando renderizar. Total de usuarios en allUserDocs: ${allUserDocs.length}`);
+
+            if (allUserDocs.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="10" class="text-center text-gray-500">No hay usuarios registrados.</td>`;
+                userTableBody.appendChild(noDataRow);
+                console.log('[renderUsers] allUserDocs está vacío. Se mostrará el mensaje "No hay usuarios registrados."');
+                return;
+            }
+
+            allUserDocs.forEach(doc => {
+                const row = renderUserRow(doc);
+                userTableBody.appendChild(row);
+            });
+            console.log(`[renderUsers] Renderizados ${allUserDocs.length} usuarios en la tabla.`);
+        }
+
+        /**
+         * Loads users initially and sets up the onSnapshot listener for real-time updates.
+         */
+        async function loadUsersTable() {
+            console.log('--- Iniciando carga de tabla de usuarios ---');
+            await loadLookupMaps(); // Load maps before the first table load
+            console.log('Mapas de entidades cargados. Procediendo con datos de usuario.');
+
+            // Use onSnapshot to listen for real-time changes
+            usersCollection.orderBy('nombre').onSnapshot(snapshot => {
+                console.log(`[onSnapshot] Listener activado. Documentos recibidos: ${snapshot.docs.length}`);
+                if (snapshot.docs.length === 0) {
+                    console.warn('[onSnapshot] No se encontraron documentos en la colección "usuarios". Por favor, verifica tu base de datos en Firebase (console.firebase.google.com).');
+                }
+                allUserDocs = snapshot.docs;
+                renderUsers(); // Render the table with all users
+            }, error => {
+                console.error("Error al cargar usuarios con onSnapshot:", error);
+                showStatusMessage('Error al cargar usuarios.', 'error');
+            });
+        }
+
+        // --- Payment and Billing Functionality (Maintained) ---
+
+        // Listener for action buttons in the table (using event delegation)
+        userTableBody.addEventListener('click', async (e) => {
+            const target = e.target;
+            const userId = target.dataset.id || target.closest('.action-button')?.dataset.id;
+
+            if (!userId) return;
+
+            const userDoc = allUserDocs.find(doc => doc.id === userId);
+            if (!userDoc) {
+                console.error("User document not found for ID:", userId);
+                showStatusMessage('Error: Datos de usuario no encontrados.', 'error');
+                return;
+            }
+
+            // Store the selected user's data globally
+            currentUserData = userDoc.data();
+            currentUserData.id = userDoc.id; // Also save the ID
+
+            if (target.classList.contains('add-payment-button') || target.closest('.add-payment-button')) {
+                // Add Payment action
+                showAddPaymentModal(userId);
+            } else if (target.classList.contains('billing-button') || target.closest('.billing-button')) {
+                // Billing action
+                showBillingModal(userId);
+            }
+        });
+
+        // --- Add Payment Functionality ---
+        async function showAddPaymentModal(userId) {
+            paymentUserIdInput.value = userId;
+            const userDoc = allUserDocs.find(doc => doc.id === userId);
+            if (userDoc) {
+                const userData = userDoc.data();
+                paymentValueInput.value = userData.valorAPagar || 0;
+                // Set date input to today's date
+                paymentDateInput.valueAsDate = new Date();
+                // Set the "Alistar en planilla" checkbox based on user's current status
+                paymentHasPlanillaCheckbox.checked = userData.hasPlanilla === true;
+            } else {
+                paymentValueInput.value = 0;
+                paymentDateInput.value = '';
+                paymentHasPlanillaCheckbox.checked = false; // Default to unchecked
+                showStatusMessage('Error: No se pudieron cargar los datos del usuario para el pago.', 'error');
+                return;
+            }
+            await loadPaymentHistory(userId, paymentHistoryList, 5);
+            viewAllPaymentsButton.style.display = 'block';
+            addPaymentModal.classList.add('show');
+        }
+
+        function hideAddPaymentModal() {
+            addPaymentModal.classList.remove('show');
+            addPaymentForm.reset();
+            paymentHistoryList.innerHTML = '';
+            viewAllPaymentsButton.style.display = 'none';
+        }
+
+        closeAddPaymentModalButton.addEventListener('click', hideAddPaymentModal);
+        cancelAddPaymentButton.addEventListener('click', hideAddPaymentModal);
+        addPaymentModal.addEventListener('click', (e) => {
+            if (e.target === addPaymentModal) {
+                hideAddPaymentModal();
+            }
+        });
+
+        addPaymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = paymentUserIdInput.value;
+            const paymentDateString = paymentDateInput.value;
+            const paymentValue = parseFloat(paymentValueInput.value);
+            const paymentNovelty = paymentNoveltySelect.value;
+            const hasPlanilla = paymentHasPlanillaCheckbox.checked; // Get the state of the checkbox
+
+            if (!userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
+                showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+                return;
+            }
+            // Create a Date object from the YYYY-MM-DD string to avoid timezone issues
+            const parts = paymentDateString.split('-');
+            const paymentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
+
+            const newPayment = {
+                userId: userId,
+                fecha: paymentTimestamp,
+                valor: paymentValue,
+                novedad: paymentNovelty,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            showStatusMessage('Guardando pago y actualizando planilla...', 'info');
+            try {
+                // Save the payment
+                await pagosCollection.add(newPayment);
+
+                // Update the user's hasPlanilla status
+                await usersCollection.doc(userId).update({
+                    hasPlanilla: hasPlanilla,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showStatusMessage('Pago guardado y estado de planilla actualizado con éxito!', 'success');
+                addPaymentForm.reset();
+                paymentValueInput.value = currentUserData.valorAPagar || 0;
+                paymentDateInput.valueAsDate = new Date(); // Reset to today's date
+                // The main user table will automatically re-render due to onSnapshot listener
+                // No need to explicitly call loadUsersTable() here, it's handled by Firebase.
+                await loadPaymentHistory(userId, paymentHistoryList, 5); // Reload payment history in modal
+            } catch (error) {
+                console.error("Error saving payment or updating planilla status:", error);
+                showStatusMessage('Error al guardar pago o actualizar planilla: ' + error.message, 'error');
+            }
+        });
+
+        /**
+         * Loads and displays payment history for a given user.
+         * @param {string} userId - The ID of the user.
+         * @param {HTMLElement} listElement - The UL element to populate.
+         * @param {number} [limit] - Optional limit for the number of payments to display.
+         */
+        async function loadPaymentHistory(userId, listElement, limit = null) {
+            listElement.innerHTML = '<li>Cargando historial...</li>';
+            try {
+                let query = pagosCollection.where('userId', '==', userId).orderBy('fecha', 'desc');
+                if (limit) {
+                    query = query.limit(limit);
+                }
+                const snapshot = await query.get();
+                listElement.innerHTML = '';
+                if (snapshot.empty) {
+                    listElement.innerHTML = '<li>No hay historial de pagos para este usuario.</li>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const payment = doc.data();
+                    const listItem = document.createElement('li');
+                    listItem.dataset.id = doc.id;
+                    listItem.dataset.userId = userId;
+                    listItem.innerHTML = `
+                        <span>Fecha: ${formatDate(payment.fecha)}</span>
+                        <span>Valor: ${formatCurrency(payment.valor)}</span>
+                        <span>Novedad: ${payment.novedad || 'N/A'}</span>
+                        <div class="history-item-actions">
+                            <button class="action-button edit-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Pago"><i class="fas fa-edit"></i></button>
+                            <button class="action-button delete-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+                    listElement.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error(`Error loading payment history for userId ${userId}:`, error);
+                listElement.innerHTML = '<li>Error al cargar historial de pagos.</li>';
+                showStatusMessage('Error al cargar historial de pagos: ' + error.message, 'error');
+            }
+        }
+
+        // Event listener for edit/delete buttons within payment history lists
+        document.querySelectorAll('#payment-history-list, #full-payment-history-list').forEach(list => {
+            list.addEventListener('click', async (e) => {
+                const target = e.target;
+                const paymentId = target.dataset.id || target.closest('button')?.dataset.id;
+                const userId = target.dataset.userId || target.closest('li')?.dataset.userId;
+
+                if (!paymentId || !userId) return;
+
+                if (target.classList.contains('edit-payment-button') || target.closest('.edit-payment-button')) {
+                    await loadPaymentDataForEdit(paymentId, userId);
+                    showEditPaymentModal();
+                } else if (target.classList.contains('delete-payment-button') || target.closest('.delete-payment-button')) {
+                    // Using a custom modal for confirmation instead of alert/confirm
+                    // For simplicity, using browser confirm for now as per previous code, but ideally a custom modal.
+                    if (confirm('¿Estás seguro de que deseas eliminar este pago?')) {
+                        deletePayment(paymentId, userId);
+                    }
+                }
+            });
+        });
+
+        // View all payments button handler
+        viewAllPaymentsButton.addEventListener('click', () => {
+            const userId = paymentUserIdInput.value;
+            if (userId) {
+                hideAddPaymentModal();
+                showPaymentHistoryModal(userId);
+            }
+        });
+
+        /**
+         * Shows the full payment history modal for a specific user.
+         * @param {string} userId - The ID of the user.
+         */
+        async function showPaymentHistoryModal(userId) {
+            paymentHistoryModalTitle.textContent = `Historial de Pagos de ${currentUserData.nombre || 'Usuario'}`;
+            await loadPaymentHistory(userId, fullPaymentHistoryList);
+            paymentHistoryModal.classList.add('show');
+        }
+
+        function hidePaymentHistoryModal() {
+            paymentHistoryModal.classList.remove('show');
+            fullPaymentHistoryList.innerHTML = '';
+        }
+
+        closePaymentHistoryModalButton.addEventListener('click', hidePaymentHistoryModal);
+        closePaymentHistoryModalButtonInModal.addEventListener('click', hidePaymentHistoryModal);
+        paymentHistoryModal.addEventListener('click', (e) => {
+            if (e.target === paymentHistoryModal) {
+                hidePaymentHistoryModal();
+            }
+        });
+
+        function showEditPaymentModal() {
+            editPaymentModal.classList.add('show');
+        }
+
+        function hideEditPaymentModal() {
+            editPaymentModal.classList.remove('show');
+            editPaymentForm.reset();
+        }
+
+        closeEditPaymentModalButton.addEventListener('click', hideEditPaymentModal);
+        cancelEditPaymentButton.addEventListener('click', hideEditPaymentModal);
+        editPaymentModal.addEventListener('click', (e) => {
+            if (e.target === editPaymentModal) {
+                hideEditPaymentModal();
+            }
+        });
+
+        /**
+         * Loads payment data into the edit payment modal for a specific payment.
+         * @param {string} paymentId - The ID of the payment to edit.
+         * @param {string} userId - The ID of the user associated with the payment.
+         */
+        async function loadPaymentDataForEdit(paymentId, userId) {
+            try {
+                const paymentDoc = await pagosCollection.doc(paymentId).get();
+                if (paymentDoc.exists) {
+                    const paymentData = paymentDoc.data();
+                    editPaymentIdInput.value = paymentId;
+                    editPaymentUserIdInput.value = userId;
+                    editPaymentDateInput.value = formatDate(paymentData.fecha); // Use formatDate for consistent display
+                    editPaymentValueInput.value = paymentData.valor || 0;
+                    editPaymentNoveltySelect.value = paymentData.novedad || '';
+                } else {
+                    showStatusMessage('Error: Pago no encontrado para editar.', 'error');
+                    hideEditPaymentModal();
+                }
+            } catch (error) {
+                console.error("Error loading payment data for edit:", error);
+                showStatusMessage('Error al cargar datos del pago para edición.', 'error');
+                hideEditPaymentModal();
+            }
+        }
+
+        editPaymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const paymentId = editPaymentIdInput.value;
+            const userId = editPaymentUserIdInput.value;
+            const paymentDateString = editPaymentDateInput.value;
+            const paymentValue = parseFloat(editPaymentValueInput.value);
+            const paymentNovelty = editPaymentNoveltySelect.value;
+
+            if (!paymentId || !userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
+                showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+                return;
+            }
+            // Create a Date object from the YYYY-MM-DD string to avoid timezone issues
+            const parts = paymentDateString.split('-');
+            const paymentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
+
+            const updatedData = {
+                fecha: paymentTimestamp,
+                valor: paymentValue,
+                novedad: paymentNovelty,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            showStatusMessage('Guardando cambios del pago...', 'info');
+            try {
+                await pagosCollection.doc(paymentId).update(updatedData);
+                showStatusMessage('Cambios del pago guardados con éxito!', 'success');
+                hideEditPaymentModal();
+                // Reload history in the appropriate modal if open
+                if (addPaymentModal.classList.contains('show')) {
+                    await loadPaymentHistory(userId, paymentHistoryList, 5);
+                } else if (paymentHistoryModal.classList.contains('show')) {
+                    await loadPaymentHistory(userId, fullPaymentHistoryList);
+                }
+            } catch (error) {
+                console.error("Error saving payment changes:", error);
+                showStatusMessage('Error al guardar cambios del pago: ' + error.message, 'error');
+            }
+        });
+
+        /**
+         * Deletes a specific payment from Firestore.
+         * @param {string} paymentId - The ID of the payment to delete.
+         * @param {string} userId - The ID of the user associated with the payment.
+         */
+        async function deletePayment(paymentId, userId) {
+            showStatusMessage('Eliminando pago...', 'info');
+            try {
+                await pagosCollection.doc(paymentId).delete();
+                showStatusMessage('Pago eliminado con éxito!', 'success');
+                // Reload history in the appropriate modal if open
+                if (addPaymentModal.classList.contains('show')) {
+                    await loadPaymentHistory(userId, paymentHistoryList, 5);
+                } else if (paymentHistoryModal.classList.contains('show')) {
+                    await loadPaymentHistory(userId, fullPaymentHistoryList);
+                }
+            } catch (error) {
+                console.error("Error deleting payment:", error);
+                showStatusMessage('Error al eliminar pago: ' + error.message, 'error');
+            }
+        }
+
+        // --- Billing Functionality ---
+        async function showBillingModal(userId) {
+            billingUserIdInput.value = userId;
+            generatedInvoiceDetails.innerHTML = '';
+            generatedInvoiceSection.style.display = 'none';
+            saveInvoiceButton.style.display = 'none';
+            generateGeneratedPdfButton.style.display = 'none';
+            await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+            viewAllInvoicesButton.style.display = 'block';
+            billingModal.classList.add('show');
+        }
+
+        function hideBillingModal() {
+            billingModal.classList.remove('show');
+            billingForm.reset();
+            generatedInvoiceDetails.innerHTML = '';
+            generatedInvoiceSection.style.display = 'none';
+            saveInvoiceButton.style.display = 'none';
+            generateGeneratedPdfButton.style.display = 'none';
+            invoiceHistoryList.innerHTML = '';
+            viewAllInvoicesButton.style.display = 'none';
+        }
+
+        closeBillingModalButton.addEventListener('click', hideBillingModal);
+        billingModal.addEventListener('click', (e) => {
+            if (e.target === billingModal) {
+                hideBillingModal();
+            }
+        });
+
+        generateInvoiceButton.addEventListener('click', async () => {
+            const userId = billingUserIdInput.value;
+            const startDateString = billingStartDateInput.value;
+            const endDateString = billingEndDateInput.value;
+
+            if (!userId || !startDateString || !endDateString) {
+                showStatusMessage('Por favor, selecciona las fechas de inicio y fin.', 'error');
+                return;
+            }
+
+            // Create Date objects from YYYY-MM-DD strings for consistency
+            const startParts = startDateString.split('-');
+            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+
+            const endParts = endDateString.split('-');
+            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                return;
+            }
+
+            showStatusMessage('Generando factura...', 'info');
+
+            try {
+                const userDoc = await usersCollection.doc(userId).get();
+                if (!userDoc.exists) {
+                    showStatusMessage('Error: Datos del usuario no encontrados para facturar.', 'error');
+                    return;
+                }
+                const userData = userDoc.data();
+                currentUserData = userData;
+                currentUserData.id = userDoc.id;
+
+                const timestampPart = Date.now();
+                const randomPart = Math.floor(1000 + Math.random() * 9000);
+                const invoiceCode = `${timestampPart}-${randomPart}`;
+
+                const empresaNombre = empresasMap.get(userData.empresaId) || 'N/A';
+                const asesorNombre = asesoresMap.get(userData.asesorId) || 'N/A';
+                const arlNombre = arlMap.get(userData.arlId) || 'N/A';
+                const epsNombre = epsMap.get(userData.epsId) || 'N/A';
+                const ccfNombre = ccfMap.get(userData.ccfId) || 'N/A';
+                const afpNombre = afpMap.get(userData.afpId) || 'N/A';
+
+                const valorFacturado = userData.valorAPagar || 0;
+
+                const formattedStartDate = formatDate(startDate);
+                const formattedEndDate = formatDate(endDate);
+
+                let invoiceDetailsText = `
+                    FACBA - Factura
+                    -------------------------------------
+                    Código de Factura: ${invoiceCode}
+                    Fecha de Generación: ${formatDateTime(firebase.firestore.Timestamp.fromDate(new Date()))}
+                    Período Facturado: ${formattedStartDate} al ${formattedEndDate}
+
+                    -------------------------------------
+                    Datos del Usuario:
+                    Nombre: ${userData.nombre || 'N/A'}
+                    Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})
+                    Estado: ${userData.estado || 'N/A'}
+
+                    -------------------------------------
+                    Datos de Entidades Asociadas:
+                    Empresa: ${empresaNombre}
+                    Asesor: ${asesorNombre}
+                    ARL: ${arlNombre} ${userData.riesgo ? `(Riesgo: ${userData.riesgo})` : ''}
+                    EPS: ${epsNombre}
+                    CCF: ${ccfNombre}
+                    AFP: ${afpNombre}
+
+                    -------------------------------------
+                    Detalle del Servicio:
+                    Servicio de Afiliación y Gestión
+                    Valor Base (según usuario): ${formatCurrency(userData.valorAPagar || 0)}
+                    IBC (según usuario): ${formatCurrency(userData.ibc || 0)}
+
+                    -------------------------------------
+                    TOTAL A PAGAR: ${formatCurrency(valorFacturado)}
+                    -------------------------------------
+                `.trim();
+
+                generatedInvoiceDetails.textContent = invoiceDetailsText;
+                generatedInvoiceSection.style.display = 'block';
+                saveInvoiceButton.style.display = 'inline-block';
+                generateGeneratedPdfButton.style.display = 'inline-block';
+
+                showStatusMessage('Factura generada. Revísala y guarda.', 'success');
+            } catch (error) {
+                console.error("Error al generar factura:", error);
+                showStatusMessage('Error al generar factura: ' + error.message, 'error');
+                generatedInvoiceDetails.innerHTML = 'Error al generar factura.';
+                generatedInvoiceSection.style.display = 'block';
+                saveInvoiceButton.style.display = 'none';
+                generateGeneratedPdfButton.style.display = 'none';
+            }
+        });
+
+        saveInvoiceButton.addEventListener('click', async () => {
+            const userId = billingUserIdInput.value;
+            const startDateString = billingStartDateInput.value;
+            const endDateString = billingEndDateInput.value;
+            const invoiceDetails = generatedInvoiceDetails.textContent;
+
+            if (!userId || !startDateString || !endDateString || !invoiceDetails || invoiceDetails.includes('Error al generar factura')) {
+                showStatusMessage('No hay una factura válida para guardar.', 'error');
+                return;
+            }
+
+            const invoiceCodeMatch = invoiceDetails.match(/Código de Factura: (.+)/);
+            const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO';
+
+            // Create Date objects from YYYY-MM-DD strings for consistency
+            const startParts = startDateString.split('-');
+            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+
+            const endParts = endDateString.split('-');
+            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+
+            const newInvoice = {
+                userId: userId,
+                codigo: invoiceCode,
+                fechaInicio: firebase.firestore.Timestamp.fromDate(startDate),
+                fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                detalles: invoiceDetails,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            showStatusMessage('Guardando factura...', 'info');
+            try {
+                await facturasCollection.add(newInvoice);
+                showStatusMessage('Factura guardada con éxito!', 'success');
+                generatedInvoiceDetails.innerHTML = '';
+                generatedInvoiceSection.style.display = 'none';
+                saveInvoiceButton.style.display = 'none';
+                generateGeneratedPdfButton.style.display = 'none';
+                billingForm.reset();
+                await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+            } catch (error) {
+                console.error("Error al guardar factura:", error);
+                showStatusMessage('Error al guardar factura: ' + error.message, 'error');
+            }
+        });
+
+        viewAllInvoicesButton.addEventListener('click', () => {
+            const userId = billingUserIdInput.value;
+            if (userId) {
+                hideBillingModal();
+                showInvoiceHistoryModal(userId);
+            }
+        });
+
+        /**
+         * Shows the full invoice history modal for a specific user.
+         * @param {string} userId - The ID of the user.
+         */
+        async function showInvoiceHistoryModal(userId) {
+            invoiceHistoryModalTitle.textContent = `Historial de Facturas de ${currentUserData.nombre || 'Usuario'}`;
+            await loadInvoiceHistory(userId, fullInvoiceHistoryList);
+            invoiceHistoryModal.classList.add('show');
+        }
+
+        function hideInvoiceHistoryModal() {
+            invoiceHistoryModal.classList.remove('show');
+            fullInvoiceHistoryList.innerHTML = '';
+        }
+
+        closeInvoiceHistoryModalButton.addEventListener('click', hideInvoiceHistoryModal);
+        closeInvoiceHistoryModalButtonInModal.addEventListener('click', hideInvoiceHistoryModal);
+        invoiceHistoryModal.addEventListener('click', (e) => {
+            if (e.target === invoiceHistoryModal) {
+                hideInvoiceHistoryModal();
+            }
+        });
+
+        /**
+         * Loads and displays invoice history for a given user.
+         * @param {string} userId - The ID of the user.
+         * @param {HTMLElement} listElement - The UL element to populate.
+         * @param {number} [limit] - Optional limit for the number of invoices to display.
+         */
+        async function loadInvoiceHistory(userId, listElement, limit = null) {
+            listElement.innerHTML = '<li>Cargando historial...</li>';
+            try {
+                let query = facturasCollection.where('userId', '==', userId).orderBy('createdAt', 'desc');
+                if (limit) {
+                    query = query.limit(limit);
+                }
+                const snapshot = await query.get();
+                listElement.innerHTML = '';
+                if (snapshot.empty) {
+                    listElement.innerHTML = '<li>No hay historial de facturas para este usuario.</li>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const invoice = doc.data();
+                    const listItem = document.createElement('li');
+                    listItem.dataset.id = doc.id;
+                    listItem.dataset.userId = userId;
+                    listItem.innerHTML = `
+                        <div class="invoice-summary">
+                            <strong>Factura #${invoice.codigo || 'N/A'}</strong><br>
+                            Período: ${formatDate(invoice.fechaInicio)} al ${formatDate(invoice.fechaFin)}<br>
+                            Fecha Guardada: ${formatDateTime(invoice.createdAt)}
+                        </div>
+                        <div class="invoice-actions">
+                            <button class="action-button view-invoice-details-button" data-id="${doc.id}" data-user-id="${userId}" title="Ver Detalles">Ver Detalles</button>
+                            <button class="action-button generate-invoice-pdf-button" data-id="${doc.id}" data-user-id="${userId}" title="Generar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="action-button edit-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Factura"><i class="fas fa-edit"></i></button>
+                            <button class="action-button delete-invoice-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Factura"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+                    listElement.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error(`Error loading invoice history for userId ${userId}:`, error);
+                listElement.innerHTML = '<li>Error al cargar historial de facturas.</li>';
+                showStatusMessage('Error al cargar historial de facturas: ' + error.message, 'error');
+            }
+        }
+
+        // Event listener for action buttons within invoice history lists
+        document.querySelectorAll('#invoice-history-list, #full-invoice-history-list').forEach(list => {
+            list.addEventListener('click', async (e) => {
+                const target = e.target;
+                const invoiceId = target.dataset.id || target.closest('button')?.dataset.id;
+                const userId = target.dataset.userId || target.closest('li')?.dataset.userId;
+
+                if (!invoiceId || !userId) return;
+
+                if (target.classList.contains('view-invoice-details-button') || target.closest('.view-invoice-details-button')) {
+                    await viewInvoiceDetails(invoiceId);
+                } else if (target.classList.contains('generate-invoice-pdf-button') || target.closest('.generate-invoice-pdf-button')) {
+                    await generateInvoicePdf(invoiceId);
+                } else if (target.classList.contains('edit-invoice-button') || target.closest('.edit-invoice-button')) {
+                    await loadInvoiceDataForEdit(invoiceId, userId);
+                    showEditInvoiceModal();
+                } else if (target.classList.contains('delete-invoice-button') || target.closest('.delete-invoice-button')) {
+                    // Using a custom modal for confirmation instead of alert/confirm
+                    // For simplicity, using browser confirm for now as per previous code, but ideally a custom modal.
+                    if (confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+                        deleteInvoice(invoiceId, userId);
+                    }
+                }
+            });
+        });
+
+        /**
+         * Displays the full details of a specific invoice (using browser alert for simplicity).
+         * @param {string} invoiceId - The ID of the invoice to view.
+         */
+        async function viewInvoiceDetails(invoiceId) {
+            showStatusMessage('Cargando detalles de factura...', 'info');
+            try {
+                const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                if (invoiceDoc.exists) {
+                    const invoiceData = invoiceDoc.data();
+                    alert("Detalles de Factura:\n\n" + invoiceData.detalles);
+                    showStatusMessage('Detalles de factura cargados.', 'success');
+                } else {
+                    showStatusMessage('Factura no encontrada.', 'error');
+                }
+            }
+            catch (error) {
+                console.error("Error loading invoice details:", error);
+                showStatusMessage('Error al cargar detalles de factura: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Generates a PDF for a specific invoice from Firestore.
+         * @param {string} invoiceId - The ID of the invoice to generate PDF for.
+         */
+        async function generateInvoicePdf(invoiceId) {
+            showStatusMessage('Generando PDF...', 'info');
+            try {
+                const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                if (!invoiceDoc.exists) {
+                    showStatusMessage('Factura no encontrada para generar PDF.', 'error');
+                    return;
+                }
+                const invoiceData = invoiceDoc.data();
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const primaryColor = '#4f46e5';
+                const textColor = '#1f2937';
+                const accentColor = '#10b981';
+
+                const margin = 15;
+                let y = margin;
+                const pageWidth = doc.internal.pageSize.getWidth();
+
+                doc.setFillColor(primaryColor);
+                doc.rect(0, 0, pageWidth, 20, 'F');
+                doc.setFontSize(18);
+                doc.setTextColor(255);
+                doc.text("Factura FACBA", margin, 13);
+
+                y = 30;
+
+                doc.setFontSize(12);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Código de Factura:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${invoiceData.codigo || 'N/A'}`, margin + 45, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Fecha de Generación:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${formatDateTime(invoiceData.createdAt)}`, margin + 45, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Período Facturado:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${formatDate(invoiceData.fechaInicio)} al ${formatDate(invoiceData.fechaFin)}`, margin + 45, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Datos del Usuario", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                const nombreMatch = invoiceData.detalles.match(/Nombre: (.+)/);
+                const identificacionMatch = invoiceData.detalles.match(/Identificación: (.+)/);
+                const estadoMatch = invoiceData.detalles.match(/Estado: (.+)/);
+
+                doc.text(`Nombre: ${nombreMatch ? nombreMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Estado: ${estadoMatch ? estadoMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Datos de Entidades Asociadas", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                const empresaMatch = invoiceData.detalles.match(/Empresa: (.+)/);
+                const asesorMatch = invoiceData.detalles.match(/Asesor: (.+)/);
+                const arlMatch = invoiceData.detalles.match(/ARL: (.+)/);
+                const epsMatch = invoiceData.detalles.match(/EPS: (.+)/);
+                const ccfMatch = invoiceData.detalles.match(/CCF: (.+)/);
+                const afpMatch = invoiceData.detalles.match(/AFP: (.+)/);
+
+                doc.text(`Empresa: ${empresaMatch ? empresaMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Asesor: ${asesorMatch ? asesorMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`ARL: ${arlMatch ? arlMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`EPS: ${epsMatch ? epsMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`CCF: ${ccfMatch ? ccfMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`AFP: ${afpMatch ? afpMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Detalle del Servicio", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                const valorBaseMatch = invoiceData.detalles.match(/Valor Base \(según usuario\): (.+)/);
+                const ibcMatch = invoiceData.detalles.match(/IBC \(según usuario\): (.+)/);
+
+                const tableData = [
+                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                ];
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Descripción', 'Valor Base', 'IBC']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                    bodyStyles: { textColor: textColor },
+                    margin: { left: margin, right: margin },
+                    didDrawPage: function(data) {
+                        let pageHeight = doc.internal.pageSize.getHeight();
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                    }
+                });
+
+                y = doc.autoTable.previous.finalY + 15;
+
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(accentColor);
+                const totalMatch = invoiceData.detalles.match(/TOTAL A PAGAR: (.+)/);
+                const totalText = totalMatch ? `TOTAL A PAGAR: ${totalMatch[1].trim()}` : 'TOTAL A PAGAR: N/A';
+
+                const totalTextWidth = doc.getTextWidth(totalText);
+                const totalX = pageWidth - margin - totalTextWidth;
+
+                doc.text(totalText, totalX, y);
+                y += 10;
+                doc.setDrawColor(accentColor);
+                doc.setLineWidth(0.5);
+                doc.line(totalX, y, pageWidth - margin, y);
+
+                y = doc.internal.pageSize.getHeight() - 20;
+                doc.setFontSize(10);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'normal');
+                doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y);
+                doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5);
+
+                const filenameCode = invoiceData.codigo || 'generada';
+                doc.save(`factura_${filenameCode}.pdf`);
+
+                showStatusMessage('PDF generado con éxito!', 'success');
+            } catch (error) {
+                console.error("Error al generar PDF:", error);
+                showStatusMessage('Error al generar PDF: ' + error.message, 'error');
+            }
+        }
+
+        generateGeneratedPdfButton.addEventListener('click', async () => {
+            showStatusMessage('Generando PDF de la factura actual...', 'info');
+            const invoiceDetailsText = generatedInvoiceDetails.textContent;
+            const userId = billingUserIdInput.value;
+
+            if (!invoiceDetailsText || invoiceDetailsText.includes('Error al generar factura') || !userId) {
+                showStatusMessage('No hay una factura actual válida o datos de usuario para generar PDF.', 'error');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const userDoc = await usersCollection.doc(userId).get();
+                if (!userDoc.exists) {
+                    showStatusMessage('Error: Datos del usuario no encontrados para generar PDF.', 'error');
+                    return;
+                }
+                const userData = userDoc.data();
+
+                const invoiceCodeMatch = invoiceDetailsText.match(/Código de Factura: (.+)/);
+                const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO';
+                const fechaGeneracionMatch = invoiceDetailsText.match(/Fecha de Generación: (.+)/);
+                const fechaGeneracion = fechaGeneracionMatch ? fechaGeneracionMatch[1].trim() : 'N/A';
+                const periodoFacturadoMatch = invoiceDetailsText.match(/Período Facturado: (.+)/);
+                const periodoFacturado = periodoFacturadoMatch ? periodoFacturadoMatch[1].trim() : 'N/A';
+
+                const empresaNombre = empresasMap.get(userData.empresaId) || 'N/A';
+                const asesorNombre = asesoresMap.get(userData.asesorId) || 'N/A';
+                const arlNombreMatch = invoiceDetailsText.match(/ARL: (.+)/);
+                const arlInfo = arlNombreMatch ? arlNombreMatch[1].trim() : 'N/A';
+                const epsNombre = epsMap.get(userData.epsId) || 'N/A';
+                const ccfNombre = ccfMap.get(userData.ccfId) || 'N/A';
+                const afpNombre = afpMap.get(userData.afpId) || 'N/A';
+
+                const valorBaseMatch = invoiceDetailsText.match(/Valor Base \(según usuario\): (.+)/);
+                const ibcMatch = invoiceDetailsText.match(/IBC \(según usuario\): (.+)/);
+                const totalMatch = invoiceDetailsText.match(/TOTAL A PAGAR: (.+)/);
+
+                const primaryColor = '#4f46e5';
+                const textColor = '#1f2937';
+                const accentColor = '#10b981';
+
+                const margin = 15;
+                let y = margin;
+                const pageWidth = doc.internal.pageSize.getWidth();
+
+                doc.setFillColor(primaryColor);
+                doc.rect(0, 0, pageWidth, 20, 'F');
+                doc.setFontSize(18);
+                doc.setTextColor(255);
+                doc.text("Factura FACBA", margin, 13);
+
+                y = 30;
+
+                doc.setFontSize(12);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Código de Factura:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${invoiceCode}`, margin + 45, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Fecha de Generación:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${fechaGeneracion}`, margin + 45, y);
+                y += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`Período Facturado:`, margin, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(`${periodoFacturado}`, margin + 45, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Datos del Usuario", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Nombre: ${userData.nombre || 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})`, margin, y);
+                y += 7;
+                doc.text(`Estado: ${userData.estado || 'N/A'}`, margin, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Datos de Entidades Asociadas", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Empresa: ${empresaNombre}`, margin, y);
+                y += 7;
+                doc.text(`Asesor: ${asesorNombre}`, margin, y);
+                y += 7;
+                doc.text(`ARL: ${arlInfo}`, margin, y);
+                y += 7;
+                doc.text(`EPS: ${epsNombre}`, margin, y);
+                y += 7;
+                doc.text(`CCF: ${ccfNombre}`, margin, y);
+                y += 7;
+                doc.text(`AFP: ${afpNombre}`, margin, y);
+                y += 15;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text("Detalle del Servicio", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                const tableData = [
+                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                ];
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Descripción', 'Valor Base', 'IBC']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                    bodyStyles: { textColor: textColor },
+                    margin: { left: margin, right: margin },
+                    didDrawPage: function(data) {
+                        let pageHeight = doc.internal.pageSize.getHeight();
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                    }
+                });
+
+                y = doc.autoTable.previous.finalY + 15;
+
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(accentColor);
+                const totalText = totalMatch ? `TOTAL A PAGAR: ${totalMatch[1].trim()}` : 'TOTAL A PAGAR: N/A';
+
+                const totalTextWidth = doc.getTextWidth(totalText);
+                const totalX = pageWidth - margin - totalTextWidth;
+
+                doc.text(totalText, totalX, y);
+                y += 10;
+                doc.setDrawColor(accentColor);
+                doc.setLineWidth(0.5);
+                doc.line(totalX, y, pageWidth - margin, y);
+
+                y = doc.internal.pageSize.getHeight() - 20;
+                doc.setFontSize(10);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'normal');
+                doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y);
+                doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5);
+
+                const filenameCode = invoiceCode || 'generada';
+                doc.save(`factura_${filenameCode}.pdf`);
+
+                showStatusMessage('PDF generado con éxito!', 'success');
+            } catch (error) {
+                console.error("Error al generar PDF para la factura actual:", error);
+                showStatusMessage('Error al generar PDF de la factura actual: ' + error.message, 'error');
+            }
+        });
+
+        function showEditInvoiceModal() {
+            editInvoiceModal.classList.add('show');
+        }
+
+        function hideEditInvoiceModal() {
+            editInvoiceModal.classList.remove('show');
+            editInvoiceForm.reset();
+        }
+
+        closeEditInvoiceModalButton.addEventListener('click', hideEditInvoiceModal);
+        cancelEditInvoiceButton.addEventListener('click', hideEditInvoiceModal);
+        editInvoiceModal.addEventListener('click', (e) => {
+            if (e.target === editInvoiceModal) {
+                hideEditInvoiceModal();
+            }
+        });
+
+        /**
+         * Loads invoice data into the edit invoice modal for a specific invoice.
+         * @param {string} invoiceId - The ID of the invoice to edit.
+         * @param {string} userId - The ID of the user associated with the invoice.
+         */
+        async function loadInvoiceDataForEdit(invoiceId, userId) {
+            try {
+                const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                if (invoiceDoc.exists) {
+                    const invoiceData = invoiceDoc.data();
+                    editInvoiceIdInput.value = invoiceId;
+                    editInvoiceUserIdInput.value = userId;
+                    editInvoiceCodeInput.value = invoiceData.codigo || '';
+                    editInvoiceStartDateInput.value = formatDate(invoiceData.fechaInicio); // Use formatDate
+                    editInvoiceEndDateInput.value = formatDate(invoiceData.fechaFin);     // Use formatDate
+                    editInvoiceDetailsTextarea.value = invoiceData.detalles || '';
+                } else {
+                    showStatusMessage('Error: Factura no encontrada para editar.', 'error');
+                    hideEditInvoiceModal();
+                }
+            } catch (error) {
+                console.error("Error loading invoice data for edit:", error);
+                showStatusMessage('Error al cargar datos de la factura para edición.', 'error');
+                hideEditInvoiceModal();
+            }
+        }
+
+        editInvoiceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const invoiceId = editInvoiceIdInput.value;
+            const userId = editInvoiceUserIdInput.value;
+            const invoiceCode = editInvoiceCodeInput.value.trim();
+            const startDateString = editInvoiceStartDateInput.value;
+            const endDateString = editInvoiceEndDateInput.value;
+            const invoiceDetails = editInvoiceDetailsTextarea.value;
+
+            if (!invoiceId || !userId || !invoiceCode || !startDateString || !endDateString || !invoiceDetails) {
+                showStatusMessage('Por favor, completa todos los campos de la factura correctamente.', 'error');
+                return;
+            }
+
+            // Corrected: Ensure parts[2] is used for day in startDate
+            const startParts = startDateString.split('-');
+            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+
+            const endParts = endDateString.split('-');
+            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                return;
+            }
+
+            const updatedData = {
+                codigo: invoiceCode,
+                fechaInicio: firebase.firestore.Timestamp.fromDate(startDate),
+                fechaFin: firebase.firestore.Timestamp.fromDate(endDate),
+                detalles: invoiceDetails,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            showStatusMessage('Guardando cambios de la factura...', 'info');
+            try {
+                await facturasCollection.doc(invoiceId).update(updatedData);
+                showStatusMessage('Cambios de la factura guardados con éxito!', 'success');
+                hideEditInvoiceModal();
+                // Reload history in the appropriate modal if open
+                if (billingModal.classList.contains('show')) {
+                    await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+                } else if (invoiceHistoryModal.classList.contains('show')) {
+                    await loadInvoiceHistory(userId, fullInvoiceHistoryList);
+                }
+            } catch (error) {
+                console.error("Error al guardar cambios de la factura:", error);
+                showStatusMessage('Error al guardar cambios de la factura: ' + error.message, 'error');
+            }
+        });
+
+        /**
+         * Deletes a specific invoice from Firestore.
+         * @param {string} invoiceId - The ID of the invoice to delete.
+         * @param {string} userId - The ID of the user associated with the invoice.
+         */
+        async function deleteInvoice(invoiceId, userId) {
+            showStatusMessage('Eliminando factura...', 'info');
+            try {
+                await facturasCollection.doc(invoiceId).delete();
+                showStatusMessage('Factura eliminada con éxito!', 'success');
+                // Recargar el historial de facturas en el modal visible
+                if (billingModal.classList.contains('show')) {
+                     await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+                } else if (invoiceHistoryModal.classList.contains('show')) {
+                     await loadInvoiceHistory(userId, fullInvoiceHistoryList);
+                }
+
+            } catch (error) {
+                console.error("Error al eliminar factura:", error);
+                showStatusMessage('Error al eliminar factura: ' + error.message, 'error');
+            }
+        }
+
+
+        // --- NUEVA FUNCIONALIDAD: Abrir ventana de Chat ---
+        chatButton.addEventListener('click', () => {
+            const chatUrl = 'https://soavanzar.github.io/FACBA/chat.html';
+            const windowName = 'FACBAChatWindow'; // Nombre único para la ventana del chat
+
+            // Abre la ventana. Si ya existe una ventana con ese nombre, la reutiliza.
+            window.open(chatUrl, windowName);
+        });
+        // --- FIN NUEVA FUNCIONALIDAD ---
+
+
+        // --- Inicialización ---
+        // Cargar la tabla de usuarios al cargar la página
+        loadUsersTable();
+
+
+    </script>
+
+</body>
+</html>
