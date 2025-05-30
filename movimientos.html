@@ -1019,6 +1019,8 @@
                 </ul>
             </div>
             <div class="modal-buttons">
+                <button type="button" class="action-button generate-pdf-button" id="generate-emplanillados-pdf-button"><i class="fas fa-file-pdf"></i> PDF de esta Planilla</button>
+                <button type="button" class="action-button delete-button" id="delete-all-from-planilla-button" style="background-color: #ef4444;"><i class="fas fa-trash-alt"></i> Eliminar toda la Planilla</button>
                 <button type="button" class="cancel-button" id="cancel-emplanillados">Cerrar</button>
                 <button type="button" class="save-changes-button" id="remove-from-planilla-button">Eliminar de Planilla</button>
             </div>
@@ -1131,6 +1133,9 @@
         const emplanilladosCompanyFilter = document.getElementById('emplanillados-company-filter');
         const emplanilladosList = document.getElementById('emplanillados-list');
         const removeFromPlanillaButton = document.getElementById('remove-from-planilla-button');
+        // NEW: Buttons for Emplanillados Modal
+        const deleteAllFromPlanillaButton = document.getElementById('delete-all-from-planilla-button');
+        const generateEmplanilladosPdfButton = document.getElementById('generate-emplanillados-pdf-button');
 
         // Maps to store entity names (for display in table and selects)
         let empresasMap = new Map();
@@ -2691,6 +2696,126 @@
             } catch (error) {
                 console.error("Error al eliminar usuarios de planilla:", error);
                 showStatusMessage('Error al eliminar usuarios de planilla: ' + error.message, 'error');
+            }
+        });
+
+        // NEW: Function to delete all users from planilla
+        deleteAllFromPlanillaButton.addEventListener('click', async () => {
+            if (!confirm('¿Estás seguro de que deseas eliminar a TODOS los usuarios de la planilla? Esta acción es irreversible.')) {
+                return;
+            }
+
+            showStatusMessage('Eliminando a todos los usuarios de planilla...', 'info');
+            try {
+                // Get all users who currently have hasPlanilla: true
+                const querySnapshot = await usersCollection.where('hasPlanilla', '==', true).get();
+                if (querySnapshot.empty) {
+                    showStatusMessage('No hay usuarios en la planilla para eliminar.', 'info');
+                    return;
+                }
+
+                const batch = db.batch();
+                querySnapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, {
+                        hasPlanilla: false,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                await batch.commit();
+                showStatusMessage('Todos los usuarios han sido eliminados de planilla con éxito!', 'success');
+                loadEmplanilladosList(); // Reload the list to reflect changes
+            } catch (error) {
+                console.error("Error al eliminar a todos los usuarios de planilla:", error);
+                showStatusMessage('Error al eliminar a todos los usuarios de planilla: ' + error.message, 'error');
+            }
+        });
+
+        // NEW: Function to generate PDF of emplanillados
+        generateEmplanilladosPdfButton.addEventListener('click', async () => {
+            showStatusMessage('Generando PDF de la planilla...', 'info');
+            try {
+                let query = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                const selectedCompanyId = emplanilladosCompanyFilter.value;
+
+                if (selectedCompanyId) {
+                    query = query.where('empresaId', '==', selectedCompanyId);
+                }
+                const snapshot = await query.get();
+
+                if (snapshot.empty) {
+                    showStatusMessage('No hay usuarios en la planilla para generar el PDF.', 'info');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const primaryColor = '#4f46e5';
+                const textColor = '#1f2937';
+                const accentColor = '#10b981';
+
+                const margin = 15;
+                let y = margin;
+                const pageWidth = doc.internal.pageSize.getWidth();
+
+                doc.setFillColor(primaryColor);
+                doc.rect(0, 0, pageWidth, 20, 'F');
+                doc.setFontSize(18);
+                doc.setTextColor(255);
+                doc.text("Reporte de Planilla FACBA", margin, 13);
+
+                y = 30;
+
+                doc.setFontSize(14);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'bold');
+                doc.text("Usuarios en Planilla", margin, y);
+                y += 8;
+                doc.setDrawColor(primaryColor);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+
+                const tableData = [];
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
+                    tableData.push([
+                        user.nombre || 'N/A',
+                        user.identificacion || 'N/A',
+                        empresaNombre
+                    ]);
+                });
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Nombre', 'Identificación', 'Empresa']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+                    bodyStyles: { textColor: textColor },
+                    margin: { left: margin, right: margin },
+                    didDrawPage: function(data) {
+                        let pageHeight = doc.internal.pageSize.getHeight();
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text('Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: 'center' });
+                    }
+                });
+
+                y = doc.internal.pageSize.getHeight() - 20;
+                doc.setFontSize(10);
+                doc.setTextColor(textColor);
+                doc.setFont(undefined, 'normal');
+                doc.text("FACBA - Tu Aliado en Gestión de seguridad social", margin, y);
+                doc.text("Contacto: grupoconsultorcyc@outlook.com | Cel: +57 3203706164 - 3196207405", margin, y + 5);
+
+                doc.save(`planilla_FACBA_${formatDate(new Date())}.pdf`);
+                showStatusMessage('PDF de planilla generado con éxito!', 'success');
+
+            } catch (error) {
+                console.error("Error al generar PDF de planilla:", error);
+                showStatusMessage('Error al generar PDF de planilla: ' + error.message, 'error');
             }
         });
 
