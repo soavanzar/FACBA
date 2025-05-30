@@ -1576,9 +1576,10 @@
                 showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
                 return;
             }
-            // Create a Date object from the YYYY-MM-DD string to avoid timezone issues
+            // Corrected: Create a Date object from the YYYY-MM-DD string, ensuring UTC interpretation
             const parts = paymentDateString.split('-');
-            const paymentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            // Use Date.UTC to create a date object that represents midnight UTC of the selected day
+            const paymentDate = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
             const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
 
             const newPayment = {
@@ -1763,9 +1764,9 @@
                 showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
                 return;
             }
-            // Create a Date object from the YYYY-MM-DD string to avoid timezone issues
+            // Corrected: Create a Date object from the YYYY-MM-DD string, ensuring UTC interpretation
             const parts = paymentDateString.split('-');
-            const paymentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            const paymentDate = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
             const paymentTimestamp = firebase.firestore.Timestamp.fromDate(paymentDate);
 
             const updatedData = {
@@ -1853,13 +1854,14 @@
                 return;
             }
 
-            // Create Date objects from YYYY-MM-DD strings for consistency
+            // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
             const startParts = startDateString.split('-');
-            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
-            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+            const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
+            // To ensure the *entire* end day is included, set its time to the very end of the day in UTC
+            endDate.setUTCHours(23, 59, 59, 999);
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
@@ -1957,13 +1959,13 @@
             const invoiceCodeMatch = invoiceDetails.match(/Código de Factura: (.+)/);
             const invoiceCode = invoiceCodeMatch ? invoiceCodeMatch[1].trim() : 'SIN_CODIGO';
 
-            // Create Date objects from YYYY-MM-DD strings for consistency
+            // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
             const startParts = startDateString.split('-');
-            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
-            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+            const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
+            endDate.setUTCHours(23, 59, 59, 999); // Include the whole end day
 
             const newInvoice = {
                 userId: userId,
@@ -2121,7 +2123,8 @@
         async function generateInvoicePdf(invoiceId) {
             showStatusMessage('Generando PDF...', 'info');
             try {
-                const invoiceDoc = await facturasCollection.doc(invoiceId).get();
+                // MODIFICACIÓN CLAVE: Fuerza la obtención de datos desde el servidor
+                const invoiceDoc = await facturasCollection.doc(invoiceId).get({ source: 'server' });
                 if (!invoiceDoc.exists) {
                     showStatusMessage('Factura no encontrada para generar PDF.', 'error');
                     return;
@@ -2518,13 +2521,13 @@
                 return;
             }
 
-            // Corrected: Ensure parts[2] is used for day in startDate
+            // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
             const startParts = startDateString.split('-');
-            const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
-            const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
-            endDate.setHours(23, 59, 59, 999); // Include the whole end day
+            const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
+            endDate.setUTCHours(23, 59, 59, 999); // Include the whole end day
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
@@ -2546,6 +2549,13 @@
                 // Reload history in the appropriate modal if open
                 if (billingModal.classList.contains('show')) {
                     await loadInvoiceHistory(userId, invoiceHistoryList, 3);
+                    // NUEVO: Limpiar la sección de factura generada si el modal de facturación está abierto para el mismo usuario
+                    if (billingUserIdInput.value === userId) {
+                        generatedInvoiceDetails.innerHTML = '';
+                        generatedInvoiceSection.style.display = 'none';
+                        saveInvoiceButton.style.display = 'none';
+                        generateGeneratedPdfButton.style.display = 'none';
+                    }
                 } else if (invoiceHistoryModal.classList.contains('show')) {
                     await loadInvoiceHistory(userId, fullInvoiceHistoryList);
                 }
