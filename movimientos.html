@@ -221,6 +221,7 @@
             margin: 0 auto; /* Centra si la celda lo permite */
             display: block; /* Asegura que ocupe su propio espacio para centrar */
             width: fit-content; /* Ajusta el ancho al contenido */
+            cursor: pointer; /* Añadido: Cursor de puntero para indicar que es clicable */
         }
 
         .text-green-500 { color: #10b981; /* Verde */ }
@@ -788,6 +789,31 @@
                 padding: 0; /* Sin padding */
             }
         }
+
+        /* Estilos para el tooltip de clic (el mensaje temporal en la parte superior) */
+         #click-tooltip-message {
+             position: fixed;
+             top: 20px; /* Ajustado para estar más arriba */
+             left: 50%;
+             transform: translateX(-50%);
+             background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semi-transparente */
+             color: white;
+             padding: 8px 15px;
+             border-radius: 8px;
+             font-size: 0.9rem;
+             z-index: 1000;
+             opacity: 0;
+             visibility: hidden;
+             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+             white-space: nowrap; /* Evita que el texto se envuelva */
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra sutil */
+             border: 1px solid rgba(255, 255, 255, 0.3); /* Añadido un borde sutil para mayor visibilidad */
+         }
+
+         #click-tooltip-message.show {
+             opacity: 1;
+             visibility: visible;
+         }
     </style>
 </head>
 <body>
@@ -797,7 +823,7 @@
             <i class="fas fa-arrow-left"></i> Ir Atrás
         </a>
 
-        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Movimientos</h1>
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gestionar Usuarios Simplificado</h1>
 
         <div class="top-icons">
             <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
@@ -829,8 +855,7 @@
     </div>
 
     <div id="large-status-message"></div>
-
-    <div id="add-payment-modal" class="modal-overlay">
+    <div id="click-tooltip-message"></div> <div id="add-payment-modal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close-button" id="close-add-payment-modal">&times;</span>
             <h2>Agregar Pago</h2>
@@ -1065,6 +1090,11 @@
         const largeStatusMessage = document.getElementById('large-status-message');
         let largeStatusTimeout;
 
+        // NEW: Click tooltip message
+        const clickTooltipMessage = document.getElementById('click-tooltip-message');
+        let clickTooltipTimeout;
+
+
         // Payment and Billing Modal elements
         const addPaymentModal = document.getElementById('add-payment-modal');
         const closeAddPaymentModalButton = document.getElementById('close-add-payment-modal');
@@ -1180,6 +1210,30 @@
                 }, 500); // Allow transition to complete before clearing
             }, 5000); // Message visible for 5 seconds
         }
+
+        /**
+         * Displays a small, temporary tooltip message at the top of the screen.
+         * @param {string} message - The message to display.
+         */
+        function showClickTooltipMessage(message) {
+            clearTimeout(clickTooltipTimeout);
+            clickTooltipMessage.classList.remove('show');
+            clickTooltipMessage.style.visibility = 'hidden';
+
+            if (!message) return;
+
+            clickTooltipMessage.textContent = message;
+            clickTooltipMessage.classList.add('show');
+            clickTooltipMessage.style.visibility = 'visible';
+
+            clickTooltipTimeout = setTimeout(() => {
+                clickTooltipMessage.classList.remove('show');
+                 setTimeout(() => {
+                      clickTooltipMessage.style.visibility = 'hidden';
+                 }, 300); // Allow transition to complete before clearing
+            }, 3000); // Message visible for 3 seconds
+        }
+
 
         /**
          * Formats a Firestore Timestamp or Date object into a YYYY-MM-DD string.
@@ -1507,6 +1561,15 @@
         // Listener for action buttons in the table (using event delegation)
         userTableBody.addEventListener('click', async (e) => {
             const target = e.target;
+
+            // NEW: Handle clicks on status icons
+            if (target.classList.contains('status-icon') || target.parentElement.classList.contains('status-icon')) {
+                const iconElement = target.classList.contains('status-icon') ? target : target.parentElement;
+                const tooltipText = iconElement.title;
+                showClickTooltipMessage(tooltipText);
+                return; // Exit early if a status icon was clicked
+            }
+
             const userId = target.dataset.id || target.closest('.action-button')?.dataset.id;
 
             if (!userId) return;
