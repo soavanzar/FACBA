@@ -1018,13 +1018,15 @@
         <div class="modal-content">
              <span class="modal-close-button" id="close-settings-modal">&times;</span>
              <h2>Opciones de Configuración</h2>
-             <button class="menu-option-button" data-entity-type="arl">Gestionar ARL</button> <button class="menu-option-button" data-entity-type="eps">Gestionar EPS</button>
+             <button class="menu-option-button" data-entity-type="arl">Gestionar ARL</button>
+             <button class="menu-option-button" data-entity-type="eps">Gestionar EPS</button>
              <button class="menu-option-button" data-entity-type="ccf">Gestionar CCF</button>
              <button class="menu-option-button" data-entity-type="afp">Gestionar AFP</button>
              <button class="menu-option-button" data-entity-type="asesor">Gestionar Asesores</button>
              <button class="menu-option-button" data-entity-type="empresa">Gestionar Empresas</button>
              <button class="menu-option-button" id="export-users-button">Exportar Usuarios a Excel</button>
              <button class="menu-option-button" id="import-users-button">Importar Usuarios desde Excel</button>
+             <button class="menu-option-button" id="manage-ibc-button">Gestionar IBC</button>
 
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
@@ -1082,6 +1084,25 @@
              </div>
              <div id="import-status-message" class="mt-4 text-center text-sm text-gray-600"></div>
          </div>
+    </div>
+
+    <div id="ibc-management-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-ibc-management-modal">&times;</span>
+            <h2>Gestionar IBC de Usuarios</h2>
+            <div class="modal-form-group">
+                <label for="current-ibc">IBC Actual:</label>
+                <input type="number" id="current-ibc" name="currentIbc" step="0.01" placeholder="Ej: 1300000">
+            </div>
+            <div class="modal-form-group">
+                <label for="new-ibc">IBC Nuevo:</label>
+                <input type="number" id="new-ibc" name="newIbc" step="0.01" placeholder="Ej: 1500000">
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="cancel-ibc-management">Cancelar</button>
+                <button type="button" class="save-changes-button" id="update-ibc-button">Actualizar IBC</button>
+            </div>
+        </div>
     </div>
 
     <div id="click-tooltip-message" class="click-tooltip-message"></div>
@@ -1182,6 +1203,8 @@
         const menuOptionButtons = document.querySelectorAll('#settings-modal .menu-option-button');
         const exportUsersButton = document.getElementById('export-users-button');
         const importUsersButton = document.getElementById('import-users-button');
+        // Nuevo botón para Gestionar IBC
+        const manageIbcButton = document.getElementById('manage-ibc-button');
 
 
         // Modal Genérico para Agregar Entidades DOM elements
@@ -1209,6 +1232,14 @@
         const excelFileInput = document.getElementById('excel-file-input');
         const processImportButton = document.getElementById('process-import-button');
         const importStatusMessage = document.getElementById('import-status-message');
+
+        // Referencias al nuevo modal de gestión de IBC
+        const ibcManagementModal = document.getElementById('ibc-management-modal');
+        const closeIbcManagementModalButton = document.getElementById('close-ibc-management-modal');
+        const cancelIbcManagementButton = document.getElementById('cancel-ibc-management');
+        const currentIbcInput = document.getElementById('current-ibc');
+        const newIbcInput = document.getElementById('new-ibc');
+        const updateIbcButton = document.getElementById('update-ibc-button');
 
 
         // Mapas para almacenar nombres de entidades (para mostrar en la tabla y selectores)
@@ -2189,6 +2220,8 @@
             const entityName = entityNameInput.value.trim();
 
             if (!entityName) {
+                // Using alert() as it's a simple validation feedback within a modal flow,
+                // but for production, a custom modal message is preferred.
                 alert("Por favor, ingresa el nombre.");
                 return;
             }
@@ -2355,6 +2388,8 @@
             const entityType = targetButton.dataset.type;
             const entityName = targetButton.parentElement.querySelector('.entity-name').textContent;
 
+            // Using confirm() as it's a simple validation feedback within a modal flow,
+            // but for production, a custom modal message is preferred.
             if (confirm(`¿Estás seguro de que deseas eliminar "${entityName}"? Esta acción es irreversible.`)) {
                 deleteEntity(entityType, entityId, entityName);
             }
@@ -2440,6 +2475,12 @@
         importUsersButton.addEventListener('click', () => {
             hideSettingsModal();
             showImportUsersModal();
+        });
+
+        // Listener para el nuevo botón Gestionar IBC
+        manageIbcButton.addEventListener('click', () => {
+            hideSettingsModal();
+            showIbcManagementModal();
         });
 
 
@@ -2993,6 +3034,8 @@
                             if (errorCount > 0) {
                                 finalMessage += ` ${errorCount} filas con errores.`;
                                 console.error("Import Errors Summary:", importErrors);
+                                // Using alert() as it's a simple validation feedback within a modal flow,
+                                // but for production, a custom modal message is preferred.
                                 alert("Errores de importación:\n" + importErrors.join('\n'));
                             }
                             showImportStatusMessage(finalMessage, errorCount === 0 ? 'success' : 'info');
@@ -3004,6 +3047,8 @@
                     } else if (errorCount > 0) {
                          showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
                          console.error("Import Errors Summary:", importErrors);
+                         // Using alert() as it's a simple validation feedback within a modal flow,
+                         // but for production, a custom modal message is preferred.
                          alert("Errores de importación:\n" + importErrors.join('\n'));
                     }
                     else {
@@ -3039,6 +3084,82 @@
             window.open(chatUrl, windowName);
         });
         // --- FIN NUEVA FUNCIONALIDAD ---
+
+        // --- Funcionalidad de Gestión de IBC ---
+
+        // Mostrar el modal de gestión de IBC
+        function showIbcManagementModal() {
+            ibcManagementModal.classList.add('show');
+            currentIbcInput.value = '';
+            newIbcInput.value = '';
+        }
+
+        // Ocultar el modal de gestión de IBC
+        function hideIbcManagementModal() {
+            ibcManagementModal.classList.remove('show');
+        }
+
+        // Listeners para cerrar el modal de gestión de IBC
+        closeIbcManagementModalButton.addEventListener('click', hideIbcManagementModal);
+        cancelIbcManagementButton.addEventListener('click', hideIbcManagementModal);
+
+        ibcManagementModal.addEventListener('click', (e) => {
+            if (e.target === ibcManagementModal) {
+                hideIbcManagementModal();
+            }
+        });
+
+        // Listener para el botón "Actualizar IBC"
+        updateIbcButton.addEventListener('click', async () => {
+            const currentIbcValue = parseFloat(currentIbcInput.value);
+            const newIbcValue = parseFloat(newIbcInput.value);
+
+            if (isNaN(currentIbcValue) || isNaN(newIbcValue)) {
+                showStatusMessage('Por favor, ingresa valores numéricos válidos para ambos campos IBC.', 'error');
+                return;
+            }
+
+            // Confirmación antes de proceder
+            // Using confirm() as it's a simple validation feedback within a modal flow,
+            // but for production, a custom modal message is preferred.
+            if (!confirm(`¿Estás seguro de que deseas actualizar el IBC de ${formatCurrency(currentIbcValue)} a ${formatCurrency(newIbcValue)} para TODOS los usuarios que coincidan?`)) {
+                return;
+            }
+
+            showStatusMessage('Actualizando IBC de usuarios...', 'info');
+
+            try {
+                // Obtener todos los usuarios que tienen el IBC actual
+                const querySnapshot = await usersCollection.where('ibc', '==', currentIbcValue).get();
+
+                if (querySnapshot.empty) {
+                    showStatusMessage(`No se encontraron usuarios con el IBC actual de ${formatCurrency(currentIbcValue)}.`, 'info');
+                    hideIbcManagementModal();
+                    return;
+                }
+
+                const batch = db.batch();
+                let updatedCount = 0;
+
+                querySnapshot.forEach(doc => {
+                    const userRef = usersCollection.doc(doc.id);
+                    batch.update(userRef, {
+                        ibc: newIbcValue,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    updatedCount++;
+                });
+
+                await batch.commit();
+                showStatusMessage(`IBC actualizado para ${updatedCount} usuarios con éxito!`, 'success');
+                hideIbcManagementModal();
+                // No es necesario llamar a renderFilteredUsers() aquí, onSnapshot ya lo hará.
+
+            } catch (error) {
+                console.error("Error al actualizar IBC de usuarios:", error);
+                showStatusMessage('Error al actualizar IBC de usuarios: ' + error.message, 'error');
+            }
+        });
 
 
         // --- Inicialización ---
