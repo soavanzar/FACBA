@@ -223,9 +223,9 @@
             border-radius: 0.5rem;
             margin-bottom: 1rem;
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column; /* Cambiado a columna para el nuevo diseño */
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start; /* Alineado al inicio */
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Sombra ligera */
             border: 1px solid #e2e8f0;
         }
@@ -233,6 +233,7 @@
             flex-grow: 1;
             margin-right: 1rem;
             min-width: 0;
+            width: 100%; /* Ocupa todo el ancho */
         }
         .password-details h3 {
             font-weight: 600;
@@ -269,6 +270,8 @@
             gap: 0.5rem;
             margin-top: 0.5rem;
             flex-shrink: 0;
+            width: 100%; /* Ocupa todo el ancho */
+            justify-content: flex-end; /* Alinea los botones a la derecha */
         }
         .action-icon-btn {
             background: #f0f2f5; /* Fondo ligero para botones de acción */
@@ -297,16 +300,17 @@
         }
         /* Estilo para los nuevos botones de copiar campo individual */
         .copy-field-btn {
-            font-size: 0.8em; /* Más pequeño para que se ajuste al lado del texto */
-            padding: 0.2em 0.4em;
-            background-color: #e2e8f0;
-            border: 1px solid #cbd5e1;
+            background-color: transparent; /* Make it transparent */
+            border: none; /* No border */
+            font-size: 0.9em; /* Slightly larger than before, but still subtle */
+            padding: 0.2em; /* Reduced padding */
+            color: #94a3b8; /* A lighter gray, less prominent */
+            transition: color 0.2s, background-color 0.2s;
             border-radius: 0.25rem;
-            color: #64748b;
         }
         .copy-field-btn:hover {
-            background-color: #cbd5e1;
-            color: #1e293b;
+            color: #3b82f6; /* Blue on hover */
+            background-color: #e2e8f0; /* Light background on hover */
             transform: scale(1.1);
         }
 
@@ -526,8 +530,8 @@
             cursor: pointer;
             transition: color 0.2s;
             position: absolute; /* Posicionar el botón de cierre */
-            top: 1rem;
-            right: 1.5rem;
+            top: 0.75rem; /* Ajustado para que no cubra el botón del candado */
+            right: 1rem; /* Ajustado para que no cubra el botón del candado */
         }
 
         .password-modal-close-btn:hover {
@@ -543,15 +547,77 @@
             background-color: #f8fafc; /* Fondo ligeramente diferente para items en modal */
         }
 
-        @media (max-width: 640px) {
-            .password-modal-content {
-                padding: 1rem;
-                max-width: 95%;
+        /* Nuevo estilo para la cuadrícula dentro de password-item */
+        .password-item-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Una columna por defecto */
+            gap: 0.75rem; /* Espacio entre elementos */
+            width: 100%;
+        }
+
+        /* Ajustes para pantallas medianas y grandes */
+        @media (min-width: 768px) {
+            .password-item-grid {
+                grid-template-columns: repeat(2, 1fr); /* Dos columnas en pantallas medianas */
             }
-            .password-modal-close-btn {
-                top: 0.5rem;
-                right: 0.5rem;
+            .password-item-grid .col-span-full {
+                grid-column: span 2 / span 2; /* Elementos que ocupan todo el ancho */
             }
+        }
+
+        /* Estilo para los contenedores de campo individuales */
+        .field-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0; /* Línea punteada para separar campos */
+        }
+        .field-container:last-of-type {
+            border-bottom: none; /* Eliminar línea del último campo */
+        }
+        .field-label {
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.9rem;
+            flex-shrink: 0; /* Evita que el label se encoja */
+        }
+        .field-value {
+            flex-grow: 1;
+            text-align: right;
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
+            word-break: break-all; /* Rompe palabras largas */
+        }
+        .field-value a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .field-value a:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilo para el área de notas */
+        .notes-area {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .notes-area .field-label {
+            margin-bottom: 0.25rem;
+        }
+        .notes-area .field-value {
+            text-align: left;
+            background-color: #eef2f6;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            margin-top: 0.25rem;
+        }
+        .notes-area .copy-field-btn {
+            align-self: flex-end; /* Alinea el botón de copiar a la derecha */
+            margin-top: 0.5rem;
         }
     </style>
 </head>
@@ -592,7 +658,7 @@
                         </div>
                         <div class="form-group">
                             <label for="url">URL / Sitio Web (opcional):</label>
-                            <input type="url" id="url" placeholder="Ej: https://www.google.com">
+                            <input type="text" id="url" placeholder="Ej: https://www.google.com">
                         </div>
                         <div class="form-group">
                             <label for="username">Usuario / Email:</label>
@@ -640,30 +706,18 @@
     <div id="status-message"></div>
 
     <script>
-        // --- Firebase Configuration (REPLACE WITH YOUR ACTUAL CONFIG) ---
-        // ATENCIÓN: Debes reemplazar estos valores con la configuración de tu proyecto de Firebase.
-        // Puedes encontrar esta información en la Consola de Firebase -> Configuración del proyecto.
+        // --- Firebase Configuration ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY", // Reemplaza con tu clave API
-            authDomain: "YOUR_AUTH_DOMAIN", // Reemplaza con tu dominio de autenticación
-            projectId: "YOUR_PROJECT_ID", // Reemplaza con tu ID de proyecto
-            storageBucket: "YOUR_STORAGE_BUCKET", // Reemplaza con tu bucket de almacenamiento
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Reemplaza con tu ID de remitente de mensajes
-            appId: "YOUR_APP_ID", // Reemplaza con tu ID de aplicación
-            measurementId: "YOUR_MEASUREMENT_ID" // Opcional si no usas Firebase Analytics
+            apiKey: "AIzaSyCimRCv6S5u0FhsfWrW_3A0dQJy0uAKVro",
+            authDomain: "facba-69d41.firebaseapp.com",
+            projectId: "facba-69d41",
+            storageBucket: "facba-69d41.firebasestorage.app",
+            messagingSenderId: "264089433073",
+            appId: "1:264089433073:web:968551648758972eb74a50",
+            measurementId: "G-NL7Y6NDH99"
         };
 
-        // Check if Firebase config placeholders are still present
-        if (firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.projectId === "YOUR_PROJECT_ID") {
-            console.error("ERROR DE CONFIGURACIÓN DE FIREBASE: Por favor, reemplaza los valores de 'YOUR_API_KEY', 'YOUR_AUTH_DOMAIN', 'YOUR_PROJECT_ID', etc., en la variable 'firebaseConfig' con la información real de tu proyecto de Firebase. Sin esta configuración, la conexión a Firestore no funcionará correctamente.");
-            showStatusMessage("Error de Firebase: Configuración incompleta. Consulta la consola para más detalles.", "error");
-        }
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // --- DOM Elements ---
+        // --- DOM Elements (Global references) ---
         const mainHeaderTitle = document.getElementById('main-header-title');
         const mainWorkspace = document.getElementById('main-workspace');
         const chatButton = document.getElementById('chat-button');
@@ -671,7 +725,6 @@
         const passwordModal = document.getElementById('password-modal');
         const passwordModalCloseBtn = document.getElementById('password-modal-close-btn');
 
-        // Password Form Elements
         let passwordForm = document.getElementById('password-form');
         let passwordIdInput = document.getElementById('password-id');
         let serviceNameInput = document.getElementById('service-name');
@@ -683,13 +736,86 @@
         let formSubmitButton = document.getElementById('form-submit-button');
         let passwordListDiv = document.getElementById('password-list');
         let noPasswordsMessage = document.getElementById('no-passwords-message');
-
-        // New elements for password visibility toggle
         const togglePasswordVisibilityBtn = document.getElementById('toggle-password-visibility');
-
 
         const statusMessageDiv = document.getElementById('status-message');
         let statusMessageTimeout;
+
+        let db; // Variable para la instancia de Firestore
+        let passwords = []; // Mover la declaración de passwords a un ámbito global
+
+        // Initialize Firebase
+        if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId) {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+
+            // Real-time listener for passwords
+            db.collection('passwords').onSnapshot(snapshot => {
+                console.log('Snapshot de Firestore recibido. Número de documentos:', snapshot.size);
+                passwords = [];
+                snapshot.forEach(doc => {
+                    passwords.push({ id: doc.id, ...doc.data() });
+                });
+                console.log('Contraseñas cargadas en el array local:', passwords);
+                renderPasswords();
+                showStatusMessage('Lista de contraseñas actualizada.', 'info');
+            }, error => {
+                console.error("Error al obtener contraseñas de Firestore:", error);
+                if (error.code === 'permission-denied') {
+                    showStatusMessage('Error de permisos: Revisa las reglas de seguridad de Firestore para la colección "passwords".', 'error');
+                } else {
+                    showStatusMessage('Error al cargar contraseñas: ' + error.message, 'error');
+                }
+            });
+
+            // --- Form Submission Logic (Firebase Integrated) ---
+            passwordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const id = passwordIdInput.value;
+                const serviceName = serviceNameInput.value.trim();
+                const url = urlInput.value.trim();
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                const tags = tagsInput.value.trim();
+                const notes = notesInput.value.trim();
+
+                if (!serviceName || !username || !password) {
+                    showStatusMessage('Nombre del servicio, usuario y contraseña son obligatorios.', 'error');
+                    return;
+                }
+
+                const passwordData = {
+                    serviceName,
+                    url,
+                    username,
+                    password,
+                    tags,
+                    notes,
+                };
+
+                try {
+                    if (id) {
+                        await db.collection('passwords').doc(id).update(passwordData);
+                        showStatusMessage('Contraseña actualizada con éxito.', 'success');
+                    } else {
+                        await db.collection('passwords').add(passwordData);
+                        showStatusMessage('Contraseña añadida con éxito.', 'success');
+                    }
+                    passwordForm.reset();
+                    passwordIdInput.value = '';
+                    formSubmitButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Añadir Contraseña';
+                } catch (error) {
+                    console.error("Error al guardar contraseña: ", error);
+                    showStatusMessage('Error al guardar contraseña: ' + error.message, 'error');
+                }
+            });
+
+        } else {
+            showStatusMessage("Error de Firebase: La configuración no ha sido completada. Las funciones de guardar/cargar no estarán disponibles.", "error");
+            console.warn("Firebase no se ha inicializado. Por favor, completa la configuración de 'firebaseConfig' con tus credenciales reales.");
+        }
+
 
         // --- Global Utility Functions ---
         function showStatusMessage(message, type = 'info') {
@@ -727,33 +853,20 @@
         }
 
         // --- Password Management Functions (Firebase Integrated) ---
-
-        // Real-time listener for passwords
-        let passwords = [];
-        db.collection('passwords').onSnapshot(snapshot => {
-            passwords = [];
-            snapshot.forEach(doc => {
-                passwords.push({ id: doc.id, ...doc.data() });
-            });
-            renderPasswords();
-            showStatusMessage('Lista de contraseñas actualizada.', 'info');
-        }, error => {
-            console.error("Error fetching passwords: ", error);
-            showStatusMessage('Error al cargar contraseñas: ' + error.message, 'error');
-        });
-
-
         function renderPasswords() {
             if (!passwordListDiv || !noPasswordsMessage) {
+                console.warn('passwordListDiv o noPasswordsMessage no están disponibles para renderizar.');
                 return;
             }
 
             passwordListDiv.innerHTML = '';
             if (passwords.length === 0) {
                 noPasswordsMessage.style.display = 'block';
+                console.log('No hay contraseñas para mostrar, mostrando mensaje de "no hay contraseñas".');
                 return;
             } else {
                 noPasswordsMessage.style.display = 'none';
+                console.log('Contraseñas encontradas, ocultando mensaje de "no hay contraseñas".');
             }
 
             passwords.forEach(pw => {
@@ -762,40 +875,52 @@
                 passwordItem.setAttribute('data-id', pw.id);
 
                 passwordItem.innerHTML = `
-                    <div class="password-details">
-                        <h3>
-                            ${pw.serviceName}
-                            <button class="action-icon-btn copy-field-btn" data-value="${pw.serviceName}" title="Copiar Servicio">
+                    <div class="password-item-grid">
+                        <div class="field-container col-span-full">
+                            <h3 class="font-semibold text-lg text-blue-700">${pw.serviceName}</h3>
+                            <button class="copy-field-btn" data-value="${pw.serviceName}" title="Copiar Servicio">
                                 <i class="fas fa-copy"></i>
                             </button>
-                        </h3>
-                        <p>
-                            Usuario: ${pw.username}
-                            <button class="action-icon-btn copy-field-btn" data-value="${pw.username}" title="Copiar Usuario">
+                        </div>
+
+                        <div class="field-container">
+                            <span class="field-label">Usuario:</span>
+                            <span class="field-value font-medium">${pw.username}</span>
+                            <button class="copy-field-btn" data-value="${pw.username}" title="Copiar Usuario">
                                 <i class="fas fa-copy"></i>
                             </button>
-                        </p>
-                        <p>
-                            URL: ${pw.url ? `<a href="${pw.url}" target="_blank" class="text-blue-600 hover:underline">${pw.url}</a>` : 'N/A'}
-                            ${pw.url ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.url}" title="Copiar URL"><i class="fas fa-copy"></i></button>` : ''}
-                        </p>
-                        <p>
-                            Contraseña: <span class="password-display">${'*'.repeat(pw.password.length)}</span>
-                            <button class="action-icon-btn show-hide-btn" title="Mostrar/Ocultar Contraseña" data-visible="false" data-password="${pw.password}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-icon-btn copy-field-btn" data-value="${pw.password}" title="Copiar Contraseña">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </p>
-                        <p class="text-xs text-slate-400">
-                            Etiquetas: ${pw.tags || 'N/A'}
-                            ${pw.tags ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.tags}" title="Copiar Etiquetas"><i class="fas fa-copy"></i></button>` : ''}
-                        </p>
-                        <p class="text-xs text-slate-400">
-                            Notas: ${pw.notes || 'N/A'}
-                            ${pw.notes ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.notes}" title="Copiar Notas"><i class="fas fa-copy"></i></button>` : ''}
-                        </p>
+                        </div>
+
+                        <div class="field-container">
+                            <span class="field-label">Contraseña:</span>
+                            <span class="field-value password-display font-medium">${'*'.repeat(pw.password.length)}</span>
+                            <div class="flex gap-1 ml-2">
+                                <button class="action-icon-btn show-hide-btn text-sm" title="Mostrar/Ocultar" data-visible="false" data-password="${pw.password}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="copy-field-btn text-sm" data-value="${pw.password}" title="Copiar Contraseña">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="field-container col-span-full">
+                            <span class="field-label">URL:</span>
+                            <span class="field-value">${pw.url ? `<a href="${pw.url}" target="_blank">${pw.url}</a>` : 'N/A'}</span>
+                            ${pw.url ? `<button class="copy-field-btn" data-value="${pw.url}" title="Copiar URL"><i class="fas fa-copy"></i></button>` : ''}
+                        </div>
+
+                        <div class="notes-area col-span-full">
+                            <span class="field-label">Etiquetas:</span>
+                            <span class="field-value">${pw.tags || 'N/A'}</span>
+                            ${pw.tags ? `<button class="copy-field-btn" data-value="${pw.tags}" title="Copiar Etiquetas"><i class="fas fa-copy"></i></button>` : ''}
+                        </div>
+
+                        <div class="notes-area col-span-full">
+                            <span class="field-label">Notas:</span>
+                            <span class="field-value">${pw.notes || 'N/A'}</span>
+                            ${pw.notes ? `<button class="copy-field-btn" data-value="${pw.notes}" title="Copiar Notas"><i class="fas fa-copy"></i></button>` : ''}
+                        </div>
                     </div>
                     <div class="password-actions">
                         <button class="action-icon-btn edit-btn" title="Editar" data-id="${pw.id}">
@@ -902,52 +1027,10 @@
             });
         }
 
-        // --- Form Submission Logic ---
-        passwordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const id = passwordIdInput.value;
-            const serviceName = serviceNameInput.value.trim();
-            const url = urlInput.value.trim();
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value;
-            const tags = tagsInput.value.trim();
-            const notes = notesInput.value.trim();
-
-            if (!serviceName || !username || !password) {
-                showStatusMessage('Nombre del servicio, usuario y contraseña son obligatorios.', 'error');
-                return;
-            }
-
-            const passwordData = {
-                serviceName,
-                url,
-                username,
-                password,
-                tags,
-                notes,
-            };
-
-            try {
-                if (id) {
-                    await db.collection('passwords').doc(id).update(passwordData);
-                    showStatusMessage('Contraseña actualizada con éxito.', 'success');
-                } else {
-                    await db.collection('passwords').add(passwordData);
-                    showStatusMessage('Contraseña añadida con éxito.', 'success');
-                }
-                passwordForm.reset();
-                passwordIdInput.value = '';
-                formSubmitButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Añadir Contraseña';
-            } catch (error) {
-                console.error("Error saving password: ", error);
-                showStatusMessage('Error al guardar contraseña: ' + error.message, 'error');
-            }
-        });
-
         // --- Modal Functions ---
         function openPasswordModal() {
             passwordModal.classList.add('show');
+            console.log('Modal de contraseñas abierto.'); // Confirmación en consola
         }
 
         function closePasswordModal() {
