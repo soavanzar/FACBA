@@ -249,6 +249,9 @@
             margin-bottom: 0.15rem;
             word-wrap: break-word;
             white-space: pre-wrap;
+            display: flex; /* Para alinear el texto y el icono de copiar */
+            align-items: center;
+            gap: 0.25rem; /* Espacio entre texto y botón */
         }
         .password-details .password-display {
             font-family: 'Fira Code', 'Cascadia Code', monospace;
@@ -292,6 +295,21 @@
         .action-icon-btn.delete:hover {
             color: #ef4444;
         }
+        /* Estilo para los nuevos botones de copiar campo individual */
+        .copy-field-btn {
+            font-size: 0.8em; /* Más pequeño para que se ajuste al lado del texto */
+            padding: 0.2em 0.4em;
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            color: #64748b;
+        }
+        .copy-field-btn:hover {
+            background-color: #cbd5e1;
+            color: #1e293b;
+            transform: scale(1.1);
+        }
+
 
         /* Mensaje de estado */
         #status-message {
@@ -582,7 +600,12 @@
                         </div>
                         <div class="form-group">
                             <label for="password-input">Contraseña:</label>
-                            <input type="password" id="password-input" placeholder="Tu contraseña segura" required>
+                            <div class="relative">
+                                <input type="password" id="password-input" placeholder="Tu contraseña segura" required>
+                                <button type="button" id="toggle-password-visibility" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="tags">Etiquetas / Categorías (separadas por comas, opcional):</label>
@@ -618,15 +641,23 @@
 
     <script>
         // --- Firebase Configuration (REPLACE WITH YOUR ACTUAL CONFIG) ---
+        // ATENCIÓN: Debes reemplazar estos valores con la configuración de tu proyecto de Firebase.
+        // Puedes encontrar esta información en la Consola de Firebase -> Configuración del proyecto.
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            measurementId: "YOUR_MEASUREMENT_ID" // Opcional si no usas Analytics
+            apiKey: "YOUR_API_KEY", // Reemplaza con tu clave API
+            authDomain: "YOUR_AUTH_DOMAIN", // Reemplaza con tu dominio de autenticación
+            projectId: "YOUR_PROJECT_ID", // Reemplaza con tu ID de proyecto
+            storageBucket: "YOUR_STORAGE_BUCKET", // Reemplaza con tu bucket de almacenamiento
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Reemplaza con tu ID de remitente de mensajes
+            appId: "YOUR_APP_ID", // Reemplaza con tu ID de aplicación
+            measurementId: "YOUR_MEASUREMENT_ID" // Opcional si no usas Firebase Analytics
         };
+
+        // Check if Firebase config placeholders are still present
+        if (firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.projectId === "YOUR_PROJECT_ID") {
+            console.error("ERROR DE CONFIGURACIÓN DE FIREBASE: Por favor, reemplaza los valores de 'YOUR_API_KEY', 'YOUR_AUTH_DOMAIN', 'YOUR_PROJECT_ID', etc., en la variable 'firebaseConfig' con la información real de tu proyecto de Firebase. Sin esta configuración, la conexión a Firestore no funcionará correctamente.");
+            showStatusMessage("Error de Firebase: Configuración incompleta. Consulta la consola para más detalles.", "error");
+        }
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -636,9 +667,9 @@
         const mainHeaderTitle = document.getElementById('main-header-title');
         const mainWorkspace = document.getElementById('main-workspace');
         const chatButton = document.getElementById('chat-button');
-        const passwordModalButton = document.getElementById('password-modal-button'); // Nuevo botón de modal
-        const passwordModal = document.getElementById('password-modal'); // El modal
-        const passwordModalCloseBtn = document.getElementById('password-modal-close-btn'); // Botón de cerrar modal
+        const passwordModalButton = document.getElementById('password-modal-button');
+        const passwordModal = document.getElementById('password-modal');
+        const passwordModalCloseBtn = document.getElementById('password-modal-close-btn');
 
         // Password Form Elements
         let passwordForm = document.getElementById('password-form');
@@ -650,8 +681,12 @@
         let tagsInput = document.getElementById('tags');
         let notesInput = document.getElementById('notes');
         let formSubmitButton = document.getElementById('form-submit-button');
-        let passwordListDiv = document.getElementById('password-list'); // Ahora dentro del modal
-        let noPasswordsMessage = document.getElementById('no-passwords-message'); // Ahora dentro del modal
+        let passwordListDiv = document.getElementById('password-list');
+        let noPasswordsMessage = document.getElementById('no-passwords-message');
+
+        // New elements for password visibility toggle
+        const togglePasswordVisibilityBtn = document.getElementById('toggle-password-visibility');
+
 
         const statusMessageDiv = document.getElementById('status-message');
         let statusMessageTimeout;
@@ -676,6 +711,21 @@
             }, 3000);
         }
 
+        // Function to copy text to clipboard
+        function copyToClipboard(text) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showStatusMessage('Copiado al portapapeles!', 'success');
+            } catch (err) {
+                showStatusMessage('Error al copiar.', 'error');
+            }
+            document.body.removeChild(tempInput);
+        }
+
         // --- Password Management Functions (Firebase Integrated) ---
 
         // Real-time listener for passwords
@@ -685,7 +735,7 @@
             snapshot.forEach(doc => {
                 passwords.push({ id: doc.id, ...doc.data() });
             });
-            renderPasswords(); // Esto renderiza la lista en el modal
+            renderPasswords();
             showStatusMessage('Lista de contraseñas actualizada.', 'info');
         }, error => {
             console.error("Error fetching passwords: ", error);
@@ -694,10 +744,7 @@
 
 
         function renderPasswords() {
-            // Asegurarse de que los elementos del modal existan antes de intentar renderizar
             if (!passwordListDiv || !noPasswordsMessage) {
-                // Esto puede ocurrir si renderPasswords() se llama antes de que el DOM esté listo
-                // o si el modal no se ha inyectado aún (aunque en este caso siempre está en el HTML)
                 return;
             }
 
@@ -716,20 +763,41 @@
 
                 passwordItem.innerHTML = `
                     <div class="password-details">
-                        <h3>${pw.serviceName}</h3>
-                        <p>Usuario: ${pw.username}</p>
-                        <p>URL: ${pw.url ? `<a href="${pw.url}" target="_blank" class="text-blue-600 hover:underline">${pw.url}</a>` : 'N/A'}</p>
-                        <p>Contraseña: <span class="password-display">${'*'.repeat(pw.password.length)}</span></p>
-                        <p class="text-xs text-slate-400">Etiquetas: ${pw.tags || 'N/A'}</p>
-                        <p class="text-xs text-slate-400">Notas: ${pw.notes || 'N/A'}</p>
+                        <h3>
+                            ${pw.serviceName}
+                            <button class="action-icon-btn copy-field-btn" data-value="${pw.serviceName}" title="Copiar Servicio">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </h3>
+                        <p>
+                            Usuario: ${pw.username}
+                            <button class="action-icon-btn copy-field-btn" data-value="${pw.username}" title="Copiar Usuario">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </p>
+                        <p>
+                            URL: ${pw.url ? `<a href="${pw.url}" target="_blank" class="text-blue-600 hover:underline">${pw.url}</a>` : 'N/A'}
+                            ${pw.url ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.url}" title="Copiar URL"><i class="fas fa-copy"></i></button>` : ''}
+                        </p>
+                        <p>
+                            Contraseña: <span class="password-display">${'*'.repeat(pw.password.length)}</span>
+                            <button class="action-icon-btn show-hide-btn" title="Mostrar/Ocultar Contraseña" data-visible="false" data-password="${pw.password}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-icon-btn copy-field-btn" data-value="${pw.password}" title="Copiar Contraseña">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Etiquetas: ${pw.tags || 'N/A'}
+                            ${pw.tags ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.tags}" title="Copiar Etiquetas"><i class="fas fa-copy"></i></button>` : ''}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Notas: ${pw.notes || 'N/A'}
+                            ${pw.notes ? `<button class="action-icon-btn copy-field-btn" data-value="${pw.notes}" title="Copiar Notas"><i class="fas fa-copy"></i></button>` : ''}
+                        </p>
                     </div>
                     <div class="password-actions">
-                        <button class="action-icon-btn show-hide-btn" title="Mostrar/Ocultar Contraseña" data-visible="false" data-password="${pw.password}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-icon-btn copy-btn" title="Copiar Contraseña" data-password="${pw.password}">
-                            <i class="fas fa-copy"></i>
-                        </button>
                         <button class="action-icon-btn edit-btn" title="Editar" data-id="${pw.id}">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -744,13 +812,13 @@
         }
 
         function addEventListenersToPasswordItems() {
-            // Seleccionar solo los elementos dentro del modal o la sección de contraseñas si aplica
-            const currentPasswordItems = passwordModal.querySelectorAll('.password-item');
+            const currentPasswordItems = passwordListDiv.querySelectorAll('.password-item');
 
             currentPasswordItems.forEach(item => {
                 const id = item.getAttribute('data-id');
                 const passwordData = passwords.find(pw => pw.id === id);
 
+                // Show/Hide Password in Modal
                 const showHideBtn = item.querySelector('.show-hide-btn');
                 const passwordDisplaySpan = item.querySelector('.password-display');
                 if (showHideBtn && passwordDisplaySpan && passwordData) {
@@ -768,22 +836,15 @@
                     });
                 }
 
-                const copyBtn = item.querySelector('.copy-btn');
-                if (copyBtn && passwordData) {
+                // Copy individual fields in Modal
+                item.querySelectorAll('.copy-field-btn').forEach(copyBtn => {
                     copyBtn.addEventListener('click', () => {
-                        const tempInput = document.createElement('textarea');
-                        tempInput.value = passwordData.password;
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        try {
-                            document.execCommand('copy');
-                            showStatusMessage('Contraseña copiada al portapapeles!', 'success');
-                        } catch (err) {
-                            showStatusMessage('Error al copiar la contraseña.', 'error');
+                        const valueToCopy = copyBtn.getAttribute('data-value');
+                        if (valueToCopy) {
+                            copyToClipboard(valueToCopy);
                         }
-                        document.body.removeChild(tempInput);
                     });
-                }
+                });
 
                 const editBtn = item.querySelector('.edit-btn');
                 if (editBtn) {
@@ -800,7 +861,7 @@
                             formSubmitButton.innerHTML = '<i class="fas fa-save mr-2"></i> Actualizar Contraseña';
                             showStatusMessage('Editando contraseña...', 'info');
                             mainWorkspace.scrollTo({ top: 0, behavior: 'smooth' });
-                            closePasswordModal(); // Cerrar el modal al editar
+                            closePasswordModal();
                         }
                     });
                 }
@@ -887,7 +948,6 @@
         // --- Modal Functions ---
         function openPasswordModal() {
             passwordModal.classList.add('show');
-            // No need to call renderPasswords() here, as onSnapshot already keeps it updated
         }
 
         function closePasswordModal() {
@@ -911,10 +971,18 @@
             }
         });
 
+        // --- New Event Listener for Form Password Toggle ---
+        togglePasswordVisibilityBtn.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePasswordVisibilityBtn.querySelector('i').classList.toggle('fa-eye');
+            togglePasswordVisibilityBtn.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+
         // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
             mainHeaderTitle.textContent = 'Gestor de Contraseñas';
-            // The Firebase onSnapshot listener will automatically handle the initial rendering
         });
     </script>
 </body>
