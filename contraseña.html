@@ -864,6 +864,98 @@
         }
 
         // --- Password Management Functions (Firebase Integrated) ---
+        // Moved addEventListenersToPasswordItems definition before renderPasswords
+        function addEventListenersToPasswordItems() {
+            const currentPasswordItems = passwordListDiv.querySelectorAll('.password-item');
+
+            currentPasswordItems.forEach(item => {
+                const id = item.getAttribute('data-id');
+                const passwordData = passwords.find(pw => pw.id === id);
+
+                // Show/Hide Password in Modal
+                const showHideBtn = item.querySelector('.show-hide-btn');
+                const passwordDisplaySpan = item.querySelector('.password-display');
+                if (showHideBtn && passwordDisplaySpan && passwordData) {
+                    showHideBtn.addEventListener('click', () => {
+                        const isVisible = showHideBtn.getAttribute('data-visible') === 'true';
+                        if (isVisible) {
+                            passwordDisplaySpan.textContent = '*'.repeat(passwordData.password.length);
+                            showHideBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                            showHideBtn.setAttribute('data-visible', 'false');
+                        } else {
+                            passwordDisplaySpan.textContent = passwordData.password;
+                            showHideBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                            showHideBtn.setAttribute('data-visible', 'true');
+                        }
+                    });
+                }
+
+                // Copy individual fields in Modal
+                item.querySelectorAll('.copy-field-btn').forEach(copyBtn => {
+                    copyBtn.addEventListener('click', () => {
+                        const valueToCopy = copyBtn.getAttribute('data-value');
+                        if (valueToCopy) {
+                            copyToClipboard(valueToCopy);
+                        }
+                    });
+                });
+
+                const editBtn = item.querySelector('.edit-btn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', () => {
+                        const pwToEdit = passwords.find(pw => pw.id === id);
+                        if (pwToEdit) {
+                            passwordIdInput.value = pwToEdit.id;
+                            serviceNameInput.value = pwToEdit.serviceName;
+                            urlInput.value = pwToEdit.url || '';
+                            usernameInput.value = pwToEdit.username;
+                            passwordInput.value = pwToEdit.password;
+                            tagsInput.value = pwToEdit.tags || '';
+                            notesInput.value = pwToEdit.notes || '';
+                            formSubmitButton.innerHTML = '<i class="fas fa-save mr-2"></i> Actualizar Contraseña';
+                            showStatusMessage('Editando contraseña...', 'info');
+                            mainWorkspace.scrollTo({ top: 0, behavior: 'smooth' });
+                            closePasswordModal();
+                        }
+                    });
+                }
+
+                const deleteBtn = item.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => {
+                        const confirmationModal = document.createElement('div');
+                        confirmationModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        confirmationModal.innerHTML = `
+                            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                                <p class="text-lg font-semibold mb-4">¿Estás seguro de que quieres eliminar esta contraseña?</p>
+                                <div class="flex justify-center gap-4">
+                                    <button id="confirm-delete-btn" class="btn bg-red-500 hover:bg-red-600 text-white">Eliminar</button>
+                                    <button id="cancel-delete-btn" class="btn bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(confirmationModal);
+
+                        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+                            try {
+                                await db.collection('passwords').doc(id).delete();
+                                showStatusMessage('Contraseña eliminada con éxito.', 'success');
+                            } catch (error) {
+                                console.error("Error removing document: ", error);
+                                showStatusMessage('Error al eliminar: ' + error.message, 'error');
+                            } finally {
+                                document.body.removeChild(confirmationModal);
+                            }
+                        });
+
+                        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+                            document.body.removeChild(confirmationModal);
+                        });
+                    });
+                }
+            });
+        }
+
         function renderPasswords(passwordsToRender = passwords) { // Accept an argument for passwords to render
             if (!passwordListDiv || !noPasswordsMessage) {
                 console.warn('passwordListDiv o noPasswordsMessage no están disponibles para renderizar.');
