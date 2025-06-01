@@ -550,20 +550,19 @@
         /* Nuevo estilo para la cuadrícula dentro de password-item */
         .password-item-grid {
             display: grid;
-            grid-template-columns: 1fr; /* Una columna por defecto */
+            grid-template-columns: 1fr; /* Siempre una columna para que cada campo sea vertical */
             gap: 0.75rem; /* Espacio entre elementos */
             width: 100%;
         }
 
-        /* Ajustes para pantallas medianas y grandes */
+        /* Removiendo estilos que creaban dos columnas para mantener todo vertical */
         @media (min-width: 768px) {
             .password-item-grid {
-                grid-template-columns: repeat(2, 1fr); /* Dos columnas en pantallas medianas */
+                grid-template-columns: 1fr; /* Forzando una columna incluso en pantallas grandes */
             }
-            .password-item-grid .col-span-full {
-                grid-column: span 2 / span 2; /* Elementos que ocupan todo el ancho */
-            }
+            /* .password-item-grid .col-span-full ya no es tan crítico si siempre es 1 columna */
         }
+
 
         /* Estilo para los contenedores de campo individuales */
         .field-container {
@@ -597,13 +596,16 @@
             text-decoration: underline;
         }
 
-        /* Estilo para el área de notas */
+        /* Estilo para el área de notas y etiquetas (que se comportan como notas) */
         .notes-area {
             display: flex;
             flex-direction: column;
             width: 100%;
             padding: 0.5rem 0;
             border-bottom: 1px dashed #e2e8f0;
+        }
+        .notes-area:last-of-type {
+            border-bottom: none;
         }
         .notes-area .field-label {
             margin-bottom: 0.25rem;
@@ -614,6 +616,8 @@
             padding: 0.5rem;
             border-radius: 0.375rem;
             margin-top: 0.25rem;
+            white-space: pre-wrap; /* Mantiene saltos de línea */
+            word-break: break-word; /* Rompe palabras largas */
         }
         .notes-area .copy-field-btn {
             align-self: flex-end; /* Alinea el botón de copiar a la derecha */
@@ -697,6 +701,12 @@
                 <h3><i class="fas fa-list"></i> Tus Contraseñas Guardadas</h3>
                 <button class="password-modal-close-btn" id="password-modal-close-btn"><i class="fas fa-times"></i></button>
             </div>
+            <div class="relative mb-4">
+                <input type="text" id="password-search-input" placeholder="Buscar contraseñas..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+            </div>
             <div id="password-list">
                 <p class="text-center text-slate-500 mt-4" id="no-passwords-message">No hay contraseñas guardadas. ¡Añade una!</p>
             </div>
@@ -737,6 +747,7 @@
         let passwordListDiv = document.getElementById('password-list');
         let noPasswordsMessage = document.getElementById('no-passwords-message');
         const togglePasswordVisibilityBtn = document.getElementById('toggle-password-visibility');
+        const passwordSearchInput = document.getElementById('password-search-input'); // New search input element
 
         const statusMessageDiv = document.getElementById('status-message');
         let statusMessageTimeout;
@@ -757,7 +768,7 @@
                     passwords.push({ id: doc.id, ...doc.data() });
                 });
                 console.log('Contraseñas cargadas en el array local:', passwords);
-                renderPasswords();
+                filterPasswords(); // Call filterPasswords after loading to apply any existing search query
                 showStatusMessage('Lista de contraseñas actualizada.', 'info');
             }, error => {
                 console.error("Error al obtener contraseñas de Firestore:", error);
@@ -853,14 +864,14 @@
         }
 
         // --- Password Management Functions (Firebase Integrated) ---
-        function renderPasswords() {
+        function renderPasswords(passwordsToRender = passwords) { // Accept an argument for passwords to render
             if (!passwordListDiv || !noPasswordsMessage) {
                 console.warn('passwordListDiv o noPasswordsMessage no están disponibles para renderizar.');
                 return;
             }
 
             passwordListDiv.innerHTML = '';
-            if (passwords.length === 0) {
+            if (passwordsToRender.length === 0) {
                 noPasswordsMessage.style.display = 'block';
                 console.log('No hay contraseñas para mostrar, mostrando mensaje de "no hay contraseñas".');
                 return;
@@ -869,7 +880,14 @@
                 console.log('Contraseñas encontradas, ocultando mensaje de "no hay contraseñas".');
             }
 
-            passwords.forEach(pw => {
+            passwordsToRender.forEach(pw => {
+                // Prepend https:// if protocol is missing for URL
+                let displayUrl = pw.url;
+                let hrefUrl = pw.url;
+                if (pw.url && !/^https?:\/\//i.test(pw.url)) {
+                    hrefUrl = `https://${pw.url}`;
+                }
+
                 const passwordItem = document.createElement('div');
                 passwordItem.classList.add('password-item');
                 passwordItem.setAttribute('data-id', pw.id);
@@ -883,7 +901,7 @@
                             </button>
                         </div>
 
-                        <div class="field-container">
+                        <div class="field-container col-span-full">
                             <span class="field-label">Usuario:</span>
                             <span class="field-value font-medium">${pw.username}</span>
                             <button class="copy-field-btn" data-value="${pw.username}" title="Copiar Usuario">
@@ -891,7 +909,7 @@
                             </button>
                         </div>
 
-                        <div class="field-container">
+                        <div class="field-container col-span-full">
                             <span class="field-label">Contraseña:</span>
                             <span class="field-value password-display font-medium">${'*'.repeat(pw.password.length)}</span>
                             <div class="flex gap-1 ml-2">
@@ -906,8 +924,8 @@
 
                         <div class="field-container col-span-full">
                             <span class="field-label">URL:</span>
-                            <span class="field-value">${pw.url ? `<a href="${pw.url}" target="_blank">${pw.url}</a>` : 'N/A'}</span>
-                            ${pw.url ? `<button class="copy-field-btn" data-value="${pw.url}" title="Copiar URL"><i class="fas fa-copy"></i></button>` : ''}
+                            <span class="field-value">${displayUrl ? `<a href="${hrefUrl}" target="_blank" rel="noopener noreferrer">${displayUrl}</a>` : 'N/A'}</span>
+                            ${displayUrl ? `<button class="copy-field-btn" data-value="${displayUrl}" title="Copiar URL"><i class="fas fa-copy"></i></button>` : ''}
                         </div>
 
                         <div class="notes-area col-span-full">
@@ -936,101 +954,26 @@
             addEventListenersToPasswordItems();
         }
 
-        function addEventListenersToPasswordItems() {
-            const currentPasswordItems = passwordListDiv.querySelectorAll('.password-item');
-
-            currentPasswordItems.forEach(item => {
-                const id = item.getAttribute('data-id');
-                const passwordData = passwords.find(pw => pw.id === id);
-
-                // Show/Hide Password in Modal
-                const showHideBtn = item.querySelector('.show-hide-btn');
-                const passwordDisplaySpan = item.querySelector('.password-display');
-                if (showHideBtn && passwordDisplaySpan && passwordData) {
-                    showHideBtn.addEventListener('click', () => {
-                        const isVisible = showHideBtn.getAttribute('data-visible') === 'true';
-                        if (isVisible) {
-                            passwordDisplaySpan.textContent = '*'.repeat(passwordData.password.length);
-                            showHideBtn.innerHTML = '<i class="fas fa-eye"></i>';
-                            showHideBtn.setAttribute('data-visible', 'false');
-                        } else {
-                            passwordDisplaySpan.textContent = passwordData.password;
-                            showHideBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                            showHideBtn.setAttribute('data-visible', 'true');
-                        }
-                    });
-                }
-
-                // Copy individual fields in Modal
-                item.querySelectorAll('.copy-field-btn').forEach(copyBtn => {
-                    copyBtn.addEventListener('click', () => {
-                        const valueToCopy = copyBtn.getAttribute('data-value');
-                        if (valueToCopy) {
-                            copyToClipboard(valueToCopy);
-                        }
-                    });
-                });
-
-                const editBtn = item.querySelector('.edit-btn');
-                if (editBtn) {
-                    editBtn.addEventListener('click', () => {
-                        const pwToEdit = passwords.find(pw => pw.id === id);
-                        if (pwToEdit) {
-                            passwordIdInput.value = pwToEdit.id;
-                            serviceNameInput.value = pwToEdit.serviceName;
-                            urlInput.value = pwToEdit.url || '';
-                            usernameInput.value = pwToEdit.username;
-                            passwordInput.value = pwToEdit.password;
-                            tagsInput.value = pwToEdit.tags || '';
-                            notesInput.value = pwToEdit.notes || '';
-                            formSubmitButton.innerHTML = '<i class="fas fa-save mr-2"></i> Actualizar Contraseña';
-                            showStatusMessage('Editando contraseña...', 'info');
-                            mainWorkspace.scrollTo({ top: 0, behavior: 'smooth' });
-                            closePasswordModal();
-                        }
-                    });
-                }
-
-                const deleteBtn = item.querySelector('.delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', () => {
-                        const confirmationModal = document.createElement('div');
-                        confirmationModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                        confirmationModal.innerHTML = `
-                            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-                                <p class="text-lg font-semibold mb-4">¿Estás seguro de que quieres eliminar esta contraseña?</p>
-                                <div class="flex justify-center gap-4">
-                                    <button id="confirm-delete-btn" class="btn bg-red-500 hover:bg-red-600 text-white">Eliminar</button>
-                                    <button id="cancel-delete-btn" class="btn bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
-                                </div>
-                            </div>
-                        `;
-                        document.body.appendChild(confirmationModal);
-
-                        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-                            try {
-                                await db.collection('passwords').doc(id).delete();
-                                showStatusMessage('Contraseña eliminada con éxito.', 'success');
-                            } catch (error) {
-                                console.error("Error removing document: ", error);
-                                showStatusMessage('Error al eliminar: ' + error.message, 'error');
-                            } finally {
-                                document.body.removeChild(confirmationModal);
-                            }
-                        });
-
-                        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-                            document.body.removeChild(confirmationModal);
-                        });
-                    });
-                }
+        // --- New Function: Filter Passwords ---
+        function filterPasswords() {
+            const query = passwordSearchInput.value.toLowerCase();
+            const filtered = passwords.filter(pw => {
+                return (
+                    (pw.serviceName && pw.serviceName.toLowerCase().includes(query)) ||
+                    (pw.username && pw.username.toLowerCase().includes(query)) ||
+                    (pw.url && pw.url.toLowerCase().includes(query)) ||
+                    (pw.tags && pw.tags.toLowerCase().includes(query)) ||
+                    (pw.notes && pw.notes.toLowerCase().includes(query))
+                );
             });
+            renderPasswords(filtered); // Render the filtered list
         }
 
         // --- Modal Functions ---
         function openPasswordModal() {
             passwordModal.classList.add('show');
             console.log('Modal de contraseñas abierto.'); // Confirmación en consola
+            filterPasswords(); // Re-filter and render when modal opens
         }
 
         function closePasswordModal() {
@@ -1061,6 +1004,9 @@
             togglePasswordVisibilityBtn.querySelector('i').classList.toggle('fa-eye');
             togglePasswordVisibilityBtn.querySelector('i').classList.toggle('fa-eye-slash');
         });
+
+        // --- Event Listener for Search Input ---
+        passwordSearchInput.addEventListener('input', filterPasswords);
 
 
         // --- Initial Load ---
