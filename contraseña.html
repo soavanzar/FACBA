@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Contraseñas FACBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* Estilos CSS Base y de Diseño (Inspirado en Siigo) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Un gris muy claro, similar a Siigo */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #334155; /* text-slate-700 */
+        }
+        .dashboard-layout {
+            display: flex;
+            width: 100%;
+        }
+        /* Sidebar - Más delgado y sutil */
+        .sidebar {
+            width: 200px; /* Ancho más delgado */
+            background-color: #ffffff; /* Blanco */
+            color: #334155; /* Texto oscuro */
+            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05); /* Sombra más ligera */
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 1rem 0;
+            border-right: 1px solid #e2e8f0; /* Borde sutil */
+        }
+        .sidebar-header {
+            padding: 0 1rem 1rem; /* Padding reducido */
+            border-bottom: 1px solid #e2e8f0; /* Borde sutil */
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .sidebar-header h2 {
+            font-size: 1.25rem; /* text-xl, más pequeño */
+            font-weight: 700;
+            color: #3b82f6; /* Azul Siigo */
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem; /* Padding ajustado */
+            color: #475569; /* Gris oscuro para enlaces */
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #eff6ff; /* Azul muy claro al pasar el ratón/activo */
+            color: #3b82f6; /* Azul principal */
+            border-left: 4px solid #3b82f6; /* Barra azul activa */
+            padding-left: 1.05rem; /* Ajuste para compensar el borde */
+        }
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem; /* Tamaño de ícono ajustado */
+        }
+
+        /* Contenido principal */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff; /* Blanco para el área de contenido */
+        }
+        /* Header del contenido principal - Más limpio */
+        .header {
+            background-color: #ffffff;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra más ligera */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .header h1 {
+            font-size: 1.5rem; /* text-xl */
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            color: #475569;
+        }
+        .user-avatar {
+            width: 36px; /* Tamaño más pequeño */
+            height: 36px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        /* Estilo para el nuevo icono de chat y candado */
+        .chat-button, .password-modal-button {
+            font-size: 1.5rem; /* Tamaño del icono */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            color: #3b82f6; /* Color azul para el chat */
+            margin-left: 0.75rem; /* Espacio entre iconos */
+        }
+
+        .chat-button:hover, .password-modal-button:hover {
+            color: #2563eb; /* Azul más oscuro al pasar el ratón */
+            transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+        }
+
+        /* Área de trabajo */
+        .workspace {
+            padding: 2rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f0f2f5; /* Fondo de trabajo gris claro */
+        }
+        .card {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem; /* Bordes ligeramente más suaves */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* Sombra sutil */
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0; /* Borde más fino */
+        }
+        .card-header {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #f0f2f5; /* Separador sutil */
+            padding-bottom: 0.75rem;
+        }
+        .card-header i {
+            margin-right: 0.5rem;
+            color: #3b82f6; /* Azul principal */
+        }
+
+        /* Estilos específicos para el gestor de contraseñas */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.95rem; /* Texto de etiqueta un poco más pequeño */
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem; /* Bordes un poco más angulares */
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+            background-color: #f8fafc; /* Fondo ligeramente gris para inputs */
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); /* Sombra de foco más suave */
+            background-color: #ffffff; /* Blanco al enfocar */
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem; /* Bordes consistentes */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.35);
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.25);
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.35);
+        }
+        .password-list-container {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+        }
+        .password-item {
+            background-color: #ffffff; /* Fondo blanco para cada item */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Sombra ligera */
+            border: 1px solid #e2e8f0;
+        }
+        .password-details {
+            flex-grow: 1;
+            margin-right: 1rem;
+            min-width: 0;
+        }
+        .password-details h3 {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.05rem; /* Títulos un poco más pequeños */
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .password-details p {
+            color: #64748b;
+            font-size: 0.85rem; /* Texto más pequeño */
+            margin-bottom: 0.15rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .password-details .password-display {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            background-color: #e2e8f0; /* Fondo gris claro */
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.2rem;
+            display: inline-block;
+            font-size: 0.85rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .password-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-shrink: 0;
+        }
+        .action-icon-btn {
+            background: #f0f2f5; /* Fondo ligero para botones de acción */
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 1.1rem; /* Íconos un poco más pequeños */
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.6rem; /* Padding ajustado */
+            border-radius: 0.375rem;
+        }
+        .action-icon-btn:hover {
+            color: #1e293b;
+            background-color: #e2e8f0;
+            transform: scale(1.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        .action-icon-btn.copy:hover {
+            color: #22c55e;
+        }
+        .action-icon-btn.edit:hover {
+            color: #f59e0b;
+        }
+        .action-icon-btn.delete:hover {
+            color: #ef4444;
+        }
+
+        /* Mensaje de estado */
+        #status-message {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        #status-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #status-message.success { background-color: #22c55e; }
+        #status-message.error { background-color: #ef4444; }
+        #status-message.info { background-color: #3b82f6; }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: center; /* Centrar el único enlace */
+                padding: 1rem 0;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .sidebar-header {
+                display: none;
+            }
+            .sidebar nav ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            .nav-link {
+                padding: 0.5rem 1rem;
+                flex-direction: column;
+                text-align: center;
+                font-size: 0.8rem;
+                border-left: none !important; /* Eliminar borde en móvil */
+                border-bottom: 3px solid transparent;
+            }
+            .nav-link.active {
+                border-bottom-color: #3b82f6 !important;
+                padding-bottom: calc(0.5rem - 3px); /* Ajuste para el borde inferior */
+            }
+            .nav-link i {
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+            }
+            .main-content {
+                padding-top: 0;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+            .header h1 {
+                margin-bottom: 0.5rem;
+                font-size: 1.25rem;
+            }
+            .workspace {
+                padding: 1rem;
+            }
+            .password-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .password-details {
+                margin-right: 0;
+                margin-bottom: 0.75rem;
+                width: 100%;
+            }
+            .password-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        /* NUEVOS ESTILOS PARA EL FORMULARIO "TIPO SISTEMA" */
+        .form-card {
+            background-color: #eef2f6; /* Fondo ligeramente más oscuro para el formulario */
+            border: 1px solid #d1d5db; /* Borde más pronunciado */
+            border-radius: 0.75rem; /* Bordes más marcados */
+            padding: 2rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra interior y exterior */
+        }
+
+        .form-card .card-header {
+            background-color: #e2e8f0; /* Fondo del header del formulario */
+            border-bottom: 1px solid #cbd5e1; /* Borde inferior */
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0; /* Bordes superiores redondeados */
+            margin-left: -2rem; /* Extender el header */
+            margin-right: -2rem;
+            margin-top: -2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Espacio entre título e ícono */
+        }
+        .form-card .card-header i.fa-cogs { /* Estilo para el ícono de tuercas */
+            color: #64748b; /* Color gris para las tuercas */
+            font-size: 1.5rem; /* Tamaño de las tuercas */
+            animation: spin 8s linear infinite; /* Animación de giro */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-card .form-group input,
+        .form-card .form-group textarea {
+            background-color: #ffffff; /* Fondo blanco para inputs */
+            border: 1px solid #94a3b8; /* Borde más oscuro para inputs */
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08); /* Sombra interior */
+            padding: 0.85rem; /* Más padding */
+            font-size: 1rem; /* Tamaño de fuente ligeramente mayor */
+        }
+        .form-card .form-group input:focus,
+        .form-card .form-group textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-card .btn-primary {
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); /* Degradado para el botón */
+            border: 1px solid #1d4ed8; /* Borde más oscuro */
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4); /* Sombra más pronunciada */
+            font-size: 1.05rem; /* Texto de botón más grande */
+            padding: 0.85rem 2rem;
+        }
+        .form-card .btn-primary:hover {
+            background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Estilos para el Modal de Contraseñas */
+        #password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0;
+            transition: visibility 0.3s, opacity 0.3s;
+        }
+
+        #password-modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .password-modal-content {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px; /* Ancho máximo para el modal */
+            max-height: 80vh; /* Altura máxima para permitir scroll */
+            overflow-y: auto; /* Scroll si el contenido es largo */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .password-modal-content .card-header {
+            border-bottom: 1px solid #f0f2f5;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .password-modal-content .card-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .password-modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: absolute; /* Posicionar el botón de cierre */
+            top: 1rem;
+            right: 1.5rem;
+        }
+
+        .password-modal-close-btn:hover {
+            color: #ef4444; /* Rojo al pasar el ratón */
+        }
+
+        .password-modal-content .password-list-container {
+            margin-top: 0; /* Eliminar margen superior si ya está dentro de un card */
+            padding-top: 0;
+            flex-grow: 1;
+        }
+        .password-modal-content .password-item {
+            background-color: #f8fafc; /* Fondo ligeramente diferente para items en modal */
+        }
+
+        @media (max-width: 640px) {
+            .password-modal-content {
+                padding: 1rem;
+                max-width: 95%;
+            }
+            .password-modal-close-btn {
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-lock mr-2"></i>FACBA Pass</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-section="Passwords"><i class="fas fa-key"></i> Contraseñas</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <h1 id="main-header-title">Gestor de Contraseñas</h1>
+                <div class="user-info">
+                    <i class="fas fa-lock password-modal-button" id="password-modal-button" title="Ver Contraseñas Guardadas"></i>
+                    <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
+                </div>
+            </header>
+
+            <section class="workspace" id="main-workspace">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <span><i class="fas fa-plus-circle"></i> Añadir/Editar Contraseña</span>
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <form id="password-form">
+                        <input type="hidden" id="password-id">
+                        <div class="form-group">
+                            <label for="service-name">Nombre del Servicio:</label>
+                            <input type="text" id="service-name" placeholder="Ej: Google, Netflix" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="url">URL / Sitio Web (opcional):</label>
+                            <input type="url" id="url" placeholder="Ej: https://www.google.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="username">Usuario / Email:</label>
+                            <input type="text" id="username" placeholder="Ej: mi_email@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password-input">Contraseña:</label>
+                            <input type="password" id="password-input" placeholder="Tu contraseña segura" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Etiquetas / Categorías (separadas por comas, opcional):</label>
+                            <input type="text" id="tags" placeholder="Ej: Trabajo, Personal, Bancos">
+                        </div>
+                        <div class="form-group">
+                            <label for="notes">Notas (opcional):</label>
+                            <textarea id="notes" rows="3" placeholder="Notas adicionales sobre esta contraseña..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full" id="form-submit-button">
+                            <i class="fas fa-plus-circle mr-2"></i> Añadir Contraseña
+                        </button>
+                    </form>
+                </div>
+
+                </section>
+        </main>
+    </div>
+
+    <div id="password-modal">
+        <div class="password-modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-list"></i> Tus Contraseñas Guardadas</h3>
+                <button class="password-modal-close-btn" id="password-modal-close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="password-list">
+                <p class="text-center text-slate-500 mt-4" id="no-passwords-message">No hay contraseñas guardadas. ¡Añade una!</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-message"></div>
+
+    <script>
+        // --- Firebase Configuration (REPLACE WITH YOUR ACTUAL CONFIG) ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID" // Opcional si no usas Analytics
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- DOM Elements ---
+        const mainHeaderTitle = document.getElementById('main-header-title');
+        const mainWorkspace = document.getElementById('main-workspace');
+        const chatButton = document.getElementById('chat-button');
+        const passwordModalButton = document.getElementById('password-modal-button'); // Nuevo botón de modal
+        const passwordModal = document.getElementById('password-modal'); // El modal
+        const passwordModalCloseBtn = document.getElementById('password-modal-close-btn'); // Botón de cerrar modal
+
+        // Password Form Elements
+        let passwordForm = document.getElementById('password-form');
+        let passwordIdInput = document.getElementById('password-id');
+        let serviceNameInput = document.getElementById('service-name');
+        let urlInput = document.getElementById('url');
+        let usernameInput = document.getElementById('username');
+        let passwordInput = document.getElementById('password-input');
+        let tagsInput = document.getElementById('tags');
+        let notesInput = document.getElementById('notes');
+        let formSubmitButton = document.getElementById('form-submit-button');
+        let passwordListDiv = document.getElementById('password-list'); // Ahora dentro del modal
+        let noPasswordsMessage = document.getElementById('no-passwords-message'); // Ahora dentro del modal
+
+        const statusMessageDiv = document.getElementById('status-message');
+        let statusMessageTimeout;
+
+        // --- Global Utility Functions ---
+        function showStatusMessage(message, type = 'info') {
+            clearTimeout(statusMessageTimeout);
+            statusMessageDiv.className = '';
+            statusMessageDiv.textContent = '';
+            statusMessageDiv.classList.add(type);
+
+            if (!message) {
+                statusMessageDiv.classList.remove('show');
+                return;
+            }
+
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.classList.add('show');
+
+            statusMessageTimeout = setTimeout(() => {
+                statusMessageDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Password Management Functions (Firebase Integrated) ---
+
+        // Real-time listener for passwords
+        let passwords = [];
+        db.collection('passwords').onSnapshot(snapshot => {
+            passwords = [];
+            snapshot.forEach(doc => {
+                passwords.push({ id: doc.id, ...doc.data() });
+            });
+            renderPasswords(); // Esto renderiza la lista en el modal
+            showStatusMessage('Lista de contraseñas actualizada.', 'info');
+        }, error => {
+            console.error("Error fetching passwords: ", error);
+            showStatusMessage('Error al cargar contraseñas: ' + error.message, 'error');
+        });
+
+
+        function renderPasswords() {
+            // Asegurarse de que los elementos del modal existan antes de intentar renderizar
+            if (!passwordListDiv || !noPasswordsMessage) {
+                // Esto puede ocurrir si renderPasswords() se llama antes de que el DOM esté listo
+                // o si el modal no se ha inyectado aún (aunque en este caso siempre está en el HTML)
+                return;
+            }
+
+            passwordListDiv.innerHTML = '';
+            if (passwords.length === 0) {
+                noPasswordsMessage.style.display = 'block';
+                return;
+            } else {
+                noPasswordsMessage.style.display = 'none';
+            }
+
+            passwords.forEach(pw => {
+                const passwordItem = document.createElement('div');
+                passwordItem.classList.add('password-item');
+                passwordItem.setAttribute('data-id', pw.id);
+
+                passwordItem.innerHTML = `
+                    <div class="password-details">
+                        <h3>${pw.serviceName}</h3>
+                        <p>Usuario: ${pw.username}</p>
+                        <p>URL: ${pw.url ? `<a href="${pw.url}" target="_blank" class="text-blue-600 hover:underline">${pw.url}</a>` : 'N/A'}</p>
+                        <p>Contraseña: <span class="password-display">${'*'.repeat(pw.password.length)}</span></p>
+                        <p class="text-xs text-slate-400">Etiquetas: ${pw.tags || 'N/A'}</p>
+                        <p class="text-xs text-slate-400">Notas: ${pw.notes || 'N/A'}</p>
+                    </div>
+                    <div class="password-actions">
+                        <button class="action-icon-btn show-hide-btn" title="Mostrar/Ocultar Contraseña" data-visible="false" data-password="${pw.password}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-icon-btn copy-btn" title="Copiar Contraseña" data-password="${pw.password}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="action-icon-btn edit-btn" title="Editar" data-id="${pw.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-icon-btn delete-btn" title="Eliminar" data-id="${pw.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                passwordListDiv.appendChild(passwordItem);
+            });
+            addEventListenersToPasswordItems();
+        }
+
+        function addEventListenersToPasswordItems() {
+            // Seleccionar solo los elementos dentro del modal o la sección de contraseñas si aplica
+            const currentPasswordItems = passwordModal.querySelectorAll('.password-item');
+
+            currentPasswordItems.forEach(item => {
+                const id = item.getAttribute('data-id');
+                const passwordData = passwords.find(pw => pw.id === id);
+
+                const showHideBtn = item.querySelector('.show-hide-btn');
+                const passwordDisplaySpan = item.querySelector('.password-display');
+                if (showHideBtn && passwordDisplaySpan && passwordData) {
+                    showHideBtn.addEventListener('click', () => {
+                        const isVisible = showHideBtn.getAttribute('data-visible') === 'true';
+                        if (isVisible) {
+                            passwordDisplaySpan.textContent = '*'.repeat(passwordData.password.length);
+                            showHideBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                            showHideBtn.setAttribute('data-visible', 'false');
+                        } else {
+                            passwordDisplaySpan.textContent = passwordData.password;
+                            showHideBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                            showHideBtn.setAttribute('data-visible', 'true');
+                        }
+                    });
+                }
+
+                const copyBtn = item.querySelector('.copy-btn');
+                if (copyBtn && passwordData) {
+                    copyBtn.addEventListener('click', () => {
+                        const tempInput = document.createElement('textarea');
+                        tempInput.value = passwordData.password;
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        try {
+                            document.execCommand('copy');
+                            showStatusMessage('Contraseña copiada al portapapeles!', 'success');
+                        } catch (err) {
+                            showStatusMessage('Error al copiar la contraseña.', 'error');
+                        }
+                        document.body.removeChild(tempInput);
+                    });
+                }
+
+                const editBtn = item.querySelector('.edit-btn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', () => {
+                        const pwToEdit = passwords.find(pw => pw.id === id);
+                        if (pwToEdit) {
+                            passwordIdInput.value = pwToEdit.id;
+                            serviceNameInput.value = pwToEdit.serviceName;
+                            urlInput.value = pwToEdit.url || '';
+                            usernameInput.value = pwToEdit.username;
+                            passwordInput.value = pwToEdit.password;
+                            tagsInput.value = pwToEdit.tags || '';
+                            notesInput.value = pwToEdit.notes || '';
+                            formSubmitButton.innerHTML = '<i class="fas fa-save mr-2"></i> Actualizar Contraseña';
+                            showStatusMessage('Editando contraseña...', 'info');
+                            mainWorkspace.scrollTo({ top: 0, behavior: 'smooth' });
+                            closePasswordModal(); // Cerrar el modal al editar
+                        }
+                    });
+                }
+
+                const deleteBtn = item.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => {
+                        const confirmationModal = document.createElement('div');
+                        confirmationModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        confirmationModal.innerHTML = `
+                            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                                <p class="text-lg font-semibold mb-4">¿Estás seguro de que quieres eliminar esta contraseña?</p>
+                                <div class="flex justify-center gap-4">
+                                    <button id="confirm-delete-btn" class="btn bg-red-500 hover:bg-red-600 text-white">Eliminar</button>
+                                    <button id="cancel-delete-btn" class="btn bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(confirmationModal);
+
+                        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+                            try {
+                                await db.collection('passwords').doc(id).delete();
+                                showStatusMessage('Contraseña eliminada con éxito.', 'success');
+                            } catch (error) {
+                                console.error("Error removing document: ", error);
+                                showStatusMessage('Error al eliminar: ' + error.message, 'error');
+                            } finally {
+                                document.body.removeChild(confirmationModal);
+                            }
+                        });
+
+                        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+                            document.body.removeChild(confirmationModal);
+                        });
+                    });
+                }
+            });
+        }
+
+        // --- Form Submission Logic ---
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = passwordIdInput.value;
+            const serviceName = serviceNameInput.value.trim();
+            const url = urlInput.value.trim();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            const tags = tagsInput.value.trim();
+            const notes = notesInput.value.trim();
+
+            if (!serviceName || !username || !password) {
+                showStatusMessage('Nombre del servicio, usuario y contraseña son obligatorios.', 'error');
+                return;
+            }
+
+            const passwordData = {
+                serviceName,
+                url,
+                username,
+                password,
+                tags,
+                notes,
+            };
+
+            try {
+                if (id) {
+                    await db.collection('passwords').doc(id).update(passwordData);
+                    showStatusMessage('Contraseña actualizada con éxito.', 'success');
+                } else {
+                    await db.collection('passwords').add(passwordData);
+                    showStatusMessage('Contraseña añadida con éxito.', 'success');
+                }
+                passwordForm.reset();
+                passwordIdInput.value = '';
+                formSubmitButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Añadir Contraseña';
+            } catch (error) {
+                console.error("Error saving password: ", error);
+                showStatusMessage('Error al guardar contraseña: ' + error.message, 'error');
+            }
+        });
+
+        // --- Modal Functions ---
+        function openPasswordModal() {
+            passwordModal.classList.add('show');
+            // No need to call renderPasswords() here, as onSnapshot already keeps it updated
+        }
+
+        function closePasswordModal() {
+            passwordModal.classList.remove('show');
+        }
+
+        // --- Event Listeners for Header Buttons ---
+        chatButton.addEventListener('click', () => {
+            const chatUrl = 'https://soavanzar.github.io/FACBA/chat.html';
+            const windowName = 'FACBAChatWindow';
+            window.open(chatUrl, windowName);
+        });
+
+        passwordModalButton.addEventListener('click', openPasswordModal);
+        passwordModalCloseBtn.addEventListener('click', closePasswordModal);
+
+        // Close modal if clicking outside content
+        passwordModal.addEventListener('click', (e) => {
+            if (e.target === passwordModal) {
+                closePasswordModal();
+            }
+        });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            mainHeaderTitle.textContent = 'Gestor de Contraseñas';
+            // The Firebase onSnapshot listener will automatically handle the initial rendering
+        });
+    </script>
+</body>
+</html>
