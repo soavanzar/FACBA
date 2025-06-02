@@ -1309,8 +1309,14 @@
                 requestAnimationFrame(tick); // Iniciar el bucle de escaneo
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
-                cameraModalStatus.textContent = 'Error al iniciar la cámara. Asegúrate de dar permisos.';
-                showStatusMessage('Error al iniciar la cámara: ' + err.message, 'error');
+                // MODIFICACIÓN: Mensaje más específico para "Permission denied"
+                if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+                    cameraModalStatus.textContent = 'Permiso de cámara denegado. Por favor, concede acceso a la cámara en la configuración de tu navegador para usar esta función.';
+                    showStatusMessage('Permiso de cámara denegado. Habilítalo en la configuración del navegador.', 'error');
+                } else {
+                    cameraModalStatus.textContent = 'Error al iniciar la cámara. Asegúrate de dar permisos.';
+                    showStatusMessage('Error al iniciar la cámara: ' + err.message, 'error');
+                }
             }
         }
 
