@@ -523,6 +523,44 @@
             margin-top: 10px;
         }
 
+        /* Controles de cámara (flash, cambio de cámara) */
+        .camera-controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 15px;
+            gap: 10px;
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+        }
+
+        .camera-controls button,
+        .camera-controls select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .camera-controls button:hover,
+        .camera-controls select:hover {
+            background-color: #e5e7eb;
+        }
+
+        .camera-controls button.active-flash {
+            background-color: #22c55e; /* Verde para flash activo */
+            color: white;
+            border-color: #22c55e;
+        }
+
+        .camera-controls button.active-flash:hover {
+            background-color: #16a34a;
+        }
+
+
         /* Estilos para el modal de PDF */
         #pdf-modal .modal-content {
             max-width: 600px;
@@ -735,7 +773,11 @@
             <video id="video-feed" autoplay playsinline></video>
             <canvas id="camera-canvas" style="display:none;"></canvas>
             <div id="camera-modal-status" class="mt-4">Esperando código...</div>
-            <div class="modal-buttons mt-4">
+            <div class="camera-controls">
+                <button type="button" id="toggle-flash-btn" class="hidden">
+                    <i class="fas fa-lightbulb"></i> Activar Flash
+                </button>
+                <select id="camera-select" class="p-2 border rounded-md"></select>
                 <button type="button" class="cancel-button" id="stop-camera-btn">Detener Cámara</button>
             </div>
         </div>
@@ -841,22 +883,27 @@
         const cameraCanvas = document.getElementById('camera-canvas');
         const cameraModalStatus = document.getElementById('camera-modal-status');
         const stopCameraButton = document.getElementById('stop-camera-btn');
+        const toggleFlashButton = document.getElementById('toggle-flash-btn'); // Nuevo botón de flash
+        const cameraSelect = document.getElementById('camera-select'); // Nuevo selector de cámara
+
         let cameraStream = null; // Para almacenar la transmisión de la cámara
         let animationFrameId = null; // Para controlar el bucle de escaneo
+        let isFlashOn = false; // Estado del flash
+
+        // Instancia del lector de PDF417 de ZXing-JS
+        const pdf417Reader = new ZXing.PDF417Reader();
+        // Instancia del lector de QR de ZXing-JS (alternativa a jsQR si se desea unificar)
+        // const qrReader = new ZXing.QRCodeReader();
+
 
         // Nuevo: Elementos del modal de PDF
         const readCedulaPdfButton = document.getElementById('read-cedula-pdf-btn');
         const pdfModal = document.getElementById('pdf-modal');
         const closePdfModalButton = document.getElementById('close-pdf-modal');
         const pdfUploadInput = document.getElementById('pdf-upload-input');
-        const pdfModalStatus = document = document.getElementById('pdf-modal-status');
+        const pdfModalStatus = document.getElementById('pdf-modal-status');
         const cancelPdfReadButton = document.getElementById('cancel-pdf-read-btn');
         const pdfPreview = document.getElementById('pdf-preview');
-
-        // Instancia del lector de PDF417 de ZXing-JS
-        const pdf417Reader = new ZXing.PDF417Reader();
-        // Instancia del lector de QR de ZXing-JS (alternativa a jsQR si se desea unificar)
-        // const qrReader = new ZXing.QRCodeReader();
 
 
         // Variable para almacenar el valor de IBC por defecto
@@ -1233,32 +1280,47 @@
 
         // --- Lógica del Modal de Cámara ---
 
-        scanCedulaCameraButton.addEventListener('click', async () => {
-            cameraModal.classList.add('show');
+        // Función para iniciar la cámara
+        async function startCamera(deviceId = null) {
+            stopCamera(); // Detener cualquier stream existente primero
             cameraModalStatus.textContent = 'Iniciando cámara...';
             try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); // Preferir cámara trasera
+                const constraints = {
+                    video: {
+                        // Preferir cámara trasera si no se especifica un deviceId
+                        facingMode: deviceId ? undefined : "environment",
+                        deviceId: deviceId ? { exact: deviceId } : undefined
+                    }
+                };
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoFeed.srcObject = cameraStream;
                 videoFeed.play();
                 cameraModalStatus.textContent = 'Cámara iniciada. Enfoca el código de barras PDF417.';
+
+                // Verificar y mostrar el botón de flash
+                const videoTrack = cameraStream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities();
+                if (capabilities.torch) {
+                    toggleFlashButton.classList.remove('hidden');
+                } else {
+                    toggleFlashButton.classList.add('hidden');
+                }
+
                 requestAnimationFrame(tick); // Iniciar el bucle de escaneo
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
                 cameraModalStatus.textContent = 'Error al iniciar la cámara. Asegúrate de dar permisos.';
                 showStatusMessage('Error al iniciar la cámara: ' + err.message, 'error');
             }
-        });
+        }
 
-        closeCameraModalButton.addEventListener('click', stopCamera);
-        stopCameraButton.addEventListener('click', stopCamera);
-        cameraModal.addEventListener('click', (e) => {
-            if (e.target === cameraModal) {
-                stopCamera();
-            }
-        });
-
+        // Función para detener la cámara
         function stopCamera() {
             if (cameraStream) {
+                // Asegurarse de apagar el flash antes de detener la pista
+                if (isFlashOn) {
+                    toggleFlash(false); // Apagar el flash
+                }
                 cameraStream.getTracks().forEach(track => track.stop());
                 videoFeed.srcObject = null;
                 cameraStream = null;
@@ -1269,7 +1331,103 @@
             }
             cameraModal.classList.remove('show');
             cameraModalStatus.textContent = 'Esperando código...';
+            toggleFlashButton.classList.add('hidden'); // Ocultar botón de flash al cerrar
+            toggleFlashButton.classList.remove('active-flash'); // Resetear estilo del botón de flash
+            isFlashOn = false; // Resetear estado del flash
         }
+
+        // Función para alternar el flash/linterna
+        async function toggleFlash(forceState = null) {
+            const videoTrack = cameraStream.getVideoTracks()[0];
+            if (!videoTrack) {
+                console.warn("No hay pista de video activa para controlar el flash.");
+                return;
+            }
+
+            try {
+                const capabilities = videoTrack.getCapabilities();
+                if (capabilities.torch) {
+                    const newState = forceState !== null ? forceState : !isFlashOn;
+                    await videoTrack.applyConstraints({
+                        advanced: [{ torch: newState }]
+                    });
+                    isFlashOn = newState;
+                    toggleFlashButton.classList.toggle('active-flash', isFlashOn);
+                    toggleFlashButton.textContent = isFlashOn ? 'Desactivar Flash' : 'Activar Flash';
+                    console.log("Flash:", isFlashOn ? "ON" : "OFF");
+                } else {
+                    console.warn("La función de linterna (torch) no es soportada por esta cámara.");
+                    showStatusMessage('Flash no disponible en esta cámara.', 'info');
+                }
+            } catch (err) {
+                console.error("Error al alternar el flash:", err);
+                showStatusMessage('Error al controlar el flash: ' + err.message, 'error');
+            }
+        }
+
+        // Función para enumerar y poblar las cámaras disponibles
+        async function enumerateCameras() {
+            cameraSelect.innerHTML = ''; // Limpiar opciones existentes
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                if (videoDevices.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No se encontraron cámaras';
+                    cameraSelect.appendChild(option);
+                    cameraSelect.disabled = true;
+                    return;
+                }
+
+                videoDevices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Cámara ${device.deviceId.substring(0, 8)}...`;
+                    cameraSelect.appendChild(option);
+                });
+                cameraSelect.disabled = false;
+
+                // Intentar seleccionar la cámara que está actualmente activa o la primera
+                if (cameraStream) {
+                    const currentDeviceId = cameraStream.getVideoTracks()[0].getSettings().deviceId;
+                    if (currentDeviceId) {
+                        cameraSelect.value = currentDeviceId;
+                    }
+                } else if (videoDevices.length > 0) {
+                    // Seleccionar la primera cámara por defecto si no hay una activa
+                    cameraSelect.value = videoDevices[0].deviceId;
+                }
+
+            } catch (err) {
+                console.error("Error al enumerar cámaras:", err);
+                showStatusMessage('Error al listar cámaras: ' + err.message, 'error');
+                cameraSelect.disabled = true;
+            }
+        }
+
+
+        scanCedulaCameraButton.addEventListener('click', async () => {
+            cameraModal.classList.add('show');
+            await enumerateCameras(); // Enumerar cámaras al abrir el modal
+            // Iniciar la cámara con la opción seleccionada o la primera por defecto
+            await startCamera(cameraSelect.value);
+        });
+
+        closeCameraModalButton.addEventListener('click', stopCamera);
+        stopCameraButton.addEventListener('click', stopCamera);
+        cameraModal.addEventListener('click', (e) => {
+            if (e.target === cameraModal) {
+                stopCamera();
+            }
+        });
+
+        toggleFlashButton.addEventListener('click', () => toggleFlash()); // Evento para el botón de flash
+        cameraSelect.addEventListener('change', (e) => {
+            startCamera(e.target.value); // Cambiar de cámara al seleccionar una nueva
+        });
+
 
         async function tick() {
             if (videoFeed.readyState === videoFeed.HAVE_ENOUGH_DATA) {
