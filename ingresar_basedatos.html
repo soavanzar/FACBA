@@ -18,6 +18,7 @@
         // Configuración para pdf.js para evitar problemas con workers
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
 
     <style>
         /* Estilos CSS personalizados */
@@ -726,9 +727,10 @@
             <span class="modal-close-button" id="close-camera-modal">&times;</span>
             <h2>Escanear Cédula (Cámara)</h2>
             <p class="text-sm text-gray-600 mb-4">
-                Por favor, enfoca el código QR de la cédula en el centro de la cámara.
+                Por favor, enfoca el código de barras PDF417 de la cédula en el centro de la cámara.
                 <br>
-                <span class="font-bold text-red-500">Nota: Las cédulas colombianas usan código PDF417, no QR. Esta función leerá QR. Para PDF417 se requiere una librería o servicio especializado.</span>
+                <span class="font-bold text-blue-500">Intentando leer PDF417 con ZXing-JS.</span>
+                <span class="font-bold text-red-500">Nota: La precisión de la lectura de PDF417 en el navegador puede variar según la calidad de la imagen y la iluminación.</span>
             </p>
             <video id="video-feed" autoplay playsinline></video>
             <canvas id="camera-canvas" style="display:none;"></canvas>
@@ -744,9 +746,10 @@
             <span class="modal-close-button" id="close-pdf-modal">&times;</span>
             <h2>Leer Cédula (PDF)</h2>
             <p class="text-sm text-gray-600 mb-4">
-                Selecciona un archivo PDF que contenga la cédula. Se intentará extraer el texto.
+                Selecciona un archivo PDF que contenga la cédula. Se intentará leer el código PDF417 de las imágenes en el PDF.
                 <br>
-                <span class="font-bold text-red-500">Nota: La extracción de datos estructurados de una imagen de cédula dentro de un PDF (OCR) es una tarea avanzada que requiere un servicio o modelo especializado.</span>
+                <span class="font-bold text-blue-500">Intentando leer PDF417 de imágenes dentro del PDF con ZXing-JS.</span>
+                <span class="font-bold text-red-500">Nota: La lectura de códigos de barras desde imágenes rasterizadas en PDFs puede ser un desafío. La calidad de la imagen y la resolución del PDF son cruciales.</span>
             </p>
             <input type="file" id="pdf-upload-input" accept="application/pdf" class="w-full p-2 border border-gray-300 rounded-md">
             <div id="pdf-modal-status" class="mt-4"></div>
@@ -846,9 +849,14 @@
         const pdfModal = document.getElementById('pdf-modal');
         const closePdfModalButton = document.getElementById('close-pdf-modal');
         const pdfUploadInput = document.getElementById('pdf-upload-input');
-        const pdfModalStatus = document.getElementById('pdf-modal-status');
+        const pdfModalStatus = document = document.getElementById('pdf-modal-status');
         const cancelPdfReadButton = document.getElementById('cancel-pdf-read-btn');
         const pdfPreview = document.getElementById('pdf-preview');
+
+        // Instancia del lector de PDF417 de ZXing-JS
+        const pdf417Reader = new ZXing.PDF417Reader();
+        // Instancia del lector de QR de ZXing-JS (alternativa a jsQR si se desea unificar)
+        // const qrReader = new ZXing.QRCodeReader();
 
 
         // Variable para almacenar el valor de IBC por defecto
@@ -1232,7 +1240,7 @@
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); // Preferir cámara trasera
                 videoFeed.srcObject = cameraStream;
                 videoFeed.play();
-                cameraModalStatus.textContent = 'Cámara iniciada. Enfoca el código QR.';
+                cameraModalStatus.textContent = 'Cámara iniciada. Enfoca el código de barras PDF417.';
                 requestAnimationFrame(tick); // Iniciar el bucle de escaneo
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
@@ -1263,50 +1271,70 @@
             cameraModalStatus.textContent = 'Esperando código...';
         }
 
-        function tick() {
+        async function tick() {
             if (videoFeed.readyState === videoFeed.HAVE_ENOUGH_DATA) {
                 cameraCanvas.height = videoFeed.videoHeight;
                 cameraCanvas.width = videoFeed.videoWidth;
                 const ctx = cameraCanvas.getContext('2d');
                 ctx.drawImage(videoFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
                 const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
 
-                if (code) {
-                    console.log("Código QR detectado:", code.data);
-                    cameraModalStatus.textContent = `Código detectado: ${code.data}`;
-                    // Aquí es donde intentarías parsear los datos del código QR
-                    // Para una cédula colombiana, esto sería un PDF417, no un QR simple.
-                    // Esto es solo un ejemplo para un QR genérico.
-                    try {
-                        // Simulación de extracción de datos de cédula de un QR
-                        // En un escenario real, el 'code.data' contendría información estructurada
-                        // o un ID que consultarías en un backend.
-                        const cedulaData = parseCedulaDataFromQR(code.data); // Función ficticia
+                let codeFound = false;
+
+                // Intento de lectura de PDF417 con ZXing-JS
+                try {
+                    const pdf417Result = await pdf417Reader.decodeFromImageData(imageData);
+                    if (pdf417Result && pdf417Result.text) {
+                        console.log("Código PDF417 detectado:", pdf417Result.text);
+                        cameraModalStatus.textContent = `Código PDF417 detectado: ${pdf417Result.text}`;
+                        const cedulaData = parseCedulaDataFromPDF417(pdf417Result.text);
                         if (cedulaData) {
                             populateFormFromCedulaData(cedulaData);
-                            stopCamera(); // Detener la cámara una vez que se ha leído
+                            stopCamera();
+                            codeFound = true;
                         } else {
-                            cameraModalStatus.textContent = 'Código QR leído, pero no se pudo extraer datos de cédula.';
+                            cameraModalStatus.textContent = 'Código PDF417 leído, pero no se pudo extraer datos de cédula.';
                         }
-                    } catch (e) {
-                        console.error("Error al procesar el código QR:", e);
-                        cameraModalStatus.textContent = 'Error al procesar el código QR.';
                     }
+                } catch (error) {
+                    // console.warn("No se detectó PDF417 o error de lectura:", error);
+                    // No es un error crítico si no se encuentra un código en cada frame
+                }
 
-                } else {
-                    cameraModalStatus.textContent = 'No se detectó código QR. Enfoca bien.';
+                // Si no se encontró PDF417, intentar con QR (opcional, ya que las cédulas no usan QR)
+                if (!codeFound) {
+                    const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+                    if (qrCode) {
+                        console.log("Código QR detectado:", qrCode.data);
+                        cameraModalStatus.textContent = `Código QR detectado: ${qrCode.data}`;
+                        try {
+                            const cedulaData = parseCedulaDataFromQR(qrCode.data);
+                            if (cedulaData) {
+                                populateFormFromCedulaData(cedulaData);
+                                stopCamera();
+                                codeFound = true;
+                            } else {
+                                cameraModalStatus.textContent = 'Código QR leído, pero no se pudo extraer datos de cédula.';
+                            }
+                        } catch (e) {
+                            console.error("Error al procesar el código QR:", e);
+                            cameraModalStatus.textContent = 'Error al procesar el código QR.';
+                        }
+                    }
+                }
+
+                if (!codeFound) {
+                    cameraModalStatus.textContent = 'No se detectó código de barras. Enfoca bien.';
                 }
             }
-            if (cameraStream) { // Continuar el bucle solo si la cámara está activa
+            if (cameraStream && !codeFound) { // Continuar el bucle solo si la cámara está activa y no se ha encontrado un código
                 animationFrameId = requestAnimationFrame(tick);
             }
         }
 
         // Función ficticia para parsear datos de cédula de un QR (solo para demostración)
-        // En un caso real, esto sería mucho más complejo y dependería del formato del QR/código de barras.
         function parseCedulaDataFromQR(qrData) {
             // Ejemplo: si el QR contiene "CC|123456789|Juan|Perez"
             const parts = qrData.split('|');
@@ -1318,7 +1346,48 @@
                     primerApellido: parts[3]
                 };
             }
-            return null; // O un objeto vacío si no se puede parsear
+            return null;
+        }
+
+        // Función para parsear datos de cédula de un PDF417
+        // NOTA: La estructura de datos del PDF417 de la cédula colombiana es específica y compleja.
+        // Este es un ejemplo SIMULADO basado en un posible formato simple.
+        // Para una implementación real, necesitarías conocer el formato exacto del PDF417 de la cédula.
+        function parseCedulaDataFromPDF417(pdf417Data) {
+            console.log("Datos PDF417 recibidos:", pdf417Data);
+            // Ejemplo de un formato simple: "ID|PRIMER_NOMBRE|SEGUNDO_NOMBRE|PRIMER_APELLIDO|SEGUNDO_APELLIDO"
+            const parts = pdf417Data.split('|');
+            if (parts.length >= 4) {
+                return {
+                    tipoIdentificacion: 'CC', // Asumimos Cédula de Ciudadanía
+                    identificacion: parts[0] || '',
+                    primerNombre: parts[1] || '',
+                    segundoNombre: parts[2] || '',
+                    primerApellido: parts[3] || '',
+                    segundoApellido: parts[4] || '' // Puede que no siempre esté
+                };
+            }
+
+            // Si el formato no coincide con el ejemplo simple, puedes intentar otras heurísticas
+            // o asumir que el PDF417 contiene un JSON (aunque es menos común para este tipo de códigos)
+            try {
+                const parsedJson = JSON.parse(pdf417Data);
+                if (parsedJson.id && parsedJson.firstName && parsedJson.lastName) {
+                    return {
+                        tipoIdentificacion: parsedJson.idType || 'CC',
+                        identificacion: parsedJson.id,
+                        primerNombre: parsedJson.firstName,
+                        segundoNombre: parsedJson.middleName || '',
+                        primerApellido: parsedJson.lastName,
+                        segundoApellido: parsedJson.secondLastName || ''
+                    };
+                }
+            } catch (e) {
+                console.warn("PDF417 no es un JSON válido o no contiene las claves esperadas.");
+            }
+
+            // Si no se pudo parsear, retorna null
+            return null;
         }
 
 
@@ -1370,25 +1439,65 @@
                 const arrayBuffer = e.target.result;
                 try {
                     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    let fullText = '';
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-                    }
-                    console.log("Texto extraído del PDF:", fullText);
-                    pdfModalStatus.textContent = 'Texto extraído del PDF. Intentando rellenar formulario...';
+                    let codeFoundInPdf = false;
 
-                    // Aquí es donde intentarías parsear el texto para extraer los datos de la cédula.
-                    // Esto es una simulación y muy limitado para OCR de cédulas.
-                    const cedulaData = parseCedulaDataFromPdfText(fullText); // Función ficticia
-                    if (cedulaData) {
-                        populateFormFromCedulaData(cedulaData);
-                        pdfModalStatus.textContent = 'Formulario rellenado con datos del PDF (simulado).';
-                        hidePdfModal();
-                    } else {
-                        pdfModalStatus.textContent = 'No se pudieron extraer datos de cédula del PDF.';
-                        showStatusMessage('No se detectaron datos de cédula en el PDF.', 'error');
+                    // Iterar sobre las páginas para intentar leer PDF417 de las imágenes
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        pdfModalStatus.textContent = `Procesando página ${i} de ${pdf.numPages}...`;
+                        const page = await pdf.getPage(i);
+
+                        // Renderizar la página a un canvas temporal
+                        const viewport = page.getViewport({ scale: 2.0 }); // Aumentar escala para mejor detección
+                        const tempCanvas = document.createElement('canvas');
+                        const tempContext = tempCanvas.getContext('2d');
+                        tempCanvas.height = viewport.height;
+                        tempCanvas.width = viewport.width;
+
+                        await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
+
+                        // Obtener los datos de la imagen del canvas
+                        const imageData = tempContext.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+                        // Intentar decodificar PDF417 de la imagen de la página
+                        try {
+                            const pdf417Result = await pdf417Reader.decodeFromImageData(imageData);
+                            if (pdf417Result && pdf417Result.text) {
+                                console.log(`PDF417 detectado en página ${i}:`, pdf417Result.text);
+                                pdfModalStatus.textContent = `Código PDF417 detectado en página ${i}. Rellenando formulario...`;
+                                const cedulaData = parseCedulaDataFromPDF417(pdf417Result.text);
+                                if (cedulaData) {
+                                    populateFormFromCedulaData(cedulaData);
+                                    hidePdfModal();
+                                    codeFoundInPdf = true;
+                                    break; // Salir del bucle si se encontró el código
+                                } else {
+                                    pdfModalStatus.textContent = `PDF417 en página ${i} leído, pero no se pudo extraer datos de cédula.`;
+                                }
+                            }
+                        } catch (error) {
+                            // console.warn(`No se detectó PDF417 en página ${i} o error de lectura:`, error);
+                        }
+                    }
+
+                    if (!codeFoundInPdf) {
+                        // Si no se encontró PDF417 en ninguna imagen, intentar extraer texto (comportamiento original)
+                        pdfModalStatus.textContent = 'No se encontraron códigos PDF417 en las imágenes. Intentando extraer texto del PDF...';
+                        let fullText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+                        }
+                        console.log("Texto extraído del PDF:", fullText);
+                        const cedulaData = parseCedulaDataFromPdfText(fullText); // Función ficticia
+                        if (cedulaData) {
+                            populateFormFromCedulaData(cedulaData);
+                            pdfModalStatus.textContent = 'Formulario rellenado con datos del texto del PDF (simulado).';
+                            hidePdfModal();
+                        } else {
+                            pdfModalStatus.textContent = 'No se pudieron extraer datos de cédula del texto del PDF.';
+                            showStatusMessage('No se detectaron datos de cédula en el PDF.', 'error');
+                        }
                     }
 
                 } catch (error) {
@@ -1401,7 +1510,6 @@
         });
 
         // Función ficticia para parsear datos de cédula de texto de PDF (solo para demostración)
-        // En un caso real, esto requeriría expresiones regulares muy complejas o un servicio de OCR.
         function parseCedulaDataFromPdfText(text) {
             const identificacionMatch = text.match(/Identificación:\s*(\d+)/i);
             const primerNombreMatch = text.match(/Primer Nombre:\s*([A-Za-zÀ-ÿ\s]+)/i);
