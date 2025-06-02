@@ -697,81 +697,73 @@
         }
 
 
-        // --- Data Loading and Select Population ---
+        // --- Real-time Data Loading and Select Population with onSnapshot ---
 
-        // Load and populate entity selects (Empresas, Asesores, ARL, EPS, CCF, AFP)
-        async function populateSelects() {
-            try {
-                const [empresasSnapshot, asesoresSnapshot, arlSnapshot, epsSnapshot, ccfSnapshot, afpSnapshot] = await Promise.all([
-                    empresasCollection.get(),
-                    asesoresCollection.get(),
-                    arlCollection.get(), // Get ARLs
-                    epsCollection.get(), // Get EPSs
-                    ccfCollection.get(), // Get CCFs
-                    afpCollection.get()  // Get AFPs
-                ]);
-
-                // Empresas
-                empresaSelect.innerHTML = '<option value="">Selecciona una empresa</option>'; // Clear and add default
-                empresasSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    empresaSelect.appendChild(option);
-                });
-
-                // Asesores
-                asesorSelect.innerHTML = '<option value="">Selecciona un asesor</option>'; // Clear and add default
-                asesoresSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    asesorSelect.appendChild(option);
-                });
-
-                // ARL
-                arlSelect.innerHTML = '<option value="">Selecciona una ARL</option>'; // Clear and add default
-                arlSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    arlSelect.appendChild(option);
-                });
-
-                // EPS
-                epsSelect.innerHTML = '<option value="">Selecciona una EPS</option>'; // Clear and add default
-                epsSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    epsSelect.appendChild(option);
-                });
-
-                // CCF
-                ccfSelect.innerHTML = '<option value="">Selecciona una CCF</option>'; // Clear and add default
-                ccfSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    ccfSelect.appendChild(option);
-                });
-
-                // AFP
-                afpSelect.innerHTML = '<option value="">Selecciona una AFP</option>'; // Clear and add default
-                afpSnapshot.forEach(doc => {
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.data().nombre || 'Nombre Desconocido';
-                    afpSelect.appendChild(option);
-                });
-
-
-                console.log("Selectores poblados."); // Debugging
-            } catch (error) {
-                console.error("Error populating selects:", error);
-                showStatusMessage('Error al cargar opciones de empresa/asesor/ARL/EPS/CCF/AFP.', 'error');
+        // Function to populate a select element
+        function populateSelect(selectElement, snapshot, defaultOptionText) {
+            const currentValue = selectElement.value; // Save current selected value
+            selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`; // Clear and add default
+            snapshot.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = doc.data().nombre || 'Nombre Desconocido';
+                selectElement.appendChild(option);
+            });
+            // Restore previous selection if it still exists
+            if (currentValue && Array.from(selectElement.options).some(option => option.value === currentValue)) {
+                selectElement.value = currentValue;
             }
         }
+
+        // Set up real-time listeners for each collection
+        empresasCollection.onSnapshot(snapshot => {
+            console.log("Empresas updated in real-time.");
+            populateSelect(empresaSelect, snapshot, 'Selecciona una empresa');
+        }, error => {
+            console.error("Error listening to Empresas:", error);
+            showStatusMessage('Error al cargar empresas en tiempo real.', 'error');
+        });
+
+        asesoresCollection.onSnapshot(snapshot => {
+            console.log("Asesores updated in real-time.");
+            populateSelect(asesorSelect, snapshot, 'Selecciona un asesor');
+        }, error => {
+            console.error("Error listening to Asesores:", error);
+            showStatusMessage('Error al cargar asesores en tiempo real.', 'error');
+        });
+
+        arlCollection.onSnapshot(snapshot => {
+            console.log("ARL updated in real-time.");
+            populateSelect(arlSelect, snapshot, 'Selecciona una ARL');
+        }, error => {
+            console.error("Error listening to ARL:", error);
+            showStatusMessage('Error al cargar ARLs en tiempo real.', 'error');
+        });
+
+        epsCollection.onSnapshot(snapshot => {
+            console.log("EPS updated in real-time.");
+            populateSelect(epsSelect, snapshot, 'Selecciona una EPS');
+        }, error => {
+            console.error("Error listening to EPS:", error);
+            showStatusMessage('Error al cargar EPSs en tiempo real.', 'error');
+        });
+
+        ccfCollection.onSnapshot(snapshot => {
+            console.log("CCF updated in real-time.");
+            populateSelect(ccfSelect, snapshot, 'Selecciona una CCF');
+        }, error => {
+            console.error("Error listening to CCF:", error);
+            showStatusMessage('Error al cargar CCFs en tiempo real.', 'error');
+        });
+
+        afpCollection.onSnapshot(snapshot => {
+            console.log("AFP updated in real-time.");
+            populateSelect(afpSelect, snapshot, 'Selecciona una AFP');
+        }, error => {
+            console.error("Error listening to AFP:", error);
+            showStatusMessage('Error al cargar AFPs en tiempo real.', 'error');
+        });
+
 
         // --- Form Submission ---
 
@@ -814,7 +806,7 @@
                 console.log("Document written with ID: ", docRef.id);
                 showStatusMessage('Usuario guardado con éxito!', 'success');
                 userForm.reset(); // Clear the form
-                populateSelects(); // Repopulate selects in case new entities were added elsewhere
+                // No need to call populateSelects() here, onSnapshot listeners will handle it
             } catch (e) {
                 console.error("Error adding document: ", e);
                 showStatusMessage('Error al guardar usuario: ' + e.message, 'error');
@@ -880,9 +872,7 @@
                 showStatusMessage('Nueva Empresa agregada con éxito!', 'success');
                 hideAddEmpresaModal(); // Close modal after saving
 
-                // After adding a new entity, repopulate the selects
-                populateSelects();
-
+                // onSnapshot listener will automatically update the select
             } catch (error) {
                 console.error(`Error adding Empresa:`, error);
                 showStatusMessage(`Error al agregar Empresa: ` + error.message, 'error');
@@ -940,9 +930,7 @@
                 showStatusMessage('Nuevo Asesor agregado con éxito!', 'success');
                 hideAddAsesorModal(); // Close modal after saving
 
-                // After adding a new entity, repopulate the selects
-                populateSelects();
-
+                // onSnapshot listener will automatically update the select
             } catch (error) {
                 console.error(`Error adding Asesor:`, error);
                 showStatusMessage(`Error al agregar Asesor: ` + error.message, 'error');
@@ -951,8 +939,8 @@
 
 
         // --- Initialization ---
-        // Populate selects when the page loads
-        populateSelects();
+        // No need to call populateSelects() here, onSnapshot listeners will handle initial population
+        // and subsequent real-time updates.
 
 
     </script>
