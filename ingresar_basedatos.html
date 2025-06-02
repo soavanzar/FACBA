@@ -1280,9 +1280,35 @@
 
         // --- Lógica del Modal de Cámara ---
 
+        // NUEVO: Función para detener solo la transmisión de la cámara (sin cerrar el modal)
+        function stopMediaStream() {
+            if (cameraStream) {
+                if (isFlashOn) {
+                    toggleFlash(false); // Asegurarse de apagar el flash
+                }
+                cameraStream.getTracks().forEach(track => track.stop());
+                videoFeed.srcObject = null;
+                cameraStream = null;
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            toggleFlashButton.classList.add('hidden'); // Ocultar botón de flash al detener la transmisión
+            toggleFlashButton.classList.remove('active-flash'); // Resetear estilo del botón de flash
+            isFlashOn = false; // Resetear estado del flash
+        }
+
+        // Función para cerrar el modal de la cámara (y detener la transmisión)
+        function closeCameraModal() {
+            stopMediaStream(); // Detener la transmisión de la cámara
+            cameraModal.classList.remove('show'); // Ocultar el modal
+            cameraModalStatus.textContent = 'Esperando código...';
+        }
+
         // Función para iniciar la cámara
         async function startCamera(deviceId = null) {
-            stopCamera(); // Detener cualquier stream existente primero
+            stopMediaStream(); // Detener cualquier stream anterior sin cerrar el modal
             cameraModalStatus.textContent = 'Iniciando cámara...';
             try {
                 const constraints = {
@@ -1309,7 +1335,7 @@
                 requestAnimationFrame(tick); // Iniciar el bucle de escaneo
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
-                // MODIFICACIÓN: Mensaje más específico para "Permission denied"
+                // Mensaje más específico para "Permission denied"
                 if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
                     cameraModalStatus.textContent = 'Permiso de cámara denegado. Por favor, concede acceso a la cámara en la configuración de tu navegador para usar esta función.';
                     showStatusMessage('Permiso de cámara denegado. Habilítalo en la configuración del navegador.', 'error');
@@ -1318,28 +1344,6 @@
                     showStatusMessage('Error al iniciar la cámara: ' + err.message, 'error');
                 }
             }
-        }
-
-        // Función para detener la cámara
-        function stopCamera() {
-            if (cameraStream) {
-                // Asegurarse de apagar el flash antes de detener la pista
-                if (isFlashOn) {
-                    toggleFlash(false); // Apagar el flash
-                }
-                cameraStream.getTracks().forEach(track => track.stop());
-                videoFeed.srcObject = null;
-                cameraStream = null;
-            }
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            cameraModal.classList.remove('show');
-            cameraModalStatus.textContent = 'Esperando código...';
-            toggleFlashButton.classList.add('hidden'); // Ocultar botón de flash al cerrar
-            toggleFlashButton.classList.remove('active-flash'); // Resetear estilo del botón de flash
-            isFlashOn = false; // Resetear estado del flash
         }
 
         // Función para alternar el flash/linterna
@@ -1421,11 +1425,11 @@
             await startCamera(cameraSelect.value);
         });
 
-        closeCameraModalButton.addEventListener('click', stopCamera);
-        stopCameraButton.addEventListener('click', stopCamera);
+        closeCameraModalButton.addEventListener('click', closeCameraModal);
+        stopCameraButton.addEventListener('click', closeCameraModal);
         cameraModal.addEventListener('click', (e) => {
             if (e.target === cameraModal) {
-                stopCamera();
+                closeCameraModal();
             }
         });
 
@@ -1454,7 +1458,7 @@
                         const cedulaData = parseCedulaDataFromPDF417(pdf417Result.text);
                         if (cedulaData) {
                             populateFormFromCedulaData(cedulaData);
-                            stopCamera();
+                            closeCameraModal(); // Cierra el modal cuando se encuentra el código
                             codeFound = true;
                         } else {
                             cameraModalStatus.textContent = 'Código PDF417 leído, pero no se pudo extraer datos de cédula.';
@@ -1477,7 +1481,7 @@
                             const cedulaData = parseCedulaDataFromQR(qrCode.data);
                             if (cedulaData) {
                                 populateFormFromCedulaData(cedulaData);
-                                stopCamera();
+                                closeCameraModal(); // Cierra el modal cuando se encuentra el código
                                 codeFound = true;
                             } else {
                                 cameraModalStatus.textContent = 'Código QR leído, pero no se pudo extraer datos de cédula.';
