@@ -114,11 +114,11 @@
             margin-top: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
             display: grid; /* Usar Grid para la tabla */
-            grid-template-columns: repeat(11, 1fr); /* 11 columnas flexibles: Nombres, Apellidos, Empresa, Valor a Pagar, IBC, EPS, ARL, AFP, CCF, Planilla, Acciones */
+            grid-template-columns: repeat(12, 1fr); /* 12 columnas flexibles: Nombres, Apellidos, Empresa, Valor a Pagar, IBC, EPS, ARL, Riesgo, AFP, CCF, Planilla, Acciones */
             /* Definir áreas para thead y tbody */
             grid-template-areas:
-                "header header header header header header header header header header header"
-                "body body body body body body body body body body body";
+                "header header header header header header header header header header header header"
+                "body body body body body body body body body body body body";
             grid-auto-rows: auto; /* Ajustar altura de filas automáticamente */
         }
 
@@ -869,7 +869,7 @@
                         <th>IBC</th>
                         <th>EPS</th>
                         <th>ARL</th>
-                        <th>AFP</th>
+                        <th>Riesgo</th> <th>AFP</th>
                         <th>CCF</th>
                         <th>Planilla</th>
                         <th>Acciones</th>
@@ -1554,7 +1554,7 @@
                 <td data-label="IBC">${ibcFormatted || 'N/A'}</td>
                 <td data-label="EPS">${epsIcon}</td>
                 <td data-label="ARL">${arlIcon}</td>
-                <td data-label="AFP">${afpIcon}</td>
+                <td data-label="Riesgo">${user.riesgo || 'N/A'}</td> <td data-label="AFP">${afpIcon}</td>
                 <td data-label="CCF">${ccfIcon}</td>
                 <td data-label="Planilla">${planillaIcon}</td>
                 <td class="action-cell" data-label="Acciones">
@@ -1593,8 +1593,8 @@
 
             if (filteredUsers.length === 0) {
                 const noDataRow = document.createElement('tr');
-                // Updated colspan to 11 due to unified columns
-                noDataRow.innerHTML = `<td colspan="11" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
+                // Updated colspan to 12 due to new column
+                noDataRow.innerHTML = `<td colspan="12" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
                 userTableBody.appendChild(noDataRow);
                 console.log('[renderUsers] No hay usuarios que coincidan con la búsqueda.');
                 return;
@@ -2025,7 +2025,7 @@
             const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
-            const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(parts[2])));
+            const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
             // To ensure the *entire* end day is included, set its time to the very end of the day in UTC
             endDate.setUTCHours(23, 59, 59, 999);
 
@@ -3155,6 +3155,7 @@
                         ibc,
                         eps,
                         arl,
+                        user.riesgo || 'N/A', // NEW: Riesgo for PDF export
                         afp,
                         ccf
                     ]);
@@ -3162,7 +3163,7 @@
 
                 doc.autoTable({
                     startY: y,
-                    head: [['Nombres', 'Apellidos', 'Identificación', 'Empresa', 'Novedad', 'Días', 'IBC', 'EPS', 'ARL', 'AFP', 'CCF']],
+                    head: [['Nombres', 'Apellidos', 'Identificación', 'Empresa', 'Novedad', 'Días', 'IBC', 'EPS', 'ARL', 'Riesgo', 'AFP', 'CCF']],
                     body: tableData,
                     theme: 'striped',
                     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
@@ -3241,7 +3242,7 @@
                     "Actividad Económica", "Valor Cotización (ARL)", "Días (CCF)", "Administradora CCF", "IBC CCF", "Tarifa CCF",
                     "Valor Cotización CCF", "IBC Otros Parafiscales", "Tarifa SENA", "Valor Cotización SENA", "Tarifa ICBF",
                     "Valor Cotización ICBF", "Tarifa ESAP", "Valor Cotización ESAP", "Tarifa MEN", "Valor Cotización MEN",
-                    "Exonerado parafiscales y salud Ley 1607", "Tipo ID (Final)", "N° ID (Final)"
+                    "Exonerado parafiscales y salud Ley 1607", "Tipo ID (Final)", "N° ID (Final)", "RIESGO" // NUEVO: Riesgo para exportación Excel
                 ]);
 
                 let rowNum = 1;
@@ -3323,7 +3324,7 @@
                         retValue, // RET
                         '', // Fecha RET
                         'NO', 'NO', 'NO', 'NO', 'NO', '', 'NO', 'NO', '', '', 'NO', '', '', 'NO', '', '', 'NO', '', '', // TDE to VAC-LR
-                        'NO', 'NO', '', '', '', '', '', // AVP to IRL
+                        'NO', // AVP to IRL
                         'NO', // Correcciones
                         ibc, // Salario Mensual($)
                         'NO', // Salario Integral
@@ -3373,7 +3374,8 @@
                         0, // Valor Cotización MEN (cambiado a número)
                         'SI', // Exonerado parafiscales y salud Ley 1607
                         '', // Tipo ID (Final)
-                        '' // N° ID (Final)
+                        '', // N° ID (Final)
+                        user.riesgo || 'N/A' // NUEVO: Riesgo para exportación Excel
                     ]);
                 }
 
