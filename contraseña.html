@@ -111,15 +111,15 @@
             font-size: 0.9rem;
         }
         /* Estilo para el nuevo icono de chat y candado */
-        .chat-button, .password-modal-button {
+        .chat-button, .password-modal-button, .back-button { /* Añadido .back-button */
             font-size: 1.5rem; /* Tamaño del icono */
             cursor: pointer;
             transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-            color: #3b82f6; /* Color azul para el chat */
+            color: #3b82f6; /* Color azul para los botones */
             margin-left: 0.75rem; /* Espacio entre iconos */
         }
 
-        .chat-button:hover, .password-modal-button:hover {
+        .chat-button:hover, .password-modal-button:hover, .back-button:hover { /* Añadido .back-button */
             color: #2563eb; /* Azul más oscuro al pasar el ratón */
             transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
         }
@@ -623,6 +623,61 @@
             align-self: flex-end; /* Alinea el botón de copiar a la derecha */
             margin-top: 0.5rem;
         }
+
+        /* Estilo para el modal de confirmación de eliminación */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Asegura que esté por encima de otros modales */
+            visibility: hidden; /* Oculto por defecto */
+            opacity: 0;
+            transition: visibility 0.3s, opacity 0.3s;
+        }
+
+        .confirmation-modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .confirmation-modal-content {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px; /* Ancho máximo para el modal de confirmación */
+            text-align: center;
+        }
+
+        /* NUEVOS ESTILOS PARA EL MODO PC (MODAL MÁS GRANDE Y CUADRÍCULA) */
+        @media (min-width: 768px) {
+            #password-modal .password-modal-content {
+                width: 95vw; /* Ocupa el 95% del ancho del viewport */
+                height: 95vh; /* Ocupa el 95% de la altura del viewport */
+                max-width: none; /* Elimina el límite de ancho máximo */
+                max-height: none; /* Elimina el límite de altura máxima */
+                padding: 2.5rem; /* Aumenta el padding para un look más espacioso */
+            }
+
+            #password-modal #password-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Cuadrícula responsiva, mínimo 300px por columna */
+                gap: 1.5rem; /* Espacio entre los elementos de la cuadrícula */
+                padding-top: 1rem; /* Espacio superior para la lista en cuadrícula */
+            }
+
+            #password-modal #password-list .password-item {
+                margin-bottom: 0; /* Elimina el margen inferior individual, el 'gap' de la cuadrícula lo maneja */
+                height: auto; /* Permite que la altura se ajuste al contenido dentro de la cuadrícula */
+            }
+        }
     </style>
 </head>
 <body>
@@ -643,6 +698,7 @@
             <header class="header">
                 <h1 id="main-header-title">Gestor de Contraseñas</h1>
                 <div class="user-info">
+                    <i class="fas fa-arrow-left back-button" id="back-button" title="Volver a FACBA"></i>
                     <i class="fas fa-lock password-modal-button" id="password-modal-button" title="Ver Contraseñas Guardadas"></i>
                     <i class="fas fa-comment-dots chat-button" id="chat-button" title="Abrir Chat"></i>
                 </div>
@@ -734,6 +790,7 @@
         const passwordModalButton = document.getElementById('password-modal-button');
         const passwordModal = document.getElementById('password-modal');
         const passwordModalCloseBtn = document.getElementById('password-modal-close-btn');
+        const backButton = document.getElementById('back-button'); // Nuevo: Botón de Atrás
 
         let passwordForm = document.getElementById('password-form');
         let passwordIdInput = document.getElementById('password-id');
@@ -923,10 +980,11 @@
                 const deleteBtn = item.querySelector('.delete-btn');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', () => {
+                        // Crear el modal de confirmación
                         const confirmationModal = document.createElement('div');
-                        confirmationModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        confirmationModal.className = 'confirmation-modal'; // Usar la nueva clase CSS
                         confirmationModal.innerHTML = `
-                            <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                            <div class="confirmation-modal-content bg-white p-6 rounded-lg shadow-xl text-center">
                                 <p class="text-lg font-semibold mb-4">¿Estás seguro de que quieres eliminar esta contraseña?</p>
                                 <div class="flex justify-center gap-4">
                                     <button id="confirm-delete-btn" class="btn bg-red-500 hover:bg-red-600 text-white">Eliminar</button>
@@ -935,6 +993,8 @@
                             </div>
                         `;
                         document.body.appendChild(confirmationModal);
+                        // Mostrar el modal de confirmación
+                        confirmationModal.classList.add('show');
 
                         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
                             try {
@@ -944,12 +1004,20 @@
                                 console.error("Error removing document: ", error);
                                 showStatusMessage('Error al eliminar: ' + error.message, 'error');
                             } finally {
-                                document.body.removeChild(confirmationModal);
+                                // Ocultar y remover el modal de confirmación
+                                confirmationModal.classList.remove('show');
+                                setTimeout(() => { // Esperar la transición antes de remover
+                                    document.body.removeChild(confirmationModal);
+                                }, 300);
                             }
                         });
 
                         document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-                            document.body.removeChild(confirmationModal);
+                            // Ocultar y remover el modal de confirmación
+                            confirmationModal.classList.remove('show');
+                            setTimeout(() => { // Esperar la transición antes de remover
+                                document.body.removeChild(confirmationModal);
+                            }, 300);
                         });
                     });
                 }
@@ -1081,6 +1149,11 @@
 
         passwordModalButton.addEventListener('click', openPasswordModal);
         passwordModalCloseBtn.addEventListener('click', closePasswordModal);
+
+        // Nuevo: Event Listener para el botón de Atrás
+        backButton.addEventListener('click', () => {
+            window.location.href = 'https://soavanzar.github.io/FACBA/';
+        });
 
         // Close modal if clicking outside content
         passwordModal.addEventListener('click', (e) => {
