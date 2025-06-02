@@ -737,8 +737,8 @@
         /* Estilos para la lista de emplanillados */
         #emplanillados-list li {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column; /* Default to column for better stacking of info */
+            align-items: flex-start; /* Align text to the left */
             padding: 8px 0;
             border-bottom: 1px dashed #e5e7eb;
         }
@@ -755,6 +755,23 @@
         #emplanillados-list li .user-info {
             flex-grow: 1;
             font-size: 0.9rem;
+            margin-bottom: 5px; /* Space between user info and details */
+        }
+        
+        #emplanillados-list li .user-details {
+            display: flex;
+            flex-wrap: wrap; /* Allow details to wrap */
+            gap: 10px; /* Space between detail items */
+            font-size: 0.85rem;
+            color: #555;
+            width: 100%; /* Take full width */
+        }
+
+        #emplanillados-list li .user-details span {
+            background-color: #f0f4f8; /* Light background for each detail */
+            padding: 4px 8px;
+            border-radius: 5px;
+            white-space: nowrap; /* Prevent wrapping within a span */
         }
 
         /* En pantallas pequeñas, volver a apilar */
@@ -775,6 +792,10 @@
             #emplanillados-list li .user-info { /* Apply to emplanillados user info */
                 margin-right: 0;
                 margin-bottom: 5px; /* Espacio entre detalles apilados */
+            }
+            #emplanillados-list li .user-details {
+                flex-direction: column; /* Stack details vertically on small screens */
+                gap: 5px;
             }
             #payment-history-list li .history-item-actions,
             #full-payment-history-list li .history-item-actions,
@@ -879,6 +900,10 @@
                         <option value="OTRO">OTRO</option>
                     </select>
                 </div>
+                <div class="modal-form-group">
+                    <label for="payment-days">Días:</label>
+                    <input type="number" id="payment-days" min="1" required>
+                </div>
                 <div class="modal-form-group flex items-center mt-4">
                     <input type="checkbox" id="payment-has-planilla" class="mr-2 h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
                     <label for="payment-has-planilla" class="text-gray-700 font-medium">Alistar en planilla</label>
@@ -936,7 +961,10 @@
                         <option value="OTRO">OTRO</option>
                     </select>
                 </div>
-
+                <div class="modal-form-group">
+                    <label for="edit-payment-days">Días:</label>
+                    <input type="number" id="edit-payment-days" min="1" required>
+                </div>
                 <div class="modal-buttons">
                     <button type="button" class="cancel-button" id="cancel-edit-payment">Cancelar</button>
                     <button type="submit" class="save-changes-button">Guardar Cambios</button>
@@ -1104,6 +1132,7 @@
         const paymentDateInput = document.getElementById('payment-date');
         const paymentValueInput = document.getElementById('payment-value');
         const paymentNoveltySelect = document.getElementById('payment-novelty');
+        const paymentDaysInput = document.getElementById('payment-days'); // NEW: Days input
         const paymentHasPlanillaCheckbox = document.getElementById('payment-has-planilla'); // NEW: Planilla checkbox
         const paymentHistoryList = document.getElementById('payment-history-list');
         const viewAllPaymentsButton = document.getElementById('view-all-payments-button');
@@ -1123,6 +1152,7 @@
         const editPaymentDateInput = document.getElementById('edit-payment-date');
         const editPaymentValueInput = document.getElementById('edit-payment-value');
         const editPaymentNoveltySelect = document.getElementById('edit-payment-novelty');
+        const editPaymentDaysInput = document.getElementById('edit-payment-days'); // NEW: Days input for edit modal
 
         const billingModal = document.getElementById('billing-modal');
         const closeBillingModalButton = document.getElementById('close-billing-modal');
@@ -1605,10 +1635,15 @@
                 paymentDateInput.valueAsDate = new Date();
                 // Set the "Alistar en planilla" checkbox based on user's current status
                 paymentHasPlanillaCheckbox.checked = userData.hasPlanilla === true;
+                // Reset novelty and days
+                paymentNoveltySelect.value = '';
+                paymentDaysInput.value = '';
             } else {
                 paymentValueInput.value = 0;
                 paymentDateInput.value = '';
                 paymentHasPlanillaCheckbox.checked = false; // Default to unchecked
+                paymentNoveltySelect.value = '';
+                paymentDaysInput.value = '';
                 showStatusMessage('Error: No se pudieron cargar los datos del usuario para el pago.', 'error');
                 return;
             }
@@ -1632,16 +1667,26 @@
             }
         });
 
+        // NEW: Event listener for novelty select to auto-fill days
+        paymentNoveltySelect.addEventListener('change', () => {
+            if (paymentNoveltySelect.value === 'APO') {
+                paymentDaysInput.value = 30;
+            } else {
+                paymentDaysInput.value = '';
+            }
+        });
+
         addPaymentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const userId = paymentUserIdInput.value;
             const paymentDateString = paymentDateInput.value;
             const paymentValue = parseFloat(paymentValueInput.value);
             const paymentNovelty = paymentNoveltySelect.value;
+            const paymentDays = parseInt(paymentDaysInput.value); // Get days value
             const hasPlanilla = paymentHasPlanillaCheckbox.checked; // Get the state of the checkbox
 
-            if (!userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
-                showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+            if (!userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty || isNaN(paymentDays) || paymentDays <= 0) {
+                showStatusMessage('Por favor, completa todos los campos del pago correctamente (incluyendo los días).', 'error');
                 return;
             }
             // Corrected: Create a Date object from the YYYY-MM-DD string, ensuring UTC interpretation
@@ -1655,6 +1700,7 @@
                 fecha: paymentTimestamp,
                 valor: paymentValue,
                 novedad: paymentNovelty,
+                dias: paymentDays, // Save days with the payment
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             showStatusMessage('Guardando pago y actualizando planilla...', 'info');
@@ -1672,6 +1718,8 @@
                 addPaymentForm.reset();
                 paymentValueInput.value = currentUserData.valorAPagar || 0;
                 paymentDateInput.valueAsDate = new Date(); // Reset to today's date
+                paymentDaysInput.value = ''; // Clear days input
+                paymentNoveltySelect.value = ''; // Reset novelty select
                 // The main user table will automatically re-render due to onSnapshot listener
                 // No need to explicitly call loadUsersTable() here, it's handled by Firebase.
                 await loadPaymentHistory(userId, paymentHistoryList, 5); // Reload payment history in modal
@@ -1709,7 +1757,7 @@
                         <span>Fecha: ${formatDate(payment.fecha)}</span>
                         <span>Valor: ${formatCurrency(payment.valor)}</span>
                         <span>Novedad: ${payment.novedad || 'N/A'}</span>
-                        <div class="history-item-actions">
+                        <span>Días: ${payment.dias || 'N/A'}</span> <div class="history-item-actions">
                             <button class="action-button edit-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Pago"><i class="fas fa-edit"></i></button>
                             <button class="action-button delete-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
                         </div>
@@ -1809,6 +1857,7 @@
                     editPaymentDateInput.value = formatDate(paymentData.fecha); // Use formatDate for consistent display
                     editPaymentValueInput.value = paymentData.valor || 0;
                     editPaymentNoveltySelect.value = paymentData.novedad || '';
+                    editPaymentDaysInput.value = paymentData.dias || ''; // Populate days input
                 } else {
                     showStatusMessage('Error: Pago no encontrado para editar.', 'error');
                     hideEditPaymentModal();
@@ -1827,9 +1876,10 @@
             const paymentDateString = editPaymentDateInput.value;
             const paymentValue = parseFloat(editPaymentValueInput.value);
             const paymentNovelty = editPaymentNoveltySelect.value;
+            const paymentDays = parseInt(editPaymentDaysInput.value); // Get days value
 
-            if (!paymentId || !userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty) {
-                showStatusMessage('Por favor, completa todos los campos del pago correctamente.', 'error');
+            if (!paymentId || !userId || !paymentDateString || isNaN(paymentValue) || paymentValue <= 0 || !paymentNovelty || isNaN(paymentDays) || paymentDays <= 0) {
+                showStatusMessage('Por favor, completa todos los campos del pago correctamente (incluyendo los días).', 'error');
                 return;
             }
             // Corrected: Create a Date object from the YYYY-MM-DD string, ensuring UTC interpretation
@@ -1841,6 +1891,7 @@
                 fecha: paymentTimestamp,
                 valor: paymentValue,
                 novedad: paymentNovelty,
+                dias: paymentDays, // Update days with the payment
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             showStatusMessage('Guardando cambios del pago...', 'info');
@@ -2694,32 +2745,68 @@
         async function loadEmplanilladosList() {
             emplanilladosList.innerHTML = '<li>Cargando usuarios emplanillados...</li>';
             try {
-                let query = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
                 const selectedCompanyId = emplanilladosCompanyFilter.value;
 
                 if (selectedCompanyId) {
-                    query = query.where('empresaId', '==', selectedCompanyId);
+                    userQuery = userQuery.where('empresaId', '==', selectedCompanyId);
                 }
 
-                const snapshot = await query.get();
+                const userSnapshot = await userQuery.get();
                 emplanilladosList.innerHTML = '';
 
-                if (snapshot.empty) {
+                if (userSnapshot.empty) {
                     emplanilladosList.innerHTML = '<li>No hay usuarios emplanillados que coincidan con los criterios.</li>';
                     return;
                 }
 
-                snapshot.forEach(doc => {
+                const userDocs = userSnapshot.docs;
+                const paymentPromises = userDocs.map(doc =>
+                    pagosCollection.where('userId', '==', doc.id).orderBy('fecha', 'desc').limit(1).get()
+                );
+
+                const paymentSnapshots = await Promise.all(paymentPromises);
+
+                const latestPayments = new Map();
+                paymentSnapshots.forEach(snapshot => {
+                    if (!snapshot.empty) {
+                        const payment = snapshot.docs[0].data();
+                        latestPayments.set(payment.userId, payment);
+                    }
+                });
+
+                userDocs.forEach(doc => {
                     const user = doc.data();
+                    const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
+                    const latestPayment = latestPayments.get(doc.id);
+
+                    const novedad = latestPayment ? latestPayment.novedad || 'N/A' : 'N/A';
+                    const dias = latestPayment ? latestPayment.dias || 'N/A' : 'N/A';
+                    const ibc = formatCurrency(user.ibc || 0);
+                    const eps = epsMap.get(user.epsId) || 'N/A';
+                    const arl = arlMap.get(user.arlId) || 'N/A';
+                    const afp = afpMap.get(user.afpId) || 'N/A';
+                    const ccf = ccfMap.get(user.ccfId) || 'N/A';
+
                     const listItem = document.createElement('li');
                     listItem.dataset.id = doc.id;
-                    const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
                     listItem.innerHTML = `
-                        <input type="checkbox" data-user-id="${doc.id}" class="emplanillado-checkbox">
-                        <div class="user-info">
-                            <strong>${user.nombre || 'N/A'}</strong> (${user.identificacion || 'N/A'})
-                            <br>
-                            Empresa: ${empresaNombre}
+                        <div class="flex items-center w-full">
+                            <input type="checkbox" data-user-id="${doc.id}" class="emplanillado-checkbox mr-2">
+                            <div class="user-info flex-grow">
+                                <strong>${user.nombre || 'N/A'}</strong> (${user.identificacion || 'N/A'})
+                                <br>
+                                Empresa: ${empresaNombre}
+                            </div>
+                        </div>
+                        <div class="user-details w-full mt-2">
+                            <span>Novedad: <strong>${novedad}</strong></span>
+                            <span>Días: <strong>${dias}</strong></span>
+                            <span>IBC: <strong>${ibc}</strong></span>
+                            <span>EPS: <strong>${eps}</strong></span>
+                            <span>ARL: <strong>${arl}</strong></span>
+                            <span>AFP: <strong>${afp}</strong></span>
+                            <span>CCF: <strong>${ccf}</strong></span>
                         </div>
                     `;
                     emplanilladosList.appendChild(listItem);
@@ -2798,27 +2885,41 @@
         generateEmplanilladosPdfButton.addEventListener('click', async () => {
             showStatusMessage('Generando PDF de la planilla...', 'info');
             try {
-                let query = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
                 const selectedCompanyId = emplanilladosCompanyFilter.value;
 
                 if (selectedCompanyId) {
-                    query = query.where('empresaId', '==', selectedCompanyId);
+                    userQuery = userQuery.where('empresaId', '==', selectedCompanyId);
                 }
-                const snapshot = await query.get();
+                const userSnapshot = await userQuery.get();
 
-                if (snapshot.empty) {
+                if (userSnapshot.empty) {
                     showStatusMessage('No hay usuarios en la planilla para generar el PDF.', 'info');
                     return;
                 }
 
+                const userDocs = userSnapshot.docs;
+                const paymentPromises = userDocs.map(doc =>
+                    pagosCollection.where('userId', '==', doc.id).orderBy('fecha', 'desc').limit(1).get()
+                );
+                const paymentSnapshots = await Promise.all(paymentPromises);
+                const latestPayments = new Map();
+                paymentSnapshots.forEach(snapshot => {
+                    if (!snapshot.empty) {
+                        const payment = snapshot.docs[0].data();
+                        latestPayments.set(payment.userId, payment);
+                    }
+                });
+
+
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                const doc = new jsPDF('landscape'); // Use landscape for more columns
 
                 const primaryColor = '#4f46e5';
                 const textColor = '#1f2937';
-                const accentColor = '#10b981';
+                // const accentColor = '#10b981'; // Not directly used in this PDF table
 
-                const margin = 15;
+                const margin = 10; // Reduced margin for more space
                 let y = margin;
                 const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -2840,19 +2941,36 @@
                 y += 5;
 
                 const tableData = [];
-                snapshot.forEach(doc => {
+                userDocs.forEach(doc => {
                     const user = doc.data();
                     const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
+                    const latestPayment = latestPayments.get(doc.id);
+
+                    const novedad = latestPayment ? latestPayment.novedad || 'N/A' : 'N/A';
+                    const dias = latestPayment ? latestPayment.dias || 'N/A' : 'N/A';
+                    const ibc = formatCurrency(user.ibc || 0);
+                    const eps = epsMap.get(user.epsId) || 'N/A';
+                    const arl = arlMap.get(user.arlId) || 'N/A';
+                    const afp = afpMap.get(user.afpId) || 'N/A';
+                    const ccf = ccfMap.get(user.ccfId) || 'N/A';
+
                     tableData.push([
                         user.nombre || 'N/A',
                         user.identificacion || 'N/A',
-                        empresaNombre
+                        empresaNombre,
+                        novedad,
+                        dias,
+                        ibc,
+                        eps,
+                        arl,
+                        afp,
+                        ccf
                     ]);
                 });
 
                 doc.autoTable({
                     startY: y,
-                    head: [['Nombre', 'Identificación', 'Empresa']],
+                    head: [['Nombre', 'Identificación', 'Empresa', 'Novedad', 'Días', 'IBC', 'EPS', 'ARL', 'AFP', 'CCF']],
                     body: tableData,
                     theme: 'striped',
                     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
