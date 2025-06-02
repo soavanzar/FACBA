@@ -944,6 +944,10 @@
                  <div class="modal-form-group">
                     <label for="edit-ibc">IBC (COP):</label>
                     <input type="number" id="edit-ibc" name="ibc" step="0.01">
+                    <div class="flex items-center mt-2">
+                        <input type="checkbox" id="use-default-ibc-checkbox" class="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                        <label for="use-default-ibc-checkbox" class="text-gray-700 text-sm">Usar IBC por defecto</label>
+                    </div>
                 </div>
 
 
@@ -1198,6 +1202,9 @@
         const editEstadoSelect = document.getElementById('edit-estado');
         const editFechaRetiroGroup = document.getElementById('edit-fecha-retiro-group');
         const editFechaRetiroInput = document.getElementById('edit-fecha-retiro');
+        // NUEVO: Checkbox para usar IBC por defecto
+        const useDefaultIbcCheckbox = document.getElementById('use-default-ibc-checkbox');
+
 
         // Modal de Filtro DOM elements
         const filterModal = document.getElementById('filter-modal');
@@ -1245,7 +1252,7 @@
 
         // Nuevo Modal Genérico para Gestionar Entidades DOM elements
         const manageEntityModal = document.getElementById('manage-entity-modal');
-        const closeManageEntityModalButton = document.getElementById('close-manage-entity-modal');
+        const closeManageEntityModalButton = document = document.getElementById('close-manage-entity-modal');
         const closeManageEntityModalButtonInModal = document.getElementById('close-manage-entity-modal-button');
         const manageEntityModalTitle = document.getElementById('manage-entity-modal-title');
         const manageEntityTypeInput = document.getElementById('manage-entity-type');
@@ -1275,6 +1282,8 @@
         const defaultIbcValueInput = document.getElementById('default-ibc-value');
         const saveDefaultIbcButton = document.getElementById('save-default-ibc-button');
 
+        // NUEVO: Variable para almacenar el IBC por defecto en caché
+        let cachedDefaultIbcValue = null;
 
         // Mapas para almacenar nombres de entidades (para mostrar en la tabla y selectores)
         let empresasMap = new Map();
@@ -2044,6 +2053,10 @@
                     }
                     editIbcInput.value = ibcNumeric || 0;
 
+                    // NUEVO: Inicializar el checkbox y el campo IBC
+                    useDefaultIbcCheckbox.checked = false; // Por defecto, no usar el IBC por defecto
+                    editIbcInput.disabled = false; // Habilitar el campo IBC por defecto
+
 
                     editEstadoSelect.value = userData.estado || 'activo';
 
@@ -2058,7 +2071,7 @@
 
                 } else {
                     console.error("Usuario no encontrado para edición:", userId);
-                    showStatusMessage('Error: Usuario no encontrado para editar.', 'error');
+                    showStatusMessage('Error: Datos de usuario no encontrados.', 'error');
                     hideEditModal();
                 }
             } catch (error) {
@@ -2092,6 +2105,9 @@
             editUserModal.classList.remove('show');
             editUserForm.reset();
              editFechaRetiroGroup.style.display = 'none';
+            // NUEVO: Resetear el checkbox y habilitar el campo IBC al cerrar el modal
+            useDefaultIbcCheckbox.checked = false;
+            editIbcInput.disabled = false;
         }
 
         // Listener para cerrar modal de edición con la X
@@ -2150,7 +2166,7 @@
                 ingreso: fechaRegistroTimestamp,
                 asesorId: editAsesorSelect.value || null,
                 valorAPagar: parseFloat(editValorAPagarInput.value) || 0,
-                ibc: parseFloat(editIbcInput.value) || 0,
+                ibc: parseFloat(editIbcInput.value) || 0, // El valor ya estará actualizado si se usó el default
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -3206,7 +3222,7 @@
         // Función para mostrar el modal de IBC por Defecto
         async function showDefaultIbcModal() {
             defaultIbcModal.classList.add('show');
-            await loadDefaultIbcValue(); // Cargar el valor actual al abrir el modal
+            await loadDefaultIbcValueFromSettings(); // Cargar el valor actual al abrir el modal
         }
 
         // Función para ocultar el modal de IBC por Defecto
@@ -3224,21 +3240,24 @@
             }
         });
 
-        // Función para cargar el valor de IBC por defecto desde Firestore
-        async function loadDefaultIbcValue() {
+        // Función para cargar el valor de IBC por defecto desde Firestore (para el modal de configuración)
+        async function loadDefaultIbcValueFromSettings() {
             try {
                 const doc = await defaultIbcDocRef.get();
                 if (doc.exists) {
                     const data = doc.data();
                     defaultIbcValueInput.value = data.value !== undefined ? data.value : '';
-                    console.log("IBC por defecto cargado:", data.value);
+                    cachedDefaultIbcValue = data.value; // Actualizar el caché
+                    console.log("IBC por defecto cargado desde settings:", data.value);
                 } else {
                     defaultIbcValueInput.value = ''; // Si no existe, dejarlo vacío
-                    console.log("No se encontró IBC por defecto en Firestore.");
+                    cachedDefaultIbcValue = null; // Resetear el caché
+                    console.log("No se encontró IBC por defecto en Firestore (settings).");
                 }
             } catch (error) {
-                console.error("Error al cargar IBC por defecto:", error);
-                showStatusMessage('Error al cargar el IBC por defecto.', 'error');
+                console.error("Error al cargar IBC por defecto desde settings:", error);
+                showStatusMessage('Error al cargar el IBC por defecto de configuración.', 'error');
+                cachedDefaultIbcValue = null;
             }
         }
 
@@ -3258,11 +3277,44 @@
                     value: ibcValue,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                cachedDefaultIbcValue = ibcValue; // Actualizar el caché
                 showStatusMessage('IBC por defecto guardado con éxito!', 'success');
                 hideDefaultIbcModal();
             } catch (error) {
                 console.error("Error al guardar IBC por defecto:", error);
                 showStatusMessage('Error al guardar IBC por defecto: ' + error.message, 'error');
+            }
+        });
+
+        // NUEVO: Listener para el checkbox de IBC por defecto en el modal de edición
+        useDefaultIbcCheckbox.addEventListener('change', async () => {
+            if (useDefaultIbcCheckbox.checked) {
+                editIbcInput.disabled = true;
+                if (cachedDefaultIbcValue === null) {
+                    showStatusMessage('Cargando IBC por defecto...', 'info');
+                    try {
+                        const doc = await defaultIbcDocRef.get();
+                        if (doc.exists && doc.data().value !== undefined) {
+                            cachedDefaultIbcValue = doc.data().value;
+                            editIbcInput.value = cachedDefaultIbcValue;
+                            showStatusMessage('IBC por defecto cargado.', 'success');
+                        } else {
+                            editIbcInput.value = 0; // Default to 0 if not set
+                            cachedDefaultIbcValue = 0;
+                            showStatusMessage('No se ha configurado un IBC por defecto. Usando 0.', 'info');
+                        }
+                    } catch (error) {
+                        console.error("Error al cargar IBC por defecto para edición:", error);
+                        showStatusMessage('Error al cargar IBC por defecto.', 'error');
+                        editIbcInput.value = 0;
+                        cachedDefaultIbcValue = 0;
+                    }
+                } else {
+                    editIbcInput.value = cachedDefaultIbcValue;
+                }
+            } else {
+                editIbcInput.disabled = false;
+                editIbcInput.value = ''; // Clear the value when unchecked, allowing manual input
             }
         });
 
