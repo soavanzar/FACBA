@@ -410,6 +410,45 @@
              background-color: #d1d5db; /* Gris más oscuro */
          }
 
+         /* Estilos para el checkbox de IBC */
+         .ibc-label-container {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Espacio entre el texto y el checkbox */
+            margin-bottom: 8px; /* Espacio debajo de la etiqueta */
+         }
+
+         .ibc-label-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            /* Estilos básicos para el checkbox */
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border: 2px solid #9ca3af;
+            border-radius: 4px;
+            outline: none;
+            transition: background-color 0.2s, border-color 0.2s;
+         }
+
+         .ibc-label-container input[type="checkbox"]:checked {
+            background-color: #4f46e5; /* Color de fondo cuando está marcado */
+            border-color: #4f46e5; /* Color del borde cuando está marcado */
+            position: relative;
+         }
+
+         .ibc-label-container input[type="checkbox"]:checked::before {
+            content: '\2713'; /* Símbolo de check (tick) */
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+         }
 
     </style>
 </head>
@@ -518,7 +557,11 @@
             </div>
 
              <div class="form-group ibc-group">
-                 <label for="ibc">IBC (Salario del trabajador):</label>
+                 <div class="ibc-label-container">
+                    <label for="ibc">IBC (Salario del trabajador):</label>
+                    <input type="checkbox" id="ibc-smlv-checkbox">
+                    <label for="ibc-smlv-checkbox">IBC S.M.L.V.</label>
+                 </div>
                  <input type="number" id="ibc" name="ibc" step="0.01" placeholder="Salario del trabajador (IBC)">
              </div>
              <div class="form-buttons">
@@ -590,6 +633,9 @@
         const epsCollection = db.collection('eps');
         const ccfCollection = db.collection('ccf');
         const afpCollection = db.collection('afp');
+        // NUEVO: Referencia a la colección de configuración para el IBC por defecto
+        const settingsCollection = db.collection('settings');
+        const defaultIbcDocRef = settingsCollection.doc('defaultIbc');
 
 
         // Get DOM elements
@@ -612,6 +658,8 @@
         const asesorSelect = document.getElementById('asesor');
         const valorAPagarInput = document.getElementById('valor-a-pagar');
         const ibcInput = document.getElementById('ibc'); // Input for IBC
+        // NUEVO: Checkbox para IBC S.M.L.V.
+        const ibcSmlvCheckbox = document.getElementById('ibc-smlv-checkbox');
 
 
         // Modal DOM elements (Add Entity Modals)
@@ -627,6 +675,9 @@
         const addAsesorForm = document.getElementById('add-asesor-form');
         const newEmpresaNameInput = document.getElementById('new-empresa-name');
         const newAsesorNameInput = document.getElementById('new-asesor-name');
+
+        // Variable para almacenar el valor de IBC por defecto
+        let defaultIbcValue = 0;
 
 
         // --- Utility Functions ---
@@ -764,6 +815,28 @@
             showStatusMessage('Error al cargar AFPs en tiempo real.', 'error');
         });
 
+        // NUEVO: Listener para el IBC por defecto
+        defaultIbcDocRef.onSnapshot(doc => {
+            if (doc.exists) {
+                defaultIbcValue = doc.data().value || 0;
+                console.log("IBC por defecto actualizado en tiempo real:", defaultIbcValue);
+                // Si el checkbox está marcado, actualizar el campo IBC
+                if (ibcSmlvCheckbox.checked) {
+                    ibcInput.value = defaultIbcValue;
+                }
+            } else {
+                defaultIbcValue = 0;
+                console.log("No se encontró IBC por defecto en Firestore.");
+                // Si el checkbox está marcado y no hay valor por defecto, vaciar el campo
+                if (ibcSmlvCheckbox.checked) {
+                    ibcInput.value = '';
+                }
+            }
+        }, error => {
+            console.error("Error listening to default IBC:", error);
+            showStatusMessage('Error al cargar el IBC por defecto en tiempo real.', 'error');
+        });
+
 
         // --- Form Submission ---
 
@@ -806,6 +879,7 @@
                 console.log("Document written with ID: ", docRef.id);
                 showStatusMessage('Usuario guardado con éxito!', 'success');
                 userForm.reset(); // Clear the form
+                ibcSmlvCheckbox.checked = false; // Reset checkbox state
                 // No need to call populateSelects() here, onSnapshot listeners will handle it
             } catch (e) {
                 console.error("Error adding document: ", e);
@@ -938,9 +1012,24 @@
         });
 
 
+        // --- NUEVO: Lógica para el checkbox IBC S.M.L.V. ---
+        ibcSmlvCheckbox.addEventListener('change', () => {
+            if (ibcSmlvCheckbox.checked) {
+                // Si el checkbox está marcado, usar el valor por defecto
+                ibcInput.value = defaultIbcValue;
+                ibcInput.readOnly = true; // Hacer el campo de solo lectura
+            } else {
+                // Si el checkbox está desmarcado, vaciar el campo
+                ibcInput.value = '';
+                ibcInput.readOnly = false; // Permitir edición
+            }
+        });
+
+
         // --- Initialization ---
         // No need to call populateSelects() here, onSnapshot listeners will handle initial population
         // and subsequent real-time updates.
+        // The defaultIbcDocRef.onSnapshot will also load the default IBC value on page load.
 
 
     </script>
