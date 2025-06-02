@@ -12,6 +12,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configuración para pdf.js para evitar problemas con workers
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
     <style>
         /* Estilos CSS personalizados */
         body {
@@ -40,6 +47,46 @@
             .container {
                 padding: 30px;
             }
+        }
+
+        .action-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .action-buttons-container {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            background-color: #4f46e5; /* Azul/Morado */
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: none;
+        }
+
+        .action-button:hover {
+            background-color: #4338ca; /* Azul/Morado más oscuro */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .action-button i {
+            margin-right: 8px;
         }
 
 
@@ -450,14 +497,69 @@
             font-weight: bold;
          }
 
+        /* Estilos para el modal de cámara */
+        #camera-modal .modal-content {
+            max-width: 700px;
+            width: 95%;
+        }
+
+        #video-feed {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background-color: black;
+            margin-bottom: 15px;
+        }
+
+        #camera-canvas {
+            display: none; /* Oculto, usado para procesar frames */
+        }
+
+        #camera-modal-status {
+            text-align: center;
+            font-size: 1rem;
+            color: #374151;
+            margin-top: 10px;
+        }
+
+        /* Estilos para el modal de PDF */
+        #pdf-modal .modal-content {
+            max-width: 600px;
+            width: 90%;
+        }
+
+        #pdf-preview {
+            width: 100%;
+            height: 300px; /* Altura fija para el iframe de previsualización */
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none; /* Oculto por defecto */
+        }
+
+        #pdf-modal-status {
+            text-align: center;
+            font-size: 1rem;
+            color: #374151;
+            margin-top: 10px;
+        }
+
     </style>
 </head>
 <body>
 
     <div class="container">
-        <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
-            <i class="fas fa-arrow-left"></i> Ir Atrás
-        </a>
+        <div class="action-buttons-container">
+            <a href="https://soavanzar.github.io/FACBA/inicio_base_de_datos.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Ir Atrás
+            </a>
+            <button type="button" id="scan-cedula-camera-btn" class="action-button">
+                <i class="fas fa-camera"></i> Escanear Cédula (Cámara)
+            </button>
+            <button type="button" id="read-cedula-pdf-btn" class="action-button">
+                <i class="fas fa-file-pdf"></i> Leer Cédula (PDF)
+            </button>
+        </div>
 
         <h1>Ingresar Nuevo Usuario</h1>
 
@@ -619,6 +721,42 @@
         </div>
     </div>
 
+    <div id="camera-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-camera-modal">&times;</span>
+            <h2>Escanear Cédula (Cámara)</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                Por favor, enfoca el código QR de la cédula en el centro de la cámara.
+                <br>
+                <span class="font-bold text-red-500">Nota: Las cédulas colombianas usan código PDF417, no QR. Esta función leerá QR. Para PDF417 se requiere una librería o servicio especializado.</span>
+            </p>
+            <video id="video-feed" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+            <div id="camera-modal-status" class="mt-4">Esperando código...</div>
+            <div class="modal-buttons mt-4">
+                <button type="button" class="cancel-button" id="stop-camera-btn">Detener Cámara</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-pdf-modal">&times;</span>
+            <h2>Leer Cédula (PDF)</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                Selecciona un archivo PDF que contenga la cédula. Se intentará extraer el texto.
+                <br>
+                <span class="font-bold text-red-500">Nota: La extracción de datos estructurados de una imagen de cédula dentro de un PDF (OCR) es una tarea avanzada que requiere un servicio o modelo especializado.</span>
+            </p>
+            <input type="file" id="pdf-upload-input" accept="application/pdf" class="w-full p-2 border border-gray-300 rounded-md">
+            <div id="pdf-modal-status" class="mt-4"></div>
+            <iframe id="pdf-preview" class="mt-4" style="width: 100%; height: 300px; border: 1px solid #d1d5db; border-radius: 8px; display: none;"></iframe>
+            <div class="modal-buttons mt-4">
+                <button type="button" class="cancel-button" id="cancel-pdf-read-btn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // Your web app's Firebase configuration
@@ -691,6 +829,27 @@
         const addAsesorForm = document.getElementById('add-asesor-form');
         const newEmpresaNameInput = document.getElementById('new-empresa-name');
         const newAsesorNameInput = document.getElementById('new-asesor-name');
+
+        // Nuevo: Elementos del modal de cámara
+        const scanCedulaCameraButton = document.getElementById('scan-cedula-camera-btn');
+        const cameraModal = document.getElementById('camera-modal');
+        const closeCameraModalButton = document.getElementById('close-camera-modal');
+        const videoFeed = document.getElementById('video-feed');
+        const cameraCanvas = document.getElementById('camera-canvas');
+        const cameraModalStatus = document.getElementById('camera-modal-status');
+        const stopCameraButton = document.getElementById('stop-camera-btn');
+        let cameraStream = null; // Para almacenar la transmisión de la cámara
+        let animationFrameId = null; // Para controlar el bucle de escaneo
+
+        // Nuevo: Elementos del modal de PDF
+        const readCedulaPdfButton = document.getElementById('read-cedula-pdf-btn');
+        const pdfModal = document.getElementById('pdf-modal');
+        const closePdfModalButton = document.getElementById('close-pdf-modal');
+        const pdfUploadInput = document.getElementById('pdf-upload-input');
+        const pdfModalStatus = document.getElementById('pdf-modal-status');
+        const cancelPdfReadButton = document.getElementById('cancel-pdf-read-btn');
+        const pdfPreview = document.getElementById('pdf-preview');
+
 
         // Variable para almacenar el valor de IBC por defecto
         let defaultIbcValue = 0;
@@ -1043,6 +1202,224 @@
                 ibcInput.readOnly = false; // Permitir edición
             }
         });
+
+
+        // --- Funciones para rellenar el formulario (simuladas) ---
+        // Esta función simula el llenado del formulario con datos de la cédula.
+        // En un caso real, estos datos vendrían de un proceso de OCR o lectura de código de barras.
+        function populateFormFromCedulaData(data) {
+            // Ejemplo de cómo se rellenarían los campos si tuviéramos los datos extraídos
+            // Adapta esto según la estructura real de los datos que obtengas del OCR/código
+            if (data.identificacion) {
+                identificacionInput.value = data.identificacion;
+                tipoIdentificacionSelect.value = data.tipoIdentificacion || 'CC'; // Asume CC si no se especifica
+            }
+            if (data.primerNombre) primerNombreInput.value = data.primerNombre;
+            if (data.segundoNombre) segundoNombreInput.value = data.segundoNombre;
+            if (data.primerApellido) primerApellidoInput.value = data.primerApellido;
+            if (data.segundoApellido) segundoApellidoInput.value = data.segundoApellido;
+            // Podrías añadir más campos aquí (fecha de nacimiento, etc.)
+            showStatusMessage('Formulario rellenado con datos de la cédula (simulado).', 'success');
+        }
+
+
+        // --- Lógica del Modal de Cámara ---
+
+        scanCedulaCameraButton.addEventListener('click', async () => {
+            cameraModal.classList.add('show');
+            cameraModalStatus.textContent = 'Iniciando cámara...';
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); // Preferir cámara trasera
+                videoFeed.srcObject = cameraStream;
+                videoFeed.play();
+                cameraModalStatus.textContent = 'Cámara iniciada. Enfoca el código QR.';
+                requestAnimationFrame(tick); // Iniciar el bucle de escaneo
+            } catch (err) {
+                console.error("Error al acceder a la cámara:", err);
+                cameraModalStatus.textContent = 'Error al iniciar la cámara. Asegúrate de dar permisos.';
+                showStatusMessage('Error al iniciar la cámara: ' + err.message, 'error');
+            }
+        });
+
+        closeCameraModalButton.addEventListener('click', stopCamera);
+        stopCameraButton.addEventListener('click', stopCamera);
+        cameraModal.addEventListener('click', (e) => {
+            if (e.target === cameraModal) {
+                stopCamera();
+            }
+        });
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                videoFeed.srcObject = null;
+                cameraStream = null;
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            cameraModal.classList.remove('show');
+            cameraModalStatus.textContent = 'Esperando código...';
+        }
+
+        function tick() {
+            if (videoFeed.readyState === videoFeed.HAVE_ENOUGH_DATA) {
+                cameraCanvas.height = videoFeed.videoHeight;
+                cameraCanvas.width = videoFeed.videoWidth;
+                const ctx = cameraCanvas.getContext('2d');
+                ctx.drawImage(videoFeed, 0, 0, cameraCanvas.width, cameraCanvas.height);
+                const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    console.log("Código QR detectado:", code.data);
+                    cameraModalStatus.textContent = `Código detectado: ${code.data}`;
+                    // Aquí es donde intentarías parsear los datos del código QR
+                    // Para una cédula colombiana, esto sería un PDF417, no un QR simple.
+                    // Esto es solo un ejemplo para un QR genérico.
+                    try {
+                        // Simulación de extracción de datos de cédula de un QR
+                        // En un escenario real, el 'code.data' contendría información estructurada
+                        // o un ID que consultarías en un backend.
+                        const cedulaData = parseCedulaDataFromQR(code.data); // Función ficticia
+                        if (cedulaData) {
+                            populateFormFromCedulaData(cedulaData);
+                            stopCamera(); // Detener la cámara una vez que se ha leído
+                        } else {
+                            cameraModalStatus.textContent = 'Código QR leído, pero no se pudo extraer datos de cédula.';
+                        }
+                    } catch (e) {
+                        console.error("Error al procesar el código QR:", e);
+                        cameraModalStatus.textContent = 'Error al procesar el código QR.';
+                    }
+
+                } else {
+                    cameraModalStatus.textContent = 'No se detectó código QR. Enfoca bien.';
+                }
+            }
+            if (cameraStream) { // Continuar el bucle solo si la cámara está activa
+                animationFrameId = requestAnimationFrame(tick);
+            }
+        }
+
+        // Función ficticia para parsear datos de cédula de un QR (solo para demostración)
+        // En un caso real, esto sería mucho más complejo y dependería del formato del QR/código de barras.
+        function parseCedulaDataFromQR(qrData) {
+            // Ejemplo: si el QR contiene "CC|123456789|Juan|Perez"
+            const parts = qrData.split('|');
+            if (parts.length >= 4 && parts[0] === 'CC') {
+                return {
+                    tipoIdentificacion: parts[0],
+                    identificacion: parts[1],
+                    primerNombre: parts[2],
+                    primerApellido: parts[3]
+                };
+            }
+            return null; // O un objeto vacío si no se puede parsear
+        }
+
+
+        // --- Lógica del Modal de PDF ---
+
+        readCedulaPdfButton.addEventListener('click', () => {
+            pdfModal.classList.add('show');
+            pdfUploadInput.value = ''; // Limpiar el input de archivo
+            pdfModalStatus.textContent = 'Carga un archivo PDF.';
+            pdfPreview.style.display = 'none'; // Ocultar previsualización
+            pdfPreview.src = '';
+        });
+
+        closePdfModalButton.addEventListener('click', hidePdfModal);
+        cancelPdfReadButton.addEventListener('click', hidePdfModal);
+        pdfModal.addEventListener('click', (e) => {
+            if (e.target === pdfModal) {
+                hidePdfModal();
+            }
+        });
+
+        function hidePdfModal() {
+            pdfModal.classList.remove('show');
+            pdfUploadInput.value = '';
+            pdfModalStatus.textContent = '';
+            pdfPreview.style.display = 'none';
+            pdfPreview.src = '';
+        }
+
+        pdfUploadInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                pdfModalStatus.textContent = 'Ningún archivo seleccionado.';
+                return;
+            }
+
+            if (file.type !== 'application/pdf') {
+                pdfModalStatus.textContent = 'Por favor, selecciona un archivo PDF válido.';
+                showStatusMessage('Archivo no es PDF.', 'error');
+                return;
+            }
+
+            pdfModalStatus.textContent = 'Leyendo PDF...';
+            pdfPreview.style.display = 'block';
+            pdfPreview.src = URL.createObjectURL(file); // Mostrar previsualización del PDF
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+                try {
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+                    }
+                    console.log("Texto extraído del PDF:", fullText);
+                    pdfModalStatus.textContent = 'Texto extraído del PDF. Intentando rellenar formulario...';
+
+                    // Aquí es donde intentarías parsear el texto para extraer los datos de la cédula.
+                    // Esto es una simulación y muy limitado para OCR de cédulas.
+                    const cedulaData = parseCedulaDataFromPdfText(fullText); // Función ficticia
+                    if (cedulaData) {
+                        populateFormFromCedulaData(cedulaData);
+                        pdfModalStatus.textContent = 'Formulario rellenado con datos del PDF (simulado).';
+                        hidePdfModal();
+                    } else {
+                        pdfModalStatus.textContent = 'No se pudieron extraer datos de cédula del PDF.';
+                        showStatusMessage('No se detectaron datos de cédula en el PDF.', 'error');
+                    }
+
+                } catch (error) {
+                    console.error("Error al leer el PDF:", error);
+                    pdfModalStatus.textContent = 'Error al leer el PDF. Asegúrate de que sea un PDF válido.';
+                    showStatusMessage('Error al leer el PDF: ' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Función ficticia para parsear datos de cédula de texto de PDF (solo para demostración)
+        // En un caso real, esto requeriría expresiones regulares muy complejas o un servicio de OCR.
+        function parseCedulaDataFromPdfText(text) {
+            const identificacionMatch = text.match(/Identificación:\s*(\d+)/i);
+            const primerNombreMatch = text.match(/Primer Nombre:\s*([A-Za-zÀ-ÿ\s]+)/i);
+            const primerApellidoMatch = text.match(/Primer Apellido:\s*([A-Za-zÀ-ÿ\s]+)/i);
+
+            const data = {};
+            if (identificacionMatch && identificacionMatch[1]) {
+                data.identificacion = identificacionMatch[1].trim();
+                data.tipoIdentificacion = 'CC'; // Asumimos CC
+            }
+            if (primerNombreMatch && primerNombreMatch[1]) {
+                data.primerNombre = primerNombreMatch[1].trim();
+            }
+            if (primerApellidoMatch && primerApellidoMatch[1]) {
+                data.primerApellido = primerApellidoMatch[1].trim();
+            }
+            return Object.keys(data).length > 0 ? data : null;
+        }
 
 
         // --- Initialization ---
