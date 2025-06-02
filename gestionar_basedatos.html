@@ -1048,9 +1048,6 @@
              <button class="menu-option-button" id="import-users-button">Importar Usuarios desde Excel</button>
              <button class="menu-option-button" id="manage-ibc-button">Gestionar IBC</button>
              <button class="menu-option-button" id="configure-default-ibc-button">Configurar IBC por Defecto</button>
-             <button class="menu-option-button" id="clean-old-name-field-button">Limpiar Campo 'Nombre' Antiguo</button>
-
-
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
              </div>
@@ -1198,8 +1195,6 @@
 
         // Campos del formulario de edición
         const editUserIdInput = document.getElementById('edit-user-id');
-        // Campo de Nombre original (ELIMINADO DEL HTML, PERO LA VARIABLE SE MANTIENE PARA REFERENCIA SI FUERA NECESARIO)
-        // const editNombreInput = document.getElementById('edit-nombre');
         // Referencias a los nuevos campos de nombre/apellido
         const editPrimerNombreInput = document.getElementById('edit-primer-nombre');
         const editSegundoNombreInput = document.getElementById('edit-segundo-nombre');
@@ -1259,8 +1254,8 @@
         const manageIbcButton = document.getElementById('manage-ibc-button');
         // NUEVO: Botón para Configurar IBC por Defecto
         const configureDefaultIbcButton = document.getElementById('configure-default-ibc-button');
-        // NUEVO: Botón para limpiar campo 'nombre' antiguo
-        const cleanOldNameFieldButton = document.getElementById('clean-old-name-field-button');
+        // Botón para limpiar campo 'nombre' antiguo (ELIMINADO)
+        // const cleanOldNameFieldButton = document.getElementById('clean-old-name-field-button');
 
 
         // Modal Genérico para Agregar Entidades DOM elements
@@ -1757,7 +1752,7 @@
 
                  const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
 
-                // Construir el nombre completo para la búsqueda si no existe el campo 'nombre'
+                // Construir el nombre completo para la búsqueda
                 const nombreParaBusqueda = ([
                     user.primerNombre || '',
                     user.segundoNombre || '',
@@ -2090,9 +2085,6 @@
                     console.log("Datos del usuario cargados para edición:", userData);
 
                     editUserIdInput.value = userId;
-                    // Ya no se usa editNombreInput.value
-                    // editNombreInput.value = combinedName || userData.nombre || '';
-
                     // Cargar los campos individuales de nombre/apellido
                     editPrimerNombreInput.value = userData.primerNombre || '';
                     editSegundoNombreInput.value = userData.segundoNombre || '';
@@ -2229,18 +2221,9 @@
             const primerApellido = editPrimerApellidoInput.value.trim();
             const segundoApellido = editSegundoApellidoInput.value.trim();
 
-            // Construir el nombre completo a partir de los campos individuales para guardar en Firestore
-            const nombreCompletoGenerado = [
-                primerNombre || '',
-                segundoNombre || '',
-                primerApellido || '',
-                segundoApellido || ''
-            ].filter(Boolean).join(' ').trim();
-
-
             const updatedData = {
-                // Ya no se guarda el campo 'nombre' directamente, se elimina
-                // nombre: nombreCompletoGenerado,
+                // Eliminar explícitamente el campo 'nombre' si existe en el documento
+                nombre: firebase.firestore.FieldValue.delete(),
                 primerNombre: primerNombre,
                 segundoNombre: segundoNombre,
                 primerApellido: primerApellido,
@@ -2261,9 +2244,6 @@
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
-            // Eliminar explícitamente el campo 'nombre' si existe en el documento
-            updatedData.nombre = firebase.firestore.FieldValue.delete();
 
 
             if (updatedData.estado === 'retirado' && fechaRetiroTimestamp) {
@@ -2379,11 +2359,7 @@
             showDefaultIbcModal();
         });
 
-        // NUEVO: Listener para el botón Limpiar Campo 'Nombre' Antiguo
-        cleanOldNameFieldButton.addEventListener('click', () => {
-            hideSettingsModal();
-            cleanOldNameField();
-        });
+        // El listener para cleanOldNameFieldButton ha sido eliminado ya que el botón fue eliminado.
 
 
         // --- Funcionalidad de Exportar Usuarios a CSV ---
@@ -2409,7 +2385,7 @@
                  const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
                  const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
 
-                // Construir el nombre completo para la búsqueda si no existe el campo 'nombre'
+                // Construir el nombre completo para la búsqueda
                 const nombreParaBusqueda = ([
                     user.primerNombre || '',
                     user.segundoNombre || '',
@@ -3199,43 +3175,7 @@
             }
         });
 
-        // NUEVA FUNCIÓN: Limpiar el campo 'nombre' antiguo de los documentos de usuario
-        async function cleanOldNameField() {
-            if (!confirm('¿Estás seguro de que deseas eliminar el campo "nombre" de TODOS los usuarios? Esta acción es irreversible y solo debe hacerse si estás seguro de que los campos "primerNombre", "segundoNombre", "primerApellido" y "segundoApellido" son los principales.')) {
-                return;
-            }
-
-            showStatusMessage('Iniciando limpieza del campo "nombre" de los usuarios...', 'info');
-            let cleanedCount = 0;
-            let errorCount = 0;
-
-            try {
-                const snapshot = await usersCollection.get();
-                const batch = db.batch();
-
-                snapshot.forEach(doc => {
-                    if (doc.data().hasOwnProperty('nombre')) {
-                        const userRef = usersCollection.doc(doc.id);
-                        batch.update(userRef, {
-                            nombre: firebase.firestore.FieldValue.delete(),
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        cleanedCount++;
-                    }
-                });
-
-                if (cleanedCount > 0) {
-                    await batch.commit();
-                    showStatusMessage(`Campo "nombre" eliminado de ${cleanedCount} usuarios con éxito!`, 'success');
-                } else {
-                    showStatusMessage('No se encontraron usuarios con el campo "nombre" para limpiar.', 'info');
-                }
-
-            } catch (error) {
-                console.error("Error al limpiar el campo 'nombre' antiguo:", error);
-                showStatusMessage('Error al limpiar el campo "nombre" antiguo: ' + error.message, 'error');
-            }
-        }
+        // La función cleanOldNameField ha sido eliminada ya que el botón fue eliminado.
 
 
         // --- Inicialización ---
