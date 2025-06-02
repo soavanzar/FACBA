@@ -1031,6 +1031,8 @@
              <button class="menu-option-button" id="export-users-button">Exportar Usuarios a Excel</button>
              <button class="menu-option-button" id="import-users-button">Importar Usuarios desde Excel</button>
              <button class="menu-option-button" id="manage-ibc-button">Gestionar IBC</button>
+             <button class="menu-option-button" id="configure-default-ibc-button">Configurar IBC por Defecto</button>
+
 
              <div class="modal-buttons">
                  <button type="button" class="cancel-button" id="close-settings-modal-button">Cerrar</button>
@@ -1109,6 +1111,22 @@
         </div>
     </div>
 
+    <div id="default-ibc-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-button" id="close-default-ibc-modal">&times;</span>
+            <h2>Configurar IBC por Defecto</h2>
+            <div class="modal-form-group">
+                <label for="default-ibc-value">Valor IBC por Defecto:</label>
+                <input type="number" id="default-ibc-value" name="defaultIbcValue" step="0.01" placeholder="Ej: 1300000">
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-button" id="cancel-default-ibc">Cancelar</button>
+                <button type="button" class="save-changes-button" id="save-default-ibc-button">Guardar IBC por Defecto</button>
+            </div>
+        </div>
+    </div>
+
+
     <div id="click-tooltip-message" class="click-tooltip-message"></div>
 
     <div id="large-status-message"></div>
@@ -1137,6 +1155,9 @@
         const epsCollection = db.collection('eps');
         const ccfCollection = db.collection('ccf');
         const afpCollection = db.collection('afp');
+        // NUEVO: Referencia a la colección de configuración
+        const settingsCollection = db.collection('settings');
+        const defaultIbcDocRef = settingsCollection.doc('defaultIbc');
 
 
         // Obtener elementos del DOM
@@ -1207,8 +1228,10 @@
         const menuOptionButtons = document.querySelectorAll('#settings-modal .menu-option-button');
         const exportUsersButton = document.getElementById('export-users-button');
         const importUsersButton = document.getElementById('import-users-button');
-        // Nuevo botón para Gestionar IBC
+        // Botón para Gestionar IBC
         const manageIbcButton = document.getElementById('manage-ibc-button');
+        // NUEVO: Botón para Configurar IBC por Defecto
+        const configureDefaultIbcButton = document.getElementById('configure-default-ibc-button');
 
 
         // Modal Genérico para Agregar Entidades DOM elements
@@ -1244,6 +1267,13 @@
         const currentIbcInput = document.getElementById('current-ibc');
         const newIbcInput = document.getElementById('new-ibc');
         const updateIbcButton = document.getElementById('update-ibc-button');
+
+        // NUEVO: Referencias al modal de IBC por Defecto
+        const defaultIbcModal = document.getElementById('default-ibc-modal');
+        const closeDefaultIbcModalButton = document.getElementById('close-default-ibc-modal');
+        const cancelDefaultIbcButton = document.getElementById('cancel-default-ibc');
+        const defaultIbcValueInput = document.getElementById('default-ibc-value');
+        const saveDefaultIbcButton = document.getElementById('save-default-ibc-button');
 
 
         // Mapas para almacenar nombres de entidades (para mostrar en la tabla y selectores)
@@ -2481,10 +2511,16 @@
             showImportUsersModal();
         });
 
-        // Listener para el nuevo botón Gestionar IBC
+        // Listener para el botón Gestionar IBC
         manageIbcButton.addEventListener('click', () => {
             hideSettingsModal();
             showIbcManagementModal();
+        });
+
+        // NUEVO: Listener para el botón Configurar IBC por Defecto
+        configureDefaultIbcButton.addEventListener('click', () => {
+            hideSettingsModal();
+            showDefaultIbcModal();
         });
 
 
@@ -3162,6 +3198,71 @@
             } catch (error) {
                 console.error("Error al actualizar IBC de usuarios:", error);
                 showStatusMessage('Error al actualizar IBC de usuarios: ' + error.message, 'error');
+            }
+        });
+
+        // --- NUEVA FUNCIONALIDAD: Configurar IBC por Defecto ---
+
+        // Función para mostrar el modal de IBC por Defecto
+        async function showDefaultIbcModal() {
+            defaultIbcModal.classList.add('show');
+            await loadDefaultIbcValue(); // Cargar el valor actual al abrir el modal
+        }
+
+        // Función para ocultar el modal de IBC por Defecto
+        function hideDefaultIbcModal() {
+            defaultIbcModal.classList.remove('show');
+        }
+
+        // Listeners para cerrar el modal de IBC por Defecto
+        closeDefaultIbcModalButton.addEventListener('click', hideDefaultIbcModal);
+        cancelDefaultIbcButton.addEventListener('click', hideDefaultIbcModal);
+
+        defaultIbcModal.addEventListener('click', (e) => {
+            if (e.target === defaultIbcModal) {
+                hideDefaultIbcModal();
+            }
+        });
+
+        // Función para cargar el valor de IBC por defecto desde Firestore
+        async function loadDefaultIbcValue() {
+            try {
+                const doc = await defaultIbcDocRef.get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    defaultIbcValueInput.value = data.value !== undefined ? data.value : '';
+                    console.log("IBC por defecto cargado:", data.value);
+                } else {
+                    defaultIbcValueInput.value = ''; // Si no existe, dejarlo vacío
+                    console.log("No se encontró IBC por defecto en Firestore.");
+                }
+            } catch (error) {
+                console.error("Error al cargar IBC por defecto:", error);
+                showStatusMessage('Error al cargar el IBC por defecto.', 'error');
+            }
+        }
+
+        // Función para guardar el valor de IBC por defecto en Firestore
+        saveDefaultIbcButton.addEventListener('click', async () => {
+            const ibcValue = parseFloat(defaultIbcValueInput.value);
+
+            if (isNaN(ibcValue)) {
+                showStatusMessage('Por favor, ingresa un valor numérico válido para el IBC por defecto.', 'error');
+                return;
+            }
+
+            showStatusMessage('Guardando IBC por defecto...', 'info');
+
+            try {
+                await defaultIbcDocRef.set({
+                    value: ibcValue,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatusMessage('IBC por defecto guardado con éxito!', 'success');
+                hideDefaultIbcModal();
+            } catch (error) {
+                console.error("Error al guardar IBC por defecto:", error);
+                showStatusMessage('Error al guardar IBC por defecto: ' + error.message, 'error');
             }
         });
 
