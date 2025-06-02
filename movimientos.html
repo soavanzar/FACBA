@@ -2282,7 +2282,8 @@
                 if (limit) {
                     query = query.limit(limit);
                 }
-                const snapshot = await query.get();
+                // CLAVE: Forzar la obtención de datos desde el servidor para asegurar la última versión
+                const snapshot = await query.get({ source: 'server' });
                 listElement.innerHTML = '';
                 if (snapshot.empty) {
                     listElement.innerHTML = '<li>No hay historial de facturas para este usuario.</li>';
@@ -2370,7 +2371,7 @@
         async function generateInvoicePdf(invoiceId) {
             showStatusMessage('Generando PDF...', 'info');
             try {
-                // MODIFICACIÓN CLAVE: Fuerza la obtención de datos desde el servidor
+                // CLAVE: Fuerza la obtención de datos desde el servidor para asegurar la última versión
                 const invoiceDoc = await facturasCollection.doc(invoiceId).get({ source: 'server' });
                 if (!invoiceDoc.exists) {
                     showStatusMessage('Factura no encontrada para generar PDF.', 'error');
@@ -2774,21 +2775,30 @@
             const endDateString = editInvoiceEndDateInput.value;
             const invoiceDetails = editInvoiceDetailsTextarea.value;
 
+            // Log de depuración para verificar los valores antes de la actualización
+            console.log("Attempting to save invoice changes for ID:", invoiceId);
+            console.log("New invoiceCode:", invoiceCode);
+            console.log("New startDateString:", startDateString);
+            console.log("New endDateString:", endDateString);
+            console.log("New invoiceDetails length:", invoiceDetails.length); // Check if details are captured
+
             if (!invoiceId || !userId || !invoiceCode || !startDateString || !endDateString || !invoiceDetails) {
                 showStatusMessage('Por favor, completa todos los campos de la factura correctamente.', 'error');
+                console.error("Validation failed: Missing required fields.");
                 return;
             }
 
-            // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
+            // CLAVE: Asegurar que las fechas se construyan correctamente como objetos Date en UTC
             const startParts = startDateString.split('-');
             const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
             const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
-            endDate.setUTCHours(23, 59, 59, 999); // Include the whole end day
+            endDate.setUTCHours(23, 59, 59, 999); // Incluir todo el día final
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                console.error("Validation failed: Invalid date range.");
                 return;
             }
 
@@ -2799,15 +2809,17 @@
                 detalles: invoiceDetails,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+            console.log("Data to be sent to Firestore for update:", updatedData); // Log de depuración
+
             showStatusMessage('Guardando cambios de la factura...', 'info');
             try {
                 await facturasCollection.doc(invoiceId).update(updatedData);
                 showStatusMessage('Cambios de la factura guardados con éxito!', 'success');
                 hideEditInvoiceModal();
-                // Reload history in the appropriate modal if open
+                // Recargar el historial en el modal apropiado si está abierto
                 if (billingModal.classList.contains('show')) {
                     await loadInvoiceHistory(userId, invoiceHistoryList, 3);
-                    // NUEVO: Limpiar la sección de factura generada si el modal de facturación está abierto para el mismo usuario
+                    // Limpiar la sección de factura generada si el modal de facturación está abierto para el mismo usuario
                     if (billingUserIdInput.value === userId) {
                         generatedInvoiceDetails.innerHTML = '';
                         generatedInvoiceSection.style.display = 'none';
@@ -3327,10 +3339,10 @@
                     let tarifaArl = 0;
                     let centroTrabajo = '';
                     switch (user.riesgo) {
-                        case '1': tarifaArl = 0,522; centroTrabajo = 'CENTRO TRABAJO 1'; break;
-                        case '2': tarifaArl = 0,1044; centroTrabajo = 'CENTRO TRABAJO 2'; break;
-                        case '3': tarifaArl = 0,2436; centroTrabajo = 'CENTRO TRABAJO 3'; break;
-                        case '4': tarifaArl = 0,4350; centroTrabajo = 'CENTRO TRABAJO 4'; break;
+                        case '1': tarifaArl = 0.00522; centroTrabajo = 'CENTRO TRABAJO 1'; break;
+                        case '2': tarifaArl = 0.01044; centroTrabajo = 'CENTRO TRABAJO 2'; break;
+                        case '3': tarifaArl = 0.02436; centroTrabajo = 'CENTRO TRABAJO 3'; break;
+                        case '4': tarifaArl = 0.04350; centroTrabajo = 'CENTRO TRABAJO 4'; break;
                         default: tarifaArl = 0; centroTrabajo = ''; break;
                     }
 
