@@ -2023,8 +2023,12 @@
             const startDateString = billingStartDateInput.value;
             const endDateString = billingEndDateInput.value;
 
+            console.log("Intentando generar factura para userId:", userId);
+            console.log("Fechas seleccionadas:", startDateString, "a", endDateString);
+
             if (!userId || !startDateString || !endDateString) {
                 showStatusMessage('Por favor, selecciona las fechas de inicio y fin.', 'error');
+                console.error("Error: Fechas o userId faltantes.");
                 return;
             }
 
@@ -2039,6 +2043,7 @@
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
                 showStatusMessage('Las fechas seleccionadas no son válidas.', 'error');
+                console.error("Error: Fechas no válidas o rango incorrecto.");
                 return;
             }
 
@@ -2048,11 +2053,13 @@
                 const userDoc = await usersCollection.doc(userId).get();
                 if (!userDoc.exists) {
                     showStatusMessage('Error: Datos del usuario no encontrados para facturar.', 'error');
+                    console.error("Error: userDoc no existe para ID:", userId);
                     return;
                 }
                 const userData = userDoc.data();
                 currentUserData = userData;
                 currentUserData.id = userDoc.id;
+                console.log("Datos del usuario para factura:", userData);
 
                 const timestampPart = Date.now();
                 const randomPart = Math.floor(1000 + Math.random() * 9000);
@@ -2144,6 +2151,7 @@
                 generateGeneratedPdfButton.style.display = 'inline-block';
 
                 showStatusMessage('Factura generada. Revísala y guarda.', 'success');
+                console.log("Factura generada y mostrada.");
             } catch (error) {
                 console.error("Error al generar factura:", error);
                 showStatusMessage('Error al generar factura: ' + error.message, 'error');
@@ -2423,14 +2431,14 @@
                 // Extract Nombres and Apellidos from invoiceData.detalles
                 const nombresMatch = invoiceData.detalles.match(/Nombres: (.+)/);
                 const apellidosMatch = invoiceData.detalles.match(/Apellidos: (.+)/);
-                const identificacionMatch = invoiceData.detalles.match(/Identificación: (.+)/);
+                const identificacionMatch = invoiceData.detalles.match(/Identificación: (.+?) \((.+?)\)/); // Capture type as well
                 const estadoMatch = invoiceData.detalles.match(/Estado: (.+)/);
 
                 doc.text(`Nombres: ${nombresMatch ? nombresMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
                 doc.text(`Apellidos: ${apellidosMatch ? apellidosMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
-                doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'} (${identificacionMatch ? identificacionMatch[1].split('(')[1].replace(')','').trim() : 'N/A'})`, margin, y);
+                doc.text(`Identificación: ${identificacionMatch ? `${identificacionMatch[1].trim()} (${identificacionMatch[2].trim()})` : 'N/A'}`, margin, y);
                 y += 7;
                 doc.text(`Estado: ${estadoMatch ? estadoMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 15;
@@ -2474,10 +2482,10 @@
                 y += 5;
 
                 const valorBaseMatch = invoiceData.detalles.match(/Valor Base \(según usuario\): (.+)/);
-                const ibcMatch = invoiceData.detalles.match(/IBC \(según usuario\): (.+)/);
+                const ibcDetailsMatch = invoiceData.detalles.match(/IBC \(según usuario\): (.+)/); // Renamed to avoid conflict
 
                 const tableData = [
-                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcDetailsMatch ? ibcDetailsMatch[1].trim() : 'N/A']
                 ];
 
                 doc.autoTable({
@@ -2567,7 +2575,7 @@
                 const afpNombre = afpMap.get(userData.afpId) || 'N/A';
 
                 const valorBaseMatch = invoiceDetailsText.match(/Valor Base \(según usuario\): (.+)/);
-                const ibcMatch = invoiceDetailsText.match(/IBC \(según usuario\): (.+)/);
+                const ibcDetailsMatch = invoiceDetailsText.match(/IBC \(según usuario\): (.+)/);
                 const totalMatch = invoiceDetailsText.match(/TOTAL A PAGAR: (.+)/);
 
                 const primaryColor = '#4f46e5';
@@ -2661,7 +2669,7 @@
                 y += 5;
 
                 const tableData = [
-                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcMatch ? ibcMatch[1].trim() : 'N/A']
+                    ['Servicio de Afiliación y Gestión', valorBaseMatch ? valorBaseMatch[1].trim() : 'N/A', ibcDetailsMatch ? ibcDetailsMatch[1].trim() : 'N/A']
                 ];
 
                 doc.autoTable({
@@ -2773,7 +2781,7 @@
 
             // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
             const startParts = startDateString.split('-');
-            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(parts[2])));
+            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
 
             const endParts = endDateString.split('-');
             const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
@@ -3112,12 +3120,8 @@
                     const latestPayment = latestPayments.get(doc.id);
 
                     const novedad = latestPayment ? latestPayment.novedad || 'N/A' : 'N/A';
-                    const dias = latestPayment ? latestPayment.dias || 'N/A' : 'N/A';
-                    const ibc = formatCurrency(user.ibc || 0);
-                    const eps = epsMap.get(user.epsId) || 'N/A';
-                    const arl = arlMap.get(user.arlId) || 'N/A';
-                    const afp = afpMap.get(user.afpId) || 'N/A';
-                    const ccf = ccfMap.get(user.ccfId) || 'N/A';
+                    const dias = latestPayment ? latestPayment.dias || 0 : 0; // Ensure dias is a number
+                    const ibc = user.ibc || 0; // Raw IBC from user data
 
                     // Determine full name and full last name for PDF table
                     let nombresPdf = '';
@@ -3152,6 +3156,40 @@
                     nombresPdf = nombresPdf || 'N/A';
                     apellidosPdf = apellidosPdf || 'N/A';
 
+                    // Calculate IBC for each system based on days
+                    const ibcPerDay = ibc / 30;
+                    const ibc_afp = ibcPerDay * dias;
+                    const ibc_eps = ibcPerDay * dias;
+                    const ibc_arl = ibcPerDay * dias;
+
+                    // Calculate Valor Cotización AFP
+                    const valorCotizacionAfp = ibc_afp * 0.16;
+
+                    // Calculate Valor Cotización EPS
+                    const valorCotizacionEps = ibc_eps * 0.04;
+
+                    // Calculate Tarifa ARL and Valor Cotización ARL
+                    let tarifaArl = 0;
+                    let centroTrabajo = '';
+                    switch (user.riesgo) {
+                        case '1': tarifaArl = 0.00522; centroTrabajo = 'CENTRO TRABAJO 1'; break;
+                        case '2': tarifaArl = 0.01044; centroTrabajo = 'CENTRO TRABAJO 2'; break;
+                        case '3': tarifaArl = 0.02436; centroTrabajo = 'CENTRO TRABAJO 3'; break;
+                        case '4': tarifaArl = 0.04350; centroTrabajo = 'CENTRO TRABAJO 4'; break;
+                        default: tarifaArl = 0; centroTrabajo = ''; break;
+                    }
+                    const valorCotizacionArl = ibc_arl * tarifaArl;
+
+                    // Calculate IBC CCF and Valor Cotización CCF
+                    const ccfName = ccfMap.get(user.ccfId);
+                    let ibcCcfValue = ibcPerDay * dias;
+                    let valorCotizacionCcf = ibcCcfValue * 0.04;
+
+                    if (ccfName && ccfName.toUpperCase().includes('COMCAJA')) {
+                        ibcCcfValue = 1;
+                        valorCotizacionCcf = 100;
+                    }
+
 
                     tableData.push([
                         nombresPdf,
@@ -3160,12 +3198,12 @@
                         empresaNombre,
                         novedad,
                         dias,
-                        ibc,
-                        eps,
-                        arl,
-                        user.riesgo || 'N/A', // NEW: Riesgo for PDF export
-                        afp,
-                        ccf
+                        formatCurrency(ibc), // Display original IBC in PDF
+                        epsMap.get(user.epsId) || 'N/A',
+                        arlMap.get(user.arlId) || 'N/A',
+                        user.riesgo || 'N/A',
+                        afpMap.get(user.afpId) || 'N/A',
+                        ccfMap.get(user.ccfId) || 'N/A'
                     ]);
                 });
 
@@ -3250,7 +3288,7 @@
                     "Actividad Económica", "Valor Cotización (ARL)", "Días (CCF)", "Administradora CCF", "IBC CCF", "Tarifa CCF",
                     "Valor Cotización CCF", "IBC Otros Parafiscales", "Tarifa SENA", "Valor Cotización SENA", "Tarifa ICBF",
                     "Valor Cotización ICBF", "Tarifa ESAP", "Valor Cotización ESAP", "Tarifa MEN", "Valor Cotización MEN",
-                    "Exonerado parafiscales y salud Ley 1607", "Tipo ID (Final)", "N° ID (Final)", "RIESGO" // NUEVO: Riesgo para exportación Excel
+                    "Exonerado parafiscales y salud Ley 1607", "Tipo ID (Final)", "N° ID (Final)", "RIESGO"
                 ]);
 
                 let rowNum = 1;
@@ -3260,7 +3298,10 @@
 
                     const dias = latestPayment ? latestPayment.dias || 0 : 0;
                     const novedad = latestPayment ? latestPayment.novedad || '' : '';
-                    const ibc = user.ibc || 0;
+                    const ibcOriginal = user.ibc || 0; // Original IBC from user data
+
+                    // Calculate IBC per day for calculations
+                    const ibcPerDay = ibcOriginal / 30;
 
                     // Subtipo de Cotizante
                     const afpName = afpMap.get(user.afpId);
@@ -3282,7 +3323,7 @@
                         arlAdministradora = 'ARL SURA';
                     }
 
-                    // Tarifa ARL
+                    // Tarifa ARL and Centro de Trabajo
                     let tarifaArl = 0;
                     let centroTrabajo = '';
                     switch (user.riesgo) {
@@ -3292,33 +3333,39 @@
                         case '4': tarifaArl = 0.04350; centroTrabajo = 'CENTRO TRABAJO 4'; break;
                         default: tarifaArl = 0; centroTrabajo = ''; break;
                     }
-                    const valorCotizacionArl = ibc * tarifaArl;
+
+                    // IBC for each system (based on days)
+                    const ibc_afp = ibcPerDay * dias;
+                    const ibc_eps = ibcPerDay * dias;
+                    const ibc_arl = ibcPerDay * dias;
 
                     // Valor Cotización AFP
-                    const valorCotizacionAfp = ibc * 0.16;
+                    const valorCotizacionAfp = ibc_afp * 0.16;
 
                     // Valor Cotización EPS
-                    const valorCotizacionEps = ibc * 0.04;
+                    const valorCotizacionEps = ibc_eps * 0.04;
+
+                    // Valor Cotización ARL
+                    const valorCotizacionArl = ibc_arl * tarifaArl;
 
                     // IBC CCF and Valor Cotización CCF
                     const ccfName = ccfMap.get(user.ccfId);
-                    let ibcCcfValue = ibc;
-                    let valorCotizacionCcf = ibc * 0.04;
+                    let ibcCcfValue = ibcPerDay * dias;
+                    let valorCotizacionCcf = ibcCcfValue * 0.04;
 
                     if (ccfName && ccfName.toUpperCase().includes('COMCAJA')) {
                         ibcCcfValue = 1;
                         valorCotizacionCcf = 100;
                     }
-                    // If COMFENALCO, it implicitly uses ibc and ibc * 0.04 (default values)
 
                     ws_data.push([
                         rowNum++, // No.
                         user.tipoIdentificacion || '', // Tipo ID
                         user.identificacion || '', // No ID
-                        user.primerApellido || '', // Primer Apellido - Asegurarse de que estos campos existan en Firestore
-                        user.segundoApellido || '', // Segundo Apellido - Asegurarse de que estos campos existan en Firestore
-                        user.primerNombre || user.nombre || '', // Primer Nombre - Prioriza el nuevo campo, sino usa el antiguo
-                        user.segundoNombre || '', // Segundo Nombre - Asegurarse de que estos campos existan en Firestore
+                        user.primerApellido || '', // Primer Apellido
+                        user.segundoApellido || '', // Segundo Apellido
+                        user.primerNombre || user.nombre || '', // Primer Nombre
+                        user.segundoNombre || '', // Segundo Nombre
                         'SANTANDER', // Departamento
                         'BUCARAMANGA', // Ciudad
                         '1. DEPENDIENTE', // Tipo de Cotizante
@@ -3332,58 +3379,61 @@
                         retValue, // RET
                         '', // Fecha RET
                         'NO', 'NO', 'NO', 'NO', 'NO', '', 'NO', 'NO', '', '', 'NO', '', '', 'NO', '', '', 'NO', '', '', // TDE to VAC-LR
-                        'NO', // AVP to IRL
+                        'NO', // AVP
+                        'NO', // VCT
+                        '', '', // Inicio VCT, Fin VCT
+                        '', '', '', // IRL, Inicio IRL, Fin IRL
                         'NO', // Correcciones
-                        ibc, // Salario Mensual($)
+                        ibcOriginal, // Salario Mensual($) - Use original IBC
                         'NO', // Salario Integral
                         'NO', // Salario Variable
                         afpMap.get(user.afpId) || 'N/A', // Administradora (AFP)
                         dias, // Días (AFP)
-                        ibc, // IBC (AFP)
+                        ibc_afp, // IBC (AFP) - Calculated
                         '16,00%', // Tarifa (AFP)
-                        valorCotizacionAfp, // Valor Cotización (AFP)
+                        valorCotizacionAfp, // Valor Cotización (AFP) - Calculated
                         'Sin Riesgo', // Indicador Alto Riesgo
                         0, // Cotización Voluntaria Afiliado
                         0, // Cotización Voluntaria Empleador
                         0, // Fondo Solidaridad Pensional
                         0, // Fondo Subsistencia
                         0, // Valor no Retenido
-                        valorCotizacionAfp, // Total (AFP)
+                        valorCotizacionAfp, // Total (AFP) - Same as Valor Cotización AFP
                         'NINGUNA', // AFP Destino
                         epsMap.get(user.epsId) || 'N/A', // Administradora (EPS)
                         dias, // Días (EPS)
-                        ibc, // IBC (EPS)
+                        ibc_eps, // IBC (EPS) - Calculated
                         '4,00%', // Tarifa (EPS)
-                        valorCotizacionEps, // Valor Cotización (EPS)
+                        valorCotizacionEps, // Valor Cotización (EPS) - Calculated
                         0, // Valor UPC
                         '', 0, '', '', // N° Autorización Incapacidad EG to Valor Licencia Maternidad
                         'NINGUNA', // EPS Destino
                         arlAdministradora, // Administradora (ARL) - Lógica actualizada
                         dias, // Días (ARL)
-                        ibc, // IBC (ARL)
+                        ibc_arl, // IBC (ARL) - Calculated
                         (tarifaArl * 100).toFixed(3) + '%', // Tarifa (ARL)
                         user.riesgo || '', // Clase
                         centroTrabajo, // Centro de Trabajo
                         '', // Actividad Económica
-                        valorCotizacionArl, // Valor Cotización (ARL)
+                        valorCotizacionArl, // Valor Cotización (ARL) - Calculated
                         dias, // Días (CCF)
                         ccfMap.get(user.ccfId) || 'N/A', // Administradora CCF
                         ibcCcfValue, // IBC CCF - Lógica actualizada
                         '4,00%', // Tarifa CCF
                         valorCotizacionCcf, // Valor Cotización CCF - Lógica actualizada
-                        0, // IBC Otros Parafiscales (cambiado a número)
-                        '0,00%', // Tarifa SENA (se mantiene porcentaje)
-                        0, // Valor Cotización SENA (cambiado a número)
-                        '0,00%', // Tarifa ICBF (se mantiene porcentaje)
-                        0, // Valor Cotización ICBF (cambiado a número)
-                        '0,00%', // Tarifa ESAP (se mantiene porcentaje)
-                        0, // Valor Cotización ESAP (cambiado a número)
-                        '0,00%', // Tarifa MEN (se mantiene porcentaje)
-                        0, // Valor Cotización MEN (cambiado a número)
+                        0, // IBC Otros Parafiscales
+                        '0,00%', // Tarifa SENA
+                        0, // Valor Cotización SENA
+                        '0,00%', // Tarifa ICBF
+                        0, // Valor Cotización ICBF
+                        '0,00%', // Tarifa ESAP
+                        0, // Valor Cotización ESAP
+                        '0,00%', // Tarifa MEN
+                        0, // Valor Cotización MEN
                         'SI', // Exonerado parafiscales y salud Ley 1607
                         '', // Tipo ID (Final)
                         '', // N° ID (Final)
-                        user.riesgo || 'N/A' // NUEVO: Riesgo para exportación Excel
+                        user.riesgo || 'N/A' // RIESGO
                     ]);
                 }
 
