@@ -855,10 +855,6 @@
             <form id="edit-user-form">
                 <input type="hidden" id="edit-user-id">
                 <div class="modal-form-group">
-                    <label for="edit-nombre">Nombre Completo:</label>
-                    <input type="text" id="edit-nombre" name="nombre" required>
-                </div>
-                <div class="modal-form-group">
                     <label for="edit-primer-nombre">Primer Nombre:</label>
                     <input type="text" id="edit-primer-nombre" name="primerNombre">
                 </div>
@@ -1052,6 +1048,7 @@
              <button class="menu-option-button" id="import-users-button">Importar Usuarios desde Excel</button>
              <button class="menu-option-button" id="manage-ibc-button">Gestionar IBC</button>
              <button class="menu-option-button" id="configure-default-ibc-button">Configurar IBC por Defecto</button>
+             <button class="menu-option-button" id="clean-old-name-field-button">Limpiar Campo 'Nombre' Antiguo</button>
 
 
              <div class="modal-buttons">
@@ -1201,8 +1198,8 @@
 
         // Campos del formulario de edición
         const editUserIdInput = document.getElementById('edit-user-id');
-        // Campo de Nombre original
-        const editNombreInput = document.getElementById('edit-nombre');
+        // Campo de Nombre original (ELIMINADO DEL HTML, PERO LA VARIABLE SE MANTIENE PARA REFERENCIA SI FUERA NECESARIO)
+        // const editNombreInput = document.getElementById('edit-nombre');
         // Referencias a los nuevos campos de nombre/apellido
         const editPrimerNombreInput = document.getElementById('edit-primer-nombre');
         const editSegundoNombreInput = document.getElementById('edit-segundo-nombre');
@@ -1262,6 +1259,8 @@
         const manageIbcButton = document.getElementById('manage-ibc-button');
         // NUEVO: Botón para Configurar IBC por Defecto
         const configureDefaultIbcButton = document.getElementById('configure-default-ibc-button');
+        // NUEVO: Botón para limpiar campo 'nombre' antiguo
+        const cleanOldNameFieldButton = document.getElementById('clean-old-name-field-button');
 
 
         // Modal Genérico para Agregar Entidades DOM elements
@@ -1659,17 +1658,17 @@
         // Renderizar una fila de usuario en la tabla (ahora adaptada para Grid)
         function renderUserRow(userDoc) {
             const user = userDoc.data();
+            console.log("Rendering user row for:", user); // Add this line to inspect user data
             const row = document.createElement('tr');
             row.dataset.id = userDoc.id;
 
-            // Usar el campo 'nombre' de Firestore para la tabla, o construirlo si no existe
-            const displayFullName = user.nombre || [
+            // Construir el nombre completo a partir de los campos individuales
+            const displayFullName = [
                 user.primerNombre || '',
                 user.segundoNombre || '',
                 user.primerApellido || '',
                 user.segundoApellido || ''
             ].filter(Boolean).join(' ').trim();
-
 
             const empresaNombre = empresasMap.get(user.empresaId) || 'Desconocida';
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
@@ -1758,12 +1757,17 @@
 
                  const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
 
-                // Usar el campo 'nombre' de Firestore para la búsqueda
-                const nombreParaBusqueda = (user.nombre || '').toLowerCase();
+                // Construir el nombre completo para la búsqueda si no existe el campo 'nombre'
+                const nombreParaBusqueda = ([
+                    user.primerNombre || '',
+                    user.segundoNombre || '',
+                    user.primerApellido || '',
+                    user.segundoApellido || ''
+                ].filter(Boolean).join(' ').trim()).toLowerCase();
 
 
                 const matchesSearch = filterText === '' ||
-                    (nombreParaBusqueda.includes(filterText)) || // Buscar en el nombre completo
+                    (nombreParaBusqueda.includes(filterText)) || // Buscar en el nombre completo (construido)
                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
                     (empresaNombre.toLowerCase().includes(filterText)) ||
                     (estado.toLowerCase().includes(filterText)) ||
@@ -1778,6 +1782,8 @@
 
                 return matchesStatusFilter && matchesEmpresaFilter && matchesAsesorFilter && matchesArlFilter && matchesEpsFilter && matchesCcfFilter && matchesAfpFilter && matchesSearch;
             });
+
+            console.log(`Filtered documents count: ${filteredDocs.length}`); // Log filtered count
 
             if (filteredDocs.length > 0) {
                 filteredDocs.forEach(doc => {
@@ -1800,9 +1806,31 @@
                  await loadLookupMaps();
              }
 
-             usersCollection.orderBy('nombre').onSnapshot(snapshot => { // Ordenar por nombre combinado
+             // Remover el ordenamiento de Firestore y ordenar en JavaScript
+             usersCollection.onSnapshot(snapshot => {
                  allUserDocs = snapshot.docs;
                  console.log(`onSnapshot triggered. ${allUserDocs.length} total users fetched.`);
+                 console.log("Fetched user documents (raw):", allUserDocs.map(doc => doc.data())); // Log actual data
+
+                 // Ordenar los documentos en JavaScript
+                 allUserDocs.sort((a, b) => {
+                     const userA = a.data();
+                     const userB = b.data();
+
+                     const apellidoA = (userA.primerApellido || '').toLowerCase();
+                     const apellidoB = (userB.primerApellido || '').toLowerCase();
+
+                     const nombreA = (userA.primerNombre || '').toLowerCase();
+                     const nombreB = (userB.primerNombre || '').toLowerCase();
+
+                     if (apellidoA < apellidoB) return -1;
+                     if (apellidoA > apellidoB) return 1;
+
+                     if (nombreA < nombreB) return -1;
+                     if (nombreA > nombreB) return 1;
+
+                     return 0;
+                 });
 
                  renderFilteredUsers();
 
@@ -2062,8 +2090,9 @@
                     console.log("Datos del usuario cargados para edición:", userData);
 
                     editUserIdInput.value = userId;
-                    // Cargar el campo de nombre combinado
-                    editNombreInput.value = userData.nombre || '';
+                    // Ya no se usa editNombreInput.value
+                    // editNombreInput.value = combinedName || userData.nombre || '';
+
                     // Cargar los campos individuales de nombre/apellido
                     editPrimerNombreInput.value = userData.primerNombre || '';
                     editSegundoNombreInput.value = userData.segundoNombre || '';
@@ -2195,15 +2224,23 @@
             let fechaRetiroTimestamp = fechaRetiroDate ? firebase.firestore.Timestamp.fromDate(fechaRetiroDate) : null;
 
             // Obtener valores de todos los campos de nombre/apellido
-            const nombreCompleto = editNombreInput.value.trim();
             const primerNombre = editPrimerNombreInput.value.trim();
             const segundoNombre = editSegundoNombreInput.value.trim();
             const primerApellido = editPrimerApellidoInput.value.trim();
             const segundoApellido = editSegundoApellidoInput.value.trim();
 
+            // Construir el nombre completo a partir de los campos individuales para guardar en Firestore
+            const nombreCompletoGenerado = [
+                primerNombre || '',
+                segundoNombre || '',
+                primerApellido || '',
+                segundoApellido || ''
+            ].filter(Boolean).join(' ').trim();
+
 
             const updatedData = {
-                nombre: nombreCompleto, // Usa el campo de nombre combinado directamente
+                // Ya no se guarda el campo 'nombre' directamente, se elimina
+                // nombre: nombreCompletoGenerado,
                 primerNombre: primerNombre,
                 segundoNombre: segundoNombre,
                 primerApellido: primerApellido,
@@ -2224,6 +2261,10 @@
                 estado: editEstadoSelect.value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            // Eliminar explícitamente el campo 'nombre' si existe en el documento
+            updatedData.nombre = firebase.firestore.FieldValue.delete();
+
 
             if (updatedData.estado === 'retirado' && fechaRetiroTimestamp) {
                 updatedData.fechaRetiro = fechaRetiroTimestamp;
@@ -2291,261 +2332,6 @@
             }
         });
 
-        // --- Manejo del Modal Genérico para Agregar Entidades ---
-
-        // Mostrar el modal genérico de agregar entidad
-        function showAddEntityModal(title, entityType) {
-            addEntityModalTitle.textContent = title;
-            addEntityTypeInput.value = entityType;
-            entityNameInput.value = '';
-            addEntityModal.classList.add('show');
-        }
-
-        // Ocultar el modal genérico de agregar entidad
-        function hideAddEntityModal() {
-            addEntityModal.classList.remove('show');
-            addEntityForm.reset();
-        }
-
-        // Listeners para cerrar el modal genérico de agregar entidad
-        closeAddEntityModalButton.addEventListener('click', hideAddEntityModal);
-        cancelAddEntityButton.addEventListener('click', hideAddEntityModal);
-        addEntityModal.addEventListener('click', (e) => {
-            if (e.target === addEntityModal) {
-                hideAddEntityModal();
-            }
-        });
-
-        // Listener para el envío del formulario del modal genérico de agregar entidad
-        addEntityForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const entityType = addEntityTypeInput.value;
-            const entityName = entityNameInput.value.trim();
-
-            if (!entityName) {
-                // Using alert() as it's a simple validation feedback within a modal flow,
-                // but for production, a custom modal message is preferred.
-                alert("Por favor, ingresa el nombre.");
-                return;
-            }
-
-            let collectionRef;
-            let successMessage = '';
-            let entityData = {
-                 nombre: entityName,
-                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            switch (entityType) {
-                case 'arl':
-                    collectionRef = arlCollection;
-                    successMessage = 'Nueva ARL agregada con éxito!';
-                    break;
-                case 'eps':
-                    collectionRef = epsCollection;
-                    successMessage = 'Nueva EPS agregada con éxito!';
-                    break;
-                case 'ccf':
-                    collectionRef = ccfCollection;
-                    successMessage = 'Nueva CCF agregada con éxito!';
-                    break;
-                case 'afp':
-                    collectionRef = afpCollection;
-                    successMessage = 'Nueva AFP agregada con éxito!';
-                    break;
-                case 'asesor':
-                    collectionRef = asesoresCollection;
-                    successMessage = 'Nuevo Asesor agregado con éxito!';
-                    break;
-                case 'empresa':
-                    collectionRef = empresasCollection;
-                    successMessage = 'Nueva Empresa agregada con éxito!';
-                    break;
-                default:
-                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
-                    return;
-            }
-
-            showStatusMessage(`Agregando ${entityName}...`, 'info');
-
-            try {
-                await collectionRef.add(entityData);
-                showStatusMessage(successMessage, 'success');
-                hideAddEntityModal();
-
-                 await loadLookupMaps();
-                 await populateSelects();
-
-
-                if (manageEntityModal.classList.contains('show') && manageEntityTypeInput.value === entityType) {
-                     loadEntitiesForManagement(entityType);
-                }
-
-
-            } catch (error) {
-                console.error(`Error al agregar ${entityType}:`, error);
-                showStatusMessage(`Error al agregar ${entityType}: ` + error.message, 'error');
-            }
-        });
-
-        // --- Manejo del Nuevo Modal Genérico para Gestionar Entidades ---
-
-        // Mostrar el modal de gestión de entidades
-        function showManageEntityModal(title, entityType) {
-             manageEntityModalTitle.textContent = title;
-             manageEntityTypeInput.value = entityType;
-             entityList.innerHTML = '';
-             manageEntityModal.classList.add('show');
-             loadEntitiesForManagement(entityType);
-        }
-
-        // Ocultar el modal de gestión de entidades
-        function hideManageEntityModal() {
-             manageEntityModal.classList.remove('show');
-             entityList.innerHTML = '';
-        }
-
-        // Listeners para cerrar el modal de gestión
-        closeManageEntityModalButton.addEventListener('click', hideManageEntityModal);
-        closeManageEntityModalButtonInModal.addEventListener('click', hideManageEntityModal);
-        manageEntityModal.addEventListener('click', (e) => {
-             if (e.target === manageEntityModal) {
-                 hideManageEntityModal();
-             }
-        });
-
-        // Listener para abrir el modal de agregar desde el modal de gestión
-        openAddFromManageButton.addEventListener('click', () => {
-             const entityType = manageEntityTypeInput.value;
-             let modalTitle = '';
-             switch (entityType) {
-                 case 'arl': modalTitle = 'Agregar Nueva ARL'; break;
-                 case 'eps': modalTitle = 'Agregar Nueva EPS'; break;
-                 case 'ccf': modalTitle = 'Agregar Nueva CCF'; break;
-                 case 'afp': modalTitle = 'Agregar Nueva AFP'; break;
-                 case 'asesor': modalTitle = 'Agregar Nuevo Asesor'; break;
-                 case 'empresa': modalTitle = 'Agregar Nueva Empresa'; break;
-                 default: modalTitle = 'Agregar Nueva Entidad';
-             }
-             hideManageEntityModal();
-             showAddEntityModal(modalTitle, entityType);
-        });
-
-
-        // Función para cargar y mostrar entidades en el modal de gestión
-        async function loadEntitiesForManagement(entityType) {
-            entityList.innerHTML = '<li>Cargando...</li>';
-            let collectionRef;
-            let entityTypeName = '';
-
-            switch (entityType) {
-                case 'arl': collectionRef = arlCollection; entityTypeName = 'ARL'; break;
-                case 'eps': collectionRef = epsCollection; entityTypeName = 'EPS'; break;
-                case 'ccf': collectionRef = ccfCollection; entityTypeName = 'CCF'; break;
-                case 'afp': collectionRef = afpCollection; entityTypeName = 'AFP'; break;
-                case 'asesor': collectionRef = asesoresCollection; entityTypeName = 'Asesor'; break;
-                case 'empresa': collectionRef = empresasCollection; entityTypeName = 'Empresa'; break;
-                default:
-                    entityList.innerHTML = '<li>Error: Tipo de entidad desconocido.</li>';
-                    return;
-            }
-
-            manageEntityModalTitle.textContent = `Gestionar ${entityTypeName}s`;
-
-            try {
-                const snapshot = await collectionRef.orderBy('nombre').get();
-                entityList.innerHTML = '';
-
-                if (snapshot.empty) {
-                    entityList.innerHTML = `<li>No hay ${entityTypeName}s registrados.</li>`;
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const entity = doc.data();
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('entity-item');
-                    listItem.dataset.id = doc.id;
-                    listItem.dataset.type = entityType;
-
-                    listItem.innerHTML = `
-                        <span class="entity-name">${entity.nombre || 'Sin Nombre'}</span>
-                        <button class="delete-entity-button" data-id="${doc.id}" data-type="${entityType}">Eliminar</button>
-                    `;
-                    entityList.appendChild(listItem);
-                });
-
-            } catch (error) {
-                console.error(`Error al cargar ${entityTypeName}s:`, error);
-                entityList.innerHTML = `<li>Error al cargar ${entityTypeName}s.</li>`;
-                showStatusMessage(`Error al cargar ${entityTypeName}s.`, 'error');
-            }
-        }
-
-        // Listener para los botones de eliminar en el modal de gestión (usando delegación)
-        entityList.addEventListener('click', async (e) => {
-            const targetButton = e.target.closest('.delete-entity-button');
-            if (!targetButton) return;
-
-            const entityId = targetButton.dataset.id;
-            const entityType = targetButton.dataset.type;
-            const entityName = targetButton.parentElement.querySelector('.entity-name').textContent;
-
-            // Using confirm() as it's a simple validation feedback within a modal flow,
-            // but for production, a custom modal message is preferred.
-            if (confirm(`¿Estás seguro de que deseas eliminar "${entityName}"? Esta acción es irreversible.`)) {
-                deleteEntity(entityType, entityId, entityName);
-            }
-        });
-
-        // Función para eliminar una entidad
-        async function deleteEntity(entityType, entityId, entityName) {
-             let entityTypeName = '';
-             switch (entityType) {
-                 case 'arl': entityTypeName = 'ARL'; break;
-                 case 'eps': entityTypeName = 'EPS'; break;
-                 case 'ccf': entityTypeName = 'CCF'; break;
-                 case 'afp': entityTypeName = 'AFP'; break;
-                 case 'asesor': entityTypeName = 'Asesor'; break;
-                 case 'empresa': entityTypeName = 'Empresa'; break;
-                 default: entityTypeName = 'Entidad';
-             }
-
-             showStatusMessage(`Eliminando ${entityTypeName}...`, 'info');
-
-             let collectionRef;
-
-             switch (entityType) {
-                 case 'arl': collectionRef = arlCollection; break;
-                 case 'eps': collectionRef = epsCollection; break;
-                 case 'ccf': collectionRef = ccfCollection; break;
-                 case 'afp': collectionRef = afpCollection; break;
-                 case 'asesor': collectionRef = asesoresCollection; break;
-                 case 'empresa': collectionRef = empresasCollection; break;
-                 default:
-                     showStatusMessage('Error: Tipo de entidad desconocido para eliminar.', 'error');
-                     return;
-             }
-
-             try {
-                 await collectionRef.doc(entityId).delete();
-                 showStatusMessage(`${entityTypeName} "${entityName}" eliminado con éxito!`, 'success');
-
-                 loadEntitiesForManagement(entityType);
-
-                 await loadLookupMaps();
-                 await populateSelects();
-                 renderFilteredUsers();
-
-
-             } catch (error) {
-                 console.error(`Error al eliminar ${entityTypeName}:`, error);
-                 showStatusMessage(`Error al eliminar ${entityTypeName} "${entityName}": ` + error.message, 'error');
-             }
-        }
-
-
         // Listener para los botones de opción en el modal de configuración (actualizados para abrir el modal de gestión o importar/exportar)
         menuOptionButtons.forEach(button => {
             button.addEventListener('click', (e) => {
@@ -2593,6 +2379,12 @@
             showDefaultIbcModal();
         });
 
+        // NUEVO: Listener para el botón Limpiar Campo 'Nombre' Antiguo
+        cleanOldNameFieldButton.addEventListener('click', () => {
+            hideSettingsModal();
+            cleanOldNameField();
+        });
+
 
         // --- Funcionalidad de Exportar Usuarios a CSV ---
         function exportUsersToCsv() {
@@ -2617,21 +2409,26 @@
                  const matchesCcfFilter = currentCcfFilterId === '' || user.ccfId === currentCcfFilterId;
                  const matchesAfpFilter = currentAfpFilterId === '' || user.afpId === currentAfpFilterId;
 
-                // Usar el campo 'nombre' de Firestore para la búsqueda
-                const nombreParaBusqueda = (user.nombre || '').toLowerCase();
+                // Construir el nombre completo para la búsqueda si no existe el campo 'nombre'
+                const nombreParaBusqueda = ([
+                    user.primerNombre || '',
+                    user.segundoNombre || '',
+                    user.primerApellido || '',
+                    user.segundoApellido || ''
+                ].filter(Boolean).join(' ').trim()).toLowerCase();
 
 
-                 const matchesSearch = filterText === '' ||
-                     (nombreParaBusqueda.includes(filterText)) || // Buscar en el nombre completo
-                     (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
-                     (empresaNombre.toLowerCase().includes(filterText)) ||
-                     (estado.toLowerCase().includes(filterText)) ||
-                     (asesorNombre.toLowerCase().includes(filterText)) ||
-                     (arlMap.get(user.arlId) || '').toLowerCase().includes(filterText) ||
-                     (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
-                     (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) ||
-                     (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) ||
-                     (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText) ||
+                const matchesSearch = filterText === '' ||
+                    (nombreParaBusqueda.includes(filterText)) || // Buscar en el nombre completo (construido)
+                    (user.identificacion && String(user.identificacion).toLowerCase().includes(filterText)) ||
+                    (empresaNombre.toLowerCase().includes(filterText)) ||
+                    (estado.toLowerCase().includes(filterText)) ||
+                    (asesorNombre.toLowerCase().includes(filterText)) ||
+                    (arlMap.get(user.arlId) || '').toLowerCase().includes(filterText) ||
+                    (user.riesgo && user.riesgo.toLowerCase().includes(filterText)) ||
+                    (epsMap.get(user.epsId) || '').toLowerCase().includes(filterText) ||
+                    (ccfMap.get(user.ccfId) || '').toLowerCase().includes(filterText) ||
+                    (afpMap.get(user.afpId) || '').toLowerCase().includes(filterText) ||
                      (user.ibc !== undefined && user.ibc !== null && String(user.ibc).toLowerCase().includes(filterText));
 
 
@@ -2661,9 +2458,17 @@
                  const estado = user.estado || 'activo';
                  const fechaRetiro = user.fechaRetiro ? formatDate(user.fechaRetiro) : '';
 
+                 // Construir el nombre completo para la exportación
+                 const exportFullName = [
+                     user.primerNombre || '',
+                     user.segundoNombre || '',
+                     user.primerApellido || '',
+                     user.segundoApellido || ''
+                 ].filter(Boolean).join(' ').trim();
+
 
                  return [
-                     user.nombre || '', // Exportar el campo nombre combinado
+                     exportFullName, // Exportar el campo nombre completo construido
                      user.primerNombre || '',
                      user.segundoNombre || '',
                      user.primerApellido || '',
@@ -2790,8 +2595,7 @@
                     };
 
                     const requiredColumns = [
-                        "NOMBRE", // Añadido de nuevo
-                        "TIPO DE IDENTIFICACION", "IDENTIFICACION", "EMPRESA",
+                        "IDENTIFICACION", "EMPRESA",
                         "FECHA INGRESO", "ASESOR", "VALOR A PAGAR"
                     ];
 
@@ -3089,8 +2893,9 @@
                         }
 
                         // Validar campos obligatorios
-                        if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha.getTime())) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
-                            if (!userData.nombre) rowErrors.push("Nombre Completo vacío");
+                        if (!userData.hasOwnProperty('primerNombre') || !userData.hasOwnProperty('primerApellido') || !userData.tipoIdentificacion || !userData.identificacion || !userData.hasOwnProperty('empresaId') || !userData.hasOwnProperty('asesorId') || !(userData.fecha instanceof Date && !isNaN(userData.fecha.getTime())) || userData.valorAPagar === undefined || userData.valorAPagar === null) {
+                            if (!userData.hasOwnProperty('primerNombre')) rowErrors.push("Primer Nombre vacío");
+                            if (!userData.hasOwnProperty('primerApellido')) rowErrors.push("Primer Apellido vacío");
                             if (!userData.tipoIdentificacion) rowErrors.push("Tipo de Identificación vacío");
                             if (!userData.identificacion) rowErrors.push("Identificación vacía");
                             if (!userData.hasOwnProperty('empresaId') || userData.empresaId === null) rowErrors.push("Empresa no válida o vacía");
@@ -3149,6 +2954,9 @@
                             userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                             userData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
+                             // Al importar, también eliminar el campo 'nombre' si existe en la fila de Excel
+                             userData.nombre = firebase.firestore.FieldValue.delete();
+
                              console.log(`Data prepared for Firestore (Row ${rowNumber}):`, userData);
 
                             const newUserRef = usersCollection.doc();
@@ -3169,21 +2977,17 @@
                             if (errorCount > 0) {
                                 finalMessage += ` ${errorCount} filas con errores.`;
                                 console.error("Import Errors Summary:", importErrors);
-                                // Using alert() as it's a simple validation feedback within a modal flow,
-                                // but for production, a custom modal message is preferred.
                                 alert("Errores de importación:\n" + importErrors.join('\n'));
                             }
                             showImportStatusMessage(finalMessage, errorCount === 0 ? 'success' : 'info');
 
                         } catch (batchError) {
-                            console.error("Error saving user batch to Firestore:", batchError);
+                            console.error("Error al guardar datos de usuarios en la base de datos:", batchError);
                             showImportStatusMessage('Error al guardar datos de usuarios en la base de datos: ' + batchError.message, 'error');
                         }
                     } else if (errorCount > 0) {
                          showImportStatusMessage(`No se agregaron usuarios. ${errorCount} filas con errores.`, 'error');
                          console.error("Import Errors Summary:", importErrors);
-                         // Using alert() as it's a simple validation feedback within a modal flow,
-                         // but for production, a custom modal message is preferred.
                          alert("Errores de importación:\n" + importErrors.join('\n'));
                     }
                     else {
@@ -3255,8 +3059,6 @@
             }
 
             // Confirmación antes de proceder
-            // Using confirm() as it's a simple validation feedback within a modal flow,
-            // but for production, a custom modal message is preferred.
             if (!confirm(`¿Estás seguro de que deseas actualizar el IBC de ${formatCurrency(currentIbcValue)} a ${formatCurrency(newIbcValue)} para TODOS los usuarios que coincidan?`)) {
                 return;
             }
@@ -3396,6 +3198,44 @@
                 editIbcInput.value = ''; // Clear the value when unchecked, allowing manual input
             }
         });
+
+        // NUEVA FUNCIÓN: Limpiar el campo 'nombre' antiguo de los documentos de usuario
+        async function cleanOldNameField() {
+            if (!confirm('¿Estás seguro de que deseas eliminar el campo "nombre" de TODOS los usuarios? Esta acción es irreversible y solo debe hacerse si estás seguro de que los campos "primerNombre", "segundoNombre", "primerApellido" y "segundoApellido" son los principales.')) {
+                return;
+            }
+
+            showStatusMessage('Iniciando limpieza del campo "nombre" de los usuarios...', 'info');
+            let cleanedCount = 0;
+            let errorCount = 0;
+
+            try {
+                const snapshot = await usersCollection.get();
+                const batch = db.batch();
+
+                snapshot.forEach(doc => {
+                    if (doc.data().hasOwnProperty('nombre')) {
+                        const userRef = usersCollection.doc(doc.id);
+                        batch.update(userRef, {
+                            nombre: firebase.firestore.FieldValue.delete(),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        cleanedCount++;
+                    }
+                });
+
+                if (cleanedCount > 0) {
+                    await batch.commit();
+                    showStatusMessage(`Campo "nombre" eliminado de ${cleanedCount} usuarios con éxito!`, 'success');
+                } else {
+                    showStatusMessage('No se encontraron usuarios con el campo "nombre" para limpiar.', 'info');
+                }
+
+            } catch (error) {
+                console.error("Error al limpiar el campo 'nombre' antiguo:", error);
+                showStatusMessage('Error al limpiar el campo "nombre" antiguo: ' + error.message, 'error');
+            }
+        }
 
 
         // --- Inicialización ---
