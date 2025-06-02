@@ -463,8 +463,20 @@
 
         <form id="user-form">
             <div class="form-group">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <label for="primer-nombre">Primer Nombre:</label>
+                <input type="text" id="primer-nombre" name="primerNombre" required>
+            </div>
+            <div class="form-group">
+                <label for="segundo-nombre">Segundo Nombre:</label>
+                <input type="text" id="segundo-nombre" name="segundoNombre">
+            </div>
+            <div class="form-group">
+                <label for="primer-apellido">Primer Apellido:</label>
+                <input type="text" id="primer-apellido" name="primerApellido" required>
+            </div>
+            <div class="form-group">
+                <label for="segundo-apellido">Segundo Apellido:</label>
+                <input type="text" id="segundo-apellido" name="segundoApellido">
             </div>
 
             <div class="form-group">
@@ -643,8 +655,12 @@
         const statusMessage = document.getElementById('status-message');
         const cancelButton = document.getElementById('cancel-button');
 
-        // Form fields
-        const nombreInput = document.getElementById('nombre');
+        // Form fields for names and surnames
+        const primerNombreInput = document.getElementById('primer-nombre');
+        const segundoNombreInput = document.getElementById('segundo-nombre');
+        const primerApellidoInput = document.getElementById('primer-apellido');
+        const segundoApellidoInput = document.getElementById('segundo-apellido');
+
         const tipoIdentificacionSelect = document.getElementById('tipo-identificacion');
         const identificacionInput = document.getElementById('identificacion');
         const empresaSelect = document.getElementById('empresa');
@@ -845,7 +861,10 @@
 
             // Gather form data
             const userData = {
-                nombre: nombreInput.value,
+                primerNombre: primerNombreInput.value,
+                segundoNombre: segundoNombreInput.value,
+                primerApellido: primerApellidoInput.value,
+                segundoApellido: segundoApellidoInput.value,
                 tipoIdentificacion: tipoIdentificacionSelect.value,
                 identificacion: identificacionInput.value,
                 empresaId: empresaSelect.value || null, // Store ID or null if not selected
@@ -866,8 +885,8 @@
             };
 
             // Basic validation (more comprehensive validation can be added)
-            if (!userData.nombre || !userData.tipoIdentificacion || !userData.identificacion || !userData.empresaId || !userData.fecha || !userData.ingreso || !userData.asesorId) {
-                 showStatusMessage('Por favor, completa todos los campos obligatorios.', 'error');
+            if (!userData.primerNombre || !userData.primerApellido || !userData.tipoIdentificacion || !userData.identificacion || !userData.empresaId || !userData.fecha || !userData.ingreso || !userData.asesorId) {
+                 showStatusMessage('Por favor, completa todos los campos obligatorios (Primer Nombre, Primer Apellido, Tipo de Identificación, Identificación, Empresa, Fecha de Ingreso, Fecha de Registro Inicial, Asesor).', 'error');
                  return;
             }
 
