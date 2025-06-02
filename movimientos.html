@@ -869,7 +869,8 @@
                         <th>IBC</th>
                         <th>EPS</th>
                         <th>ARL</th>
-                        <th>Riesgo</th> <th>AFP</th>
+                        <th>Riesgo</th>
+                        <th>AFP</th>
                         <th>CCF</th>
                         <th>Planilla</th>
                         <th>Acciones</th>
@@ -882,7 +883,8 @@
     </div>
 
     <div id="large-status-message"></div>
-    <div id="click-tooltip-message"></div> <div id="add-payment-modal" class="modal-overlay">
+    <div id="click-tooltip-message"></div>
+    <div id="add-payment-modal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close-button" id="close-add-payment-modal">&times;</span>
             <h2>Agregar Pago</h2>
@@ -1532,7 +1534,11 @@
 
             // Determine CCF Info
             const ccfName = ccfMap.get(user.ccfId);
-            const isCcfAssigned = !isNotAssignedOrUnknown(user.ccfId, ccfMap);
+            let isCcfAssigned = !isNotAssignedOrUnknown(user.ccfId, ccfMap);
+            // MODIFICACIÓN: Si la CCF es COMCAJA, se considera "No Asignada"
+            if (ccfName && ccfName.trim().toUpperCase() === 'COMCAJA') {
+                isCcfAssigned = false;
+            }
             const ccfTooltip = isCcfAssigned ? (ccfName || 'CCF Asignada (Nombre Desconocido)') : 'CCF No Asignada';
             const ccfIcon = isCcfAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + ccfTooltip + '"></i>' :
@@ -1554,7 +1560,8 @@
                 <td data-label="IBC">${ibcFormatted || 'N/A'}</td>
                 <td data-label="EPS">${epsIcon}</td>
                 <td data-label="ARL">${arlIcon}</td>
-                <td data-label="Riesgo">${user.riesgo || 'N/A'}</td> <td data-label="AFP">${afpIcon}</td>
+                <td data-label="Riesgo">${user.riesgo || 'N/A'}</td>
+                <td data-label="AFP">${afpIcon}</td>
                 <td data-label="CCF">${ccfIcon}</td>
                 <td data-label="Planilla">${planillaIcon}</td>
                 <td class="action-cell" data-label="Acciones">
@@ -1804,7 +1811,8 @@
                         <span>Fecha: ${formatDate(payment.fecha)}</span>
                         <span>Valor: ${formatCurrency(payment.valor)}</span>
                         <span>Novedad: ${payment.novedad || 'N/A'}</span>
-                        <span>Días: ${payment.dias || 'N/A'}</span> <div class="history-item-actions">
+                        <span>Días: ${payment.dias || 'N/A'}</span>
+                        <div class="history-item-actions">
                             <button class="action-button edit-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Editar Pago"><i class="fas fa-edit"></i></button>
                             <button class="action-button delete-payment-button" data-id="${doc.id}" data-user-id="${userId}" title="Eliminar Pago"><i class="fas fa-trash-alt"></i></button>
                         </div>
@@ -2422,7 +2430,7 @@
                 y += 7;
                 doc.text(`Apellidos: ${apellidosMatch ? apellidosMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
-                doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'}`, margin, y);
+                doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'} (${identificacionMatch ? identificacionMatch[1].split('(')[1].replace(')','').trim() : 'N/A'})`, margin, y);
                 y += 7;
                 doc.text(`Estado: ${estadoMatch ? estadoMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 15;
@@ -2765,7 +2773,7 @@
 
             // Corrected: Create Date objects from YYYY-MM-DD strings, ensuring UTC interpretation
             const startParts = startDateString.split('-');
-            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])));
+            const startDate = new Date(Date.UTC(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(parts[2])));
 
             const endParts = endDateString.split('-');
             const endDate = new Date(Date.UTC(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2])));
