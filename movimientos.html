@@ -114,11 +114,11 @@
             margin-top: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra suave para la tabla */
             display: grid; /* Usar Grid para la tabla */
-            grid-template-columns: repeat(10, 1fr); /* 10 columnas flexibles: Nombre, Empresa, Valor a Pagar, IBC, EPS, ARL, AFP, CCF, Planilla, Acciones */
+            grid-template-columns: repeat(11, 1fr); /* 11 columnas flexibles: Nombres, Apellidos, Empresa, Valor a Pagar, IBC, EPS, ARL, AFP, CCF, Planilla, Acciones */
             /* Definir áreas para thead y tbody */
             grid-template-areas:
-                "header header header header header header header header header header"
-                "body body body body body body body body body body";
+                "header header header header header header header header header header header"
+                "body body body body body body body body body body body";
             grid-auto-rows: auto; /* Ajustar altura de filas automáticamente */
         }
 
@@ -862,7 +862,8 @@
             <table class="user-table">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
                         <th>Empresa</th>
                         <th>Valor a Pagar</th>
                         <th>IBC</th>
@@ -1460,18 +1461,50 @@
          */
         function renderUserRow(userDoc) {
             const user = userDoc.data();
-            // console.log(`[renderUserRow] Procesando usuario ID: ${userDoc.id}, Nombre: "${user.nombre || 'N/A'}"`);
-            // console.log(`[renderUserRow] Datos completos del usuario ID ${userDoc.id}:`, user);
 
             const row = document.createElement('tr');
             row.dataset.id = userDoc.id;
+
+            // Determine full name and full last name for display
+            let nombres = '';
+            let apellidos = '';
+
+            if (user.primerNombre) {
+                nombres += user.primerNombre;
+            }
+            if (user.segundoNombre) {
+                nombres += (nombres ? ' ' : '') + user.segundoNombre;
+            }
+
+            if (user.primerApellido) {
+                apellidos += user.primerApellido;
+            }
+            if (user.segundoApellido) {
+                apellidos += (apellidos ? ' ' : '') + user.segundoApellido;
+            }
+
+            // Fallback for old users with only 'nombre' field
+            if (!user.primerNombre && user.nombre) {
+                // Attempt to split the full name into names and last names
+                const nameParts = user.nombre.split(' ');
+                if (nameParts.length >= 2) {
+                    // Simple heuristic: assume first two parts are names, rest are last names
+                    nombres = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1] : '');
+                    apellidos = nameParts.slice(2).join(' ');
+                } else {
+                    nombres = user.nombre;
+                    apellidos = 'N/A'; // Or leave empty
+                }
+            }
+
+            nombres = nombres || 'N/A';
+            apellidos = apellidos || 'N/A';
+
 
             // Get entity names using the maps
             const empresaNombre = empresasMap.get(user.empresaId) || 'N/A';
             const valorAPagarFormatted = formatCurrency(user.valorAPagar);
             const ibcFormatted = formatCurrency(user.ibc);
-
-            // console.log(`[renderUserRow] Empresa ID: ${user.empresaId || 'N/A'}, Valor a Pagar: ${user.valorAPagar || 'N/A'}, IBC: ${user.ibc || 'N/A'}`);
 
             // Determine EPS Info
             const epsName = epsMap.get(user.epsId);
@@ -1480,8 +1513,6 @@
             const epsIcon = isEpsAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + epsTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + epsTooltip + '"></i>';
-            // console.log(`[renderUserRow] EPS ID: ${user.epsId || 'N/A'}, EPS Name: "${epsName || 'N/A'}", isEpsAssigned: ${isEpsAssigned}`);
-
 
             // Determine ARL Info (including Risk in tooltip)
             const arlName = arlMap.get(user.arlId);
@@ -1490,8 +1521,6 @@
             const arlIcon = isArlAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + arlTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + arlTooltip + '"></i>';
-            // console.log(`[renderUserRow] ARL ID: ${user.arlId || 'N/A'}, ARL Name: "${arlName || 'N/A'}", Riesgo: "${user.riesgo || 'N/A'}", isArlAssigned: ${isArlAssigned}`);
-
 
             // Determine AFP Info
             const afpName = afpMap.get(user.afpId);
@@ -1500,8 +1529,6 @@
             const afpIcon = isAfpAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + afpTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + afpTooltip + '"></i>';
-            // console.log(`[renderUserRow] AFP ID: ${user.afpId || 'N/A'}, AFP Name: "${afpName || 'N/A'}", isAfpAssigned: ${isAfpAssigned}`);
-
 
             // Determine CCF Info
             const ccfName = ccfMap.get(user.ccfId);
@@ -1510,21 +1537,18 @@
             const ccfIcon = isCcfAssigned ?
                             '<i class="fas fa-check-circle text-green-500 status-icon" title="' + ccfTooltip + '"></i>' :
                             '<i class="fas fa-times-circle text-red-500 status-icon" title="' + ccfTooltip + '"></i>';
-            // console.log(`[renderUserRow] CCF ID: ${user.ccfId || 'N/A'}, CCF Name: "${ccfName || 'N/A'}", isCcfAssigned: ${isCcfAssigned}`);
-
 
             // Determine 'hasPlanilla' status from user data
-            // It will be true if user.hasPlanilla is explicitly true, otherwise false.
             const hasPlanilla = user.hasPlanilla === true;
             const planillaIcon = hasPlanilla ?
                                  '<i class="fas fa-check-square text-green-500 status-icon" title="Tiene Planilla"></i>' :
                                  '<i class="fas fa-square text-red-500 status-icon" title="No tiene Planilla"></i>';
-            // console.log(`[renderUserRow] hasPlanilla: ${user.hasPlanilla}, Planilla Icon: ${planillaIcon}`);
 
 
             // Add data-label for table responsiveness
             row.innerHTML = `
-                <td data-label="Nombre">${user.nombre || 'N/A'}</td>
+                <td data-label="Nombres">${nombres}</td>
+                <td data-label="Apellidos">${apellidos}</td>
                 <td data-label="Empresa">${empresaNombre || 'N/A'}</td>
                 <td data-label="Valor a Pagar">${valorAPagarFormatted || 'N/A'}</td>
                 <td data-label="IBC">${ibcFormatted || 'N/A'}</td>
@@ -1549,16 +1573,28 @@
             const searchTerm = userSearchInput.value.toLowerCase();
             const filteredUsers = allUserDocs.filter(doc => {
                 const user = doc.data();
-                const userName = (user.nombre || '').toLowerCase();
+                const primerNombre = (user.primerNombre || '').toLowerCase();
+                const segundoNombre = (user.segundoNombre || '').toLowerCase();
+                const primerApellido = (user.primerApellido || '').toLowerCase();
+                const segundoApellido = (user.segundoApellido || '').toLowerCase();
+                const fullName = (user.nombre || '').toLowerCase(); // For old users
                 const userIdentification = (user.identificacion || '').toLowerCase();
-                return userName.includes(searchTerm) || userIdentification.includes(searchTerm);
+
+                // Check if any part of the name or identification matches the search term
+                return primerNombre.includes(searchTerm) ||
+                       segundoNombre.includes(searchTerm) ||
+                       primerApellido.includes(searchTerm) ||
+                       segundoApellido.includes(searchTerm) ||
+                       fullName.includes(searchTerm) || // Check old full name
+                       userIdentification.includes(searchTerm);
             });
 
             console.log(`[renderUsers] Intentando renderizar. Total de usuarios filtrados: ${filteredUsers.length}`);
 
             if (filteredUsers.length === 0) {
                 const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="10" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
+                // Updated colspan to 11 due to unified columns
+                noDataRow.innerHTML = `<td colspan="11" class="text-center text-gray-500">No hay usuarios que coincidan con la búsqueda.</td>`;
                 userTableBody.appendChild(noDataRow);
                 console.log('[renderUsers] No hay usuarios que coincidan con la búsqueda.');
                 return;
@@ -1581,7 +1617,7 @@
             console.log('Mapas de entidades y selects cargados. Procediendo con datos de usuario.');
 
             // Use onSnapshot to listen for real-time changes
-            usersCollection.orderBy('nombre').onSnapshot(snapshot => {
+            usersCollection.orderBy('primerNombre').onSnapshot(snapshot => {
                 console.log(`[onSnapshot] Listener activado. Documentos recibidos: ${snapshot.docs.length}`);
                 if (snapshot.docs.length === 0) {
                     console.warn('[onSnapshot] No se encontraron documentos en la colección "usuarios". Por favor, verifica tu base de datos en Firebase (console.firebase.google.com).');
@@ -1818,7 +1854,7 @@
          * @param {string} userId - The ID of the user.
          */
         async function showPaymentHistoryModal(userId) {
-            paymentHistoryModalTitle.textContent = `Historial de Pagos de ${currentUserData.nombre || 'Usuario'}`;
+            paymentHistoryModalTitle.textContent = `Historial de Pagos de ${currentUserData.primerNombre || 'Usuario'}`;
             await loadPaymentHistory(userId, fullPaymentHistoryList);
             paymentHistoryModal.classList.add('show');
         }
@@ -2026,6 +2062,40 @@
                 const formattedStartDate = formatDate(startDate);
                 const formattedEndDate = formatDate(endDate);
 
+                // Determine full name and full last name for display in invoice
+                let nombresInvoice = '';
+                let apellidosInvoice = '';
+
+                if (userData.primerNombre) {
+                    nombresInvoice += userData.primerNombre;
+                }
+                if (userData.segundoNombre) {
+                    nombresInvoice += (nombresInvoice ? ' ' : '') + userData.segundoNombre;
+                }
+
+                if (userData.primerApellido) {
+                    apellidosInvoice += userData.primerApellido;
+                }
+                if (userData.segundoApellido) {
+                    apellidosInvoice += (apellidosInvoice ? ' ' : '') + userData.segundoApellido;
+                }
+
+                // Fallback for old users with only 'nombre' field
+                if (!userData.primerNombre && userData.nombre) {
+                    const nameParts = userData.nombre.split(' ');
+                    if (nameParts.length >= 2) {
+                        nombresInvoice = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1] : '');
+                        apellidosInvoice = nameParts.slice(2).join(' ');
+                    } else {
+                        nombresInvoice = userData.nombre;
+                        apellidosInvoice = 'N/A';
+                    }
+                }
+
+                nombresInvoice = nombresInvoice || 'N/A';
+                apellidosInvoice = apellidosInvoice || 'N/A';
+
+
                 let invoiceDetailsText = `
                     FACBA - Factura
                     -------------------------------------
@@ -2035,7 +2105,8 @@
 
                     -------------------------------------
                     Datos del Usuario:
-                    Nombre: ${userData.nombre || 'N/A'}
+                    Nombres: ${nombresInvoice}
+                    Apellidos: ${apellidosInvoice}
                     Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})
                     Estado: ${userData.estado || 'N/A'}
 
@@ -2134,7 +2205,37 @@
          * @param {string} userId - The ID of the user.
          */
         async function showInvoiceHistoryModal(userId) {
-            invoiceHistoryModalTitle.textContent = `Historial de Facturas de ${currentUserData.nombre || 'Usuario'}`;
+            // Determine full name and full last name for display in modal title
+            let nombresModal = '';
+            let apellidosModal = '';
+
+            if (currentUserData.primerNombre) {
+                nombresModal += currentUserData.primerNombre;
+            }
+            if (currentUserData.segundoNombre) {
+                nombresModal += (nombresModal ? ' ' : '') + currentUserData.segundoNombre;
+            }
+
+            if (currentUserData.primerApellido) {
+                apellidosModal += currentUserData.primerApellido;
+            }
+            if (currentUserData.segundoApellido) {
+                apellidosModal += (apellidosModal ? ' ' : '') + currentUserData.segundoApellido;
+            }
+
+            // Fallback for old users with only 'nombre' field
+            if (!currentUserData.primerNombre && currentUserData.nombre) {
+                const nameParts = currentUserData.nombre.split(' ');
+                if (nameParts.length >= 2) {
+                    nombresModal = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1] : '');
+                    apellidosModal = nameParts.slice(2).join(' ');
+                } else {
+                    nombresModal = currentUserData.nombre;
+                    apellidosModal = 'N/A';
+                }
+            }
+
+            invoiceHistoryModalTitle.textContent = `Historial de Facturas de ${nombresModal} ${apellidosModal}`;
             await loadInvoiceHistory(userId, fullInvoiceHistoryList);
             invoiceHistoryModal.classList.add('show');
         }
@@ -2310,11 +2411,16 @@
 
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'normal');
-                const nombreMatch = invoiceData.detalles.match(/Nombre: (.+)/);
+
+                // Extract Nombres and Apellidos from invoiceData.detalles
+                const nombresMatch = invoiceData.detalles.match(/Nombres: (.+)/);
+                const apellidosMatch = invoiceData.detalles.match(/Apellidos: (.+)/);
                 const identificacionMatch = invoiceData.detalles.match(/Identificación: (.+)/);
                 const estadoMatch = invoiceData.detalles.match(/Estado: (.+)/);
 
-                doc.text(`Nombre: ${nombreMatch ? nombreMatch[1].trim() : 'N/A'}`, margin, y);
+                doc.text(`Nombres: ${nombresMatch ? nombresMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Apellidos: ${apellidosMatch ? apellidosMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
                 doc.text(`Identificación: ${identificacionMatch ? identificacionMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
@@ -2502,7 +2608,13 @@
 
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'normal');
-                doc.text(`Nombre: ${userData.nombre || 'N/A'}`, margin, y);
+                // Extract Nombres and Apellidos from invoiceDetailsText
+                const nombresGeneratedMatch = invoiceDetailsText.match(/Nombres: (.+)/);
+                const apellidosGeneratedMatch = invoiceDetailsText.match(/Apellidos: (.+)/);
+
+                doc.text(`Nombres: ${nombresGeneratedMatch ? nombresGeneratedMatch[1].trim() : 'N/A'}`, margin, y);
+                y += 7;
+                doc.text(`Apellidos: ${apellidosGeneratedMatch ? apellidosGeneratedMatch[1].trim() : 'N/A'}`, margin, y);
                 y += 7;
                 doc.text(`Identificación: ${userData.identificacion || 'N/A'} (${userData.tipoIdentificacion || 'N/A'})`, margin, y);
                 y += 7;
@@ -2756,7 +2868,7 @@
         async function loadEmplanilladosList() {
             emplanilladosList.innerHTML = '<li>Cargando usuarios emplanillados...</li>';
             try {
-                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('primerNombre');
                 const selectedCompanyId = emplanilladosCompanyFilter.value;
 
                 if (selectedCompanyId) {
@@ -2799,13 +2911,47 @@
                     const afp = afpMap.get(user.afpId) || 'N/A';
                     const ccf = ccfMap.get(user.ccfId) || 'N/A';
 
+                    // Determine full name and full last name for display in emplanillados list
+                    let nombresList = '';
+                    let apellidosList = '';
+
+                    if (user.primerNombre) {
+                        nombresList += user.primerNombre;
+                    }
+                    if (user.segundoNombre) {
+                        nombresList += (nombresList ? ' ' : '') + user.segundoNombre;
+                    }
+
+                    if (user.primerApellido) {
+                        apellidosList += user.primerApellido;
+                    }
+                    if (user.segundoApellido) {
+                        apellidosList += (apellidosList ? ' ' : '') + user.segundoApellido;
+                    }
+
+                    // Fallback for old users with only 'nombre' field
+                    if (!user.primerNombre && user.nombre) {
+                        const nameParts = user.nombre.split(' ');
+                        if (nameParts.length >= 2) {
+                            nombresList = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1] : '');
+                            apellidosList = nameParts.slice(2).join(' ');
+                        } else {
+                            nombresList = user.nombre;
+                            apellidosList = 'N/A';
+                        }
+                    }
+
+                    nombresList = nombresList || 'N/A';
+                    apellidosList = apellidosList || 'N/A';
+
+
                     const listItem = document.createElement('li');
                     listItem.dataset.id = doc.id;
                     listItem.innerHTML = `
                         <div class="flex items-center w-full">
                             <input type="checkbox" data-user-id="${doc.id}" class="emplanillado-checkbox mr-2">
                             <div class="user-info flex-grow">
-                                <strong>${user.nombre || 'N/A'}</strong> (${user.identificacion || 'N/A'})
+                                <strong>${nombresList} ${apellidosList}</strong> (${user.identificacion || 'N/A'})
                                 <br>
                                 Empresa: ${empresaNombre}
                             </div>
@@ -2896,7 +3042,7 @@
         generateEmplanilladosPdfButton.addEventListener('click', async () => {
             showStatusMessage('Generando PDF de la planilla...', 'info');
             try {
-                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('primerNombre');
                 const selectedCompanyId = emplanilladosCompanyFilter.value;
 
                 if (selectedCompanyId) {
@@ -2965,8 +3111,43 @@
                     const afp = afpMap.get(user.afpId) || 'N/A';
                     const ccf = ccfMap.get(user.ccfId) || 'N/A';
 
+                    // Determine full name and full last name for PDF table
+                    let nombresPdf = '';
+                    let apellidosPdf = '';
+
+                    if (user.primerNombre) {
+                        nombresPdf += user.primerNombre;
+                    }
+                    if (user.segundoNombre) {
+                        nombresPdf += (nombresPdf ? ' ' : '') + user.segundoNombre;
+                    }
+
+                    if (user.primerApellido) {
+                        apellidosPdf += user.primerApellido;
+                    }
+                    if (user.segundoApellido) {
+                        apellidosPdf += (apellidosPdf ? ' ' : '') + user.segundoApellido;
+                    }
+
+                    // Fallback for old users with only 'nombre' field
+                    if (!user.primerNombre && user.nombre) {
+                        const nameParts = user.nombre.split(' ');
+                        if (nameParts.length >= 2) {
+                            nombresPdf = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1] : '');
+                            apellidosPdf = nameParts.slice(2).join(' ');
+                        } else {
+                            nombresPdf = user.nombre;
+                            apellidosPdf = 'N/A';
+                        }
+                    }
+
+                    nombresPdf = nombresPdf || 'N/A';
+                    apellidosPdf = apellidosPdf || 'N/A';
+
+
                     tableData.push([
-                        user.nombre || 'N/A',
+                        nombresPdf,
+                        apellidosPdf,
                         user.identificacion || 'N/A',
                         empresaNombre,
                         novedad,
@@ -2981,7 +3162,7 @@
 
                 doc.autoTable({
                     startY: y,
-                    head: [['Nombre', 'Identificación', 'Empresa', 'Novedad', 'Días', 'IBC', 'EPS', 'ARL', 'AFP', 'CCF']],
+                    head: [['Nombres', 'Apellidos', 'Identificación', 'Empresa', 'Novedad', 'Días', 'IBC', 'EPS', 'ARL', 'AFP', 'CCF']],
                     body: tableData,
                     theme: 'striped',
                     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
@@ -2995,7 +3176,8 @@
                     }
                 });
 
-                y = doc.internal.pageSize.getHeight() - 20;
+                y = doc.autoTable.previous.finalY + 15;
+
                 doc.setFontSize(10);
                 doc.setTextColor(textColor);
                 doc.setFont(undefined, 'normal');
@@ -3015,7 +3197,7 @@
         openAportesEnLineaButton.addEventListener('click', async () => {
             showStatusMessage('Generando Excel de Planilla...', 'info');
             try {
-                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('nombre');
+                let userQuery = usersCollection.where('hasPlanilla', '==', true).orderBy('primerNombre');
                 const selectedCompanyId = emplanilladosCompanyFilter.value;
 
                 if (selectedCompanyId) {
@@ -3126,7 +3308,7 @@
                         user.identificacion || '', // No ID
                         user.primerApellido || '', // Primer Apellido - Asegurarse de que estos campos existan en Firestore
                         user.segundoApellido || '', // Segundo Apellido - Asegurarse de que estos campos existan en Firestore
-                        user.primerNombre || '', // Primer Nombre - Asegurarse de que estos campos existan en Firestore
+                        user.primerNombre || user.nombre || '', // Primer Nombre - Prioriza el nuevo campo, sino usa el antiguo
                         user.segundoNombre || '', // Segundo Nombre - Asegurarse de que estos campos existan en Firestore
                         'SANTANDER', // Departamento
                         'BUCARAMANGA', // Ciudad
