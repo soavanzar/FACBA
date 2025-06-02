@@ -437,6 +437,23 @@
             </div>
 
             <div class="form-group">
+                <label for="primer-nombre">Primer Nombre:</label>
+                <input type="text" id="primer-nombre" readonly name="primerNombre">
+            </div>
+            <div class="form-group">
+                <label for="segundo-nombre">Segundo Nombre:</label>
+                <input type="text" id="segundo-nombre" readonly name="segundoNombre">
+            </div>
+            <div class="form-group">
+                <label for="primer-apellido">Primer Apellido:</label>
+                <input type="text" id="primer-apellido" readonly name="primerApellido">
+            </div>
+            <div class="form-group">
+                <label for="segundo-apellido">Segundo Apellido:</label>
+                <input type="text" id="segundo-apellido" readonly name="segundoApellido">
+            </div>
+
+            <div class="form-group">
                 <label for="tipo-identificacion">Tipo de Identificación:</label>
                 <input type="text" id="tipo-identificacion" readonly name="tipoIdentificacion">
             </div>
@@ -552,6 +569,12 @@
         const userNameSelect = document.getElementById('user-name-select'); // Select oculto para el ID del usuario
 
         // Campos de información del usuario (solo lectura por defecto)
+        // Nuevas referencias para los campos de nombre y apellido
+        const primerNombreInput = document.getElementById('primer-nombre');
+        const segundoNombreInput = document.getElementById('segundo-nombre');
+        const primerApellidoInput = document.getElementById('primer-apellido');
+        const segundoApellidoInput = document.getElementById('segundo-apellido');
+
         const tipoIdentificacionInput = document.getElementById('tipo-identificacion');
         const identificacionInput = document.getElementById('identificacion');
         const empresaInput = document.getElementById('empresa');
@@ -580,17 +603,25 @@
         let afpMap = new Map(); // Para mapear IDs de AFP a nombres
 
 
-        // Array de campos que se pueden editar
-        const editableFields = [
+        // Array de campos que se pueden editar (para esta página, son solo los que se muestran)
+        // Los campos de nombre/apellido no son editables en esta página, solo se muestran.
+        const readonlyDisplayFields = [
+            primerNombreInput,
+            segundoNombreInput,
+            primerApellidoInput,
+            segundoApellidoInput,
             tipoIdentificacionInput,
             identificacionInput,
-            // Note: Empresa, ARL, Riesgo, EPS, CCF, AFP, Asesor are now text inputs,
-            // if editing is fully implemented, these would need to become comboboxes again.
-            // For now, they remain readonly text fields displaying the name.
+            empresaInput,
+            arlInput,
+            riesgoInput,
+            epsInput,
+            ccfInput,
+            afpInput,
             fechaIngresoInput,
             fechaRegistroInput,
+            asesorInput,
             valorAPagarInput
-            // fechaRetiroInput no se incluye aquí porque siempre debe ser editable para establecer la fecha de retiro
         ];
 
 
@@ -616,7 +647,7 @@
                  }
 
 
-                // Filtrar por nombre o identificación para usuarios reales
+                // Filtrar por nombre completo o identificación para usuarios reales
                 const optionText = option.textContent.toLowerCase();
 
                 // --- Acceso seguro a la identificación del dataset y asegurar que es string antes de toLowerCase ---
@@ -626,8 +657,8 @@
                 const identificacion = String(rawIdentificacionValue).toLowerCase();
 
 
-                // Construir el texto a mostrar en la lista: Nombre (Identificación si existe)
-                let displaytextContent = option.textContent;
+                // Construir el texto a mostrar en la lista: Nombre Completo (Identificación si existe)
+                let displaytextContent = option.textContent; // Ya viene combinado del loadUsersDropdownOptions
                 if (rawIdentificacionValue !== '') { // Check if we got an identification string
                      displaytextContent += ` (${rawIdentificacionValue})`; // Use the raw string here for display
                 }
@@ -679,14 +710,6 @@
                  }
              });
 
-
-            // Listener para ocultar la lista al perder el foco (con un pequeño retraso)
-            // Este listener original se mantiene, pero el blur ahora también llama a handleAutocompletado
-            // filterInput.addEventListener('blur', () => {
-            //     setTimeout(() => {
-            //         optionsListElement.classList.remove('show');
-            //     }, 100); // Pequeño retraso para permitir el clic en una opción
-            // });
 
             // Listener para seleccionar una opción de la lista flotante
             optionsListElement.addEventListener('click', async (e) => {
@@ -747,7 +770,7 @@
              }
 
              // Buscar una opción que coincida exactamente con el texto autocompletado
-             // La búsqueda debe considerar el texto que mostramos en la lista (Nombre + Identificación)
+             // La búsqueda debe considerar el texto que mostramos en la lista (Nombre Completo + Identificación)
              const matchedOption = originalOptions.find(option => {
                  // --- Manejar la opción por defecto en la búsqueda de autocompletado ---
                  if (option.value === "") {
@@ -825,10 +848,15 @@
 
                     snapshot.forEach((doc) => {
                         const user = doc.data();
-                        // Crear una opción con el nombre del usuario y su ID como valor
+                        // Crear una opción con el nombre completo del usuario y su ID como valor
                         const option = document.createElement('option');
                         option.value = doc.id; // Usar el ID del documento de Firestore como valor
-                        option.textContent = user.nombre || 'Nombre Desconocido'; // Usar nombre o un placeholder
+                        // Combinar los campos de nombre y apellido para el texto de la opción
+                        const fullName = [user.primerNombre, user.segundoNombre, user.primerApellido, user.segundoApellido]
+                                         .filter(Boolean) // Elimina valores nulos o vacíos
+                                         .join(' ');
+                        option.textContent = fullName || 'Nombre Desconocido'; // Usar nombre completo o un placeholder
+
                         if (user.identificacion) {
                              option.dataset.identificacion = user.identificacion; // Guardar identificación si existe
                         }
@@ -948,7 +976,13 @@
                     const userData = userDoc.data();
                     console.log("Datos del usuario cargados:", userData); // Debugging
 
-                    // Llenar los campos del formulario con los datos del usuario
+                    // Llenar los campos de nombre y apellido
+                    primerNombreInput.value = userData.primerNombre || '';
+                    segundoNombreInput.value = userData.segundoNombre || '';
+                    primerApellidoInput.value = userData.primerApellido || '';
+                    segundoApellidoInput.value = userData.segundoApellido || '';
+
+                    // Llenar los demás campos del formulario con los datos del usuario
                     tipoIdentificacionInput.value = userData.tipoIdentificacion || '';
                     identificacionInput.value = userData.identificacion || '';
                     // Usar los mapas para obtener los nombres de empresa y asesor
@@ -1070,7 +1104,13 @@
 
         // Función para limpiar los campos de información del usuario
         function clearUserDataFields() {
-            // Limpiar los inputs de texto readonly
+            // Limpiar los inputs de nombre y apellido
+            primerNombreInput.value = '';
+            segundoNombreInput.value = '';
+            primerApellidoInput.value = '';
+            segundoApellidoInput.value = '';
+
+            // Limpiar los demás inputs de texto readonly
             tipoIdentificacionInput.value = '';
             identificacionInput.value = '';
             empresaInput.value = '';
@@ -1091,36 +1131,23 @@
 
         // Función para deshabilitar los campos de datos del usuario
         function disableUserDataFields() {
-             editableFields.forEach(field => {
+             readonlyDisplayFields.forEach(field => {
                  field.setAttribute('readonly', true);
                  field.setAttribute('disabled', true);
              });
              // El campo de fecha de retiro siempre es editable
              fechaRetiroInput.removeAttribute('readonly');
              fechaRetiroInput.removeAttribute('disabled');
-
-             // Mostrar el botón de Editar y ocultar el de Retirar (si se implementa Guardar Cambios)
-             // Por ahora, ambos botones están en el mismo contenedor que se muestra/oculta
-             // editUserButton.style.display = 'block';
-             // retireButton.style.display = 'none';
         }
 
         // Función para habilitar los campos de datos del usuario para edición
+        // En esta página, los campos de datos de usuario (excepto fecha de retiro) no se habilitan para edición.
+        // Esta función se mantiene por si se desea implementar una funcionalidad de edición completa más adelante.
         function enableUserDataFields() {
-             editableFields.forEach(field => {
-                 field.removeAttribute('readonly');
-                 field.removeAttribute('disabled');
-             });
-             // El campo de fecha de retiro ya está habilitado
-
-             // Ocultar el botón de Editar y mostrar el de Retirar (o un botón de Guardar Cambios si se implementa esa funcionalidad)
-             // editUserButton.style.display = 'none';
-             // retireButton.style.display = 'block'; // Mostrar el botón de Retirar (o cambiar a Guardar Cambar)
-
-             // Opcional: Cambiar el texto del botón de Retirar a "Guardar Cambios" si se implementa la edición
-             // retireButton.textContent = 'Guardar Cambios';
-             // retireButton.style.backgroundColor = '#10b981'; // Color verde para guardar
-             // retireButton.style.borderColor = '#047857';
+             // Si se quisiera habilitar la edición de estos campos, se haría aquí.
+             // Por ahora, no hace nada ya que los campos de datos del usuario son de solo lectura.
+             // Los campos de nombre/apellido no se incluyen en editableFields para esta página.
+             // Para la edición, se debería redirigir a una página de gestión.
         }
 
         // Función para mostrar los botones de acción
