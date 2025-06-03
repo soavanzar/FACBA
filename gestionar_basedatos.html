@@ -1269,7 +1269,7 @@
 
         // Nuevo Modal Genérico para Gestionar Entidades DOM elements
         const manageEntityModal = document.getElementById('manage-entity-modal');
-        const closeManageEntityModalButton = document = document.getElementById('close-manage-entity-modal');
+        const closeManageEntityModalButton = document.getElementById('close-manage-entity-modal'); // Corregido: document.getElementById
         const closeManageEntityModalButtonInModal = document.getElementById('close-manage-entity-modal-button');
         const manageEntityModalTitle = document.getElementById('manage-entity-modal-title');
         const manageEntityTypeInput = document.getElementById('manage-entity-type');
@@ -3176,6 +3176,213 @@
         });
 
         // La función cleanOldNameField ha sido eliminada ya que el botón fue eliminado.
+
+
+        // --- Funcionalidad Genérica para Gestionar Entidades (ARL, EPS, CCF, AFP, Asesores, Empresas) ---
+
+        /**
+         * Muestra el modal genérico para gestionar entidades.
+         * @param {string} title Título del modal.
+         * @param {string} entityType Tipo de entidad a gestionar (ej: 'arl', 'eps', 'ccf', 'afp', 'asesor', 'empresa').
+         */
+        async function showManageEntityModal(title, entityType) {
+            manageEntityModalTitle.textContent = title;
+            manageEntityTypeInput.value = entityType;
+            entityList.innerHTML = ''; // Limpiar lista anterior
+
+            let collectionRef;
+            switch (entityType) {
+                case 'arl': collectionRef = arlCollection; break;
+                case 'eps': collectionRef = epsCollection; break;
+                case 'ccf': collectionRef = ccfCollection; break;
+                case 'afp': collectionRef = afpCollection; break;
+                case 'asesor': collectionRef = asesoresCollection; break;
+                case 'empresa': collectionRef = empresasCollection; break;
+                default:
+                    console.error("Tipo de entidad desconocido:", entityType);
+                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
+                    return;
+            }
+
+            showStatusMessage(`Cargando ${entityType}s...`, 'info');
+
+            try {
+                const snapshot = await collectionRef.orderBy('nombre').get(); // Ordenar por nombre
+                if (snapshot.empty) {
+                    entityList.innerHTML = `<li class="text-center text-gray-500">No hay ${entityType}s registrados.</li>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const entityItem = document.createElement('li');
+                        entityItem.classList.add('entity-item');
+                        entityItem.innerHTML = `
+                            <span class="entity-name">${doc.data().nombre}</span>
+                            <button class="delete-entity-button" data-id="${doc.id}" data-type="${entityType}">Eliminar</button>
+                        `;
+                        entityList.appendChild(entityItem);
+                    });
+                }
+                manageEntityModal.classList.add('show');
+                showStatusMessage(`${entityType}s cargados.`, 'success');
+            } catch (error) {
+                console.error(`Error al cargar ${entityType}s:`, error);
+                showStatusMessage(`Error al cargar ${entityType}s.`, 'error');
+            }
+        }
+
+        // Listener para cerrar el modal de gestión de entidades
+        closeManageEntityModalButton.addEventListener('click', hideManageEntityModal);
+        closeManageEntityModalButtonInModal.addEventListener('click', hideManageEntityModal);
+        manageEntityModal.addEventListener('click', (e) => {
+            if (e.target === manageEntityModal) {
+                hideManageEntityModal();
+            }
+        });
+
+        function hideManageEntityModal() {
+            manageEntityModal.classList.remove('show');
+        }
+
+        // Listener para el botón "Agregar Nuevo" dentro del modal de gestión de entidades
+        openAddFromManageButton.addEventListener('click', () => {
+            const entityType = manageEntityTypeInput.value;
+            hideManageEntityModal(); // Ocultar el modal de gestión
+            showAddEntityModal(entityType); // Mostrar el modal para agregar
+        });
+
+        // Listener para eliminar una entidad desde el modal de gestión
+        entityList.addEventListener('click', async (e) => {
+            const deleteButton = e.target.closest('.delete-entity-button');
+            if (!deleteButton) return;
+
+            const entityId = deleteButton.dataset.id;
+            const entityType = deleteButton.dataset.type;
+            const entityName = deleteButton.previousElementSibling.textContent; // Obtener el nombre de la entidad
+
+            if (!confirm(`¿Estás seguro de que deseas eliminar "${entityName}" de ${entityType.toUpperCase()}s? Esta acción es irreversible.`)) {
+                return;
+            }
+
+            showStatusMessage(`Eliminando ${entityType} "${entityName}"...`, 'info');
+
+            let collectionRef;
+            switch (entityType) {
+                case 'arl': collectionRef = arlCollection; break;
+                case 'eps': collectionRef = epsCollection; break;
+                case 'ccf': collectionRef = ccfCollection; break;
+                case 'afp': collectionRef = afpCollection; break;
+                case 'asesor': collectionRef = asesoresCollection; break;
+                case 'empresa': collectionRef = empresasCollection; break;
+                default:
+                    console.error("Tipo de entidad desconocido para eliminar:", entityType);
+                    showStatusMessage('Error: Tipo de entidad desconocido para eliminar.', 'error');
+                    return;
+            }
+
+            try {
+                // Verificar si la entidad está en uso por algún usuario
+                const usersUsingEntitySnapshot = await usersCollection.where(`${entityType}Id`, '==', entityId).limit(1).get();
+                if (!usersUsingEntitySnapshot.empty) {
+                    showStatusMessage(`No se puede eliminar "${entityName}" porque está siendo utilizada por al menos un usuario.`, 'error');
+                    return;
+                }
+
+                await collectionRef.doc(entityId).delete();
+                showStatusMessage(`${entityType.toUpperCase()} "${entityName}" eliminada con éxito!`, 'success');
+                await loadLookupMaps(); // Recargar mapas después de eliminar
+                await populateSelects(); // Volver a poblar selectores
+                showManageEntityModal(manageEntityModalTitle.textContent, entityType); // Recargar la lista en el modal de gestión
+                renderFilteredUsers(); // Volver a renderizar la tabla de usuarios
+            } catch (error) {
+                console.error(`Error al eliminar ${entityType}:`, error);
+                showStatusMessage(`Error al eliminar ${entityType}: ` + error.message, 'error');
+            }
+        });
+
+
+        /**
+         * Muestra el modal genérico para agregar una nueva entidad.
+         * @param {string} entityType Tipo de entidad a agregar (ej: 'arl', 'eps', 'ccf', 'afp', 'asesor', 'empresa').
+         */
+        function showAddEntityModal(entityType) {
+            let entityTypeName = '';
+            switch (entityType) {
+                case 'arl': entityTypeName = 'ARL'; break;
+                case 'eps': entityTypeName = 'EPS'; break;
+                case 'ccf': entityTypeName = 'CCF'; break;
+                case 'afp': entityTypeName = 'AFP'; break;
+                case 'asesor': entityTypeName = 'Asesor'; break;
+                case 'empresa': entityTypeName = 'Empresa'; break;
+                default: entityTypeName = 'Entidad';
+            }
+            addEntityModalTitle.textContent = `Agregar Nueva ${entityTypeName}`;
+            addEntityTypeInput.value = entityType;
+            entityNameInput.value = ''; // Limpiar el campo
+            addEntityModal.classList.add('show');
+        }
+
+        // Listener para cerrar el modal de agregar entidad
+        closeAddEntityModalButton.addEventListener('click', hideAddEntityModal);
+        cancelAddEntityButton.addEventListener('click', hideAddEntityModal);
+        addEntityModal.addEventListener('click', (e) => {
+            if (e.target === addEntityModal) {
+                hideAddEntityModal();
+            }
+        });
+
+        function hideAddEntityModal() {
+            addEntityModal.classList.remove('show');
+        }
+
+        // Listener para el formulario de agregar entidad
+        addEntityForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const entityType = addEntityTypeInput.value;
+            const entityName = entityNameInput.value.trim();
+
+            if (!entityName) {
+                showStatusMessage('El nombre de la entidad no puede estar vacío.', 'error');
+                return;
+            }
+
+            showStatusMessage(`Agregando ${entityType} "${entityName}"...`, 'info');
+
+            let collectionRef;
+            let currentMap;
+            switch (entityType) {
+                case 'arl': collectionRef = arlCollection; currentMap = arlMap; break;
+                case 'eps': collectionRef = epsCollection; currentMap = epsMap; break;
+                case 'ccf': collectionRef = ccfCollection; currentMap = ccfMap; break;
+                case 'afp': collectionRef = afpCollection; currentMap = afpMap; break;
+                case 'asesor': collectionRef = asesoresCollection; currentMap = asesoresMap; break;
+                case 'empresa': collectionRef = empresasCollection; currentMap = empresasMap; break;
+                default:
+                    console.error("Tipo de entidad desconocido para agregar:", entityType);
+                    showStatusMessage('Error: Tipo de entidad desconocido.', 'error');
+                    return;
+            }
+
+            // Verificar si la entidad ya existe (case-insensitive)
+            const exists = Array.from(currentMap.values()).some(name => name.toLowerCase() === entityName.toLowerCase());
+            if (exists) {
+                showStatusMessage(`"${entityName}" ya existe en ${entityType}s.`, 'info');
+                return;
+            }
+
+            try {
+                await collectionRef.add({
+                    nombre: entityName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatusMessage(`${entityType.toUpperCase()} "${entityName}" agregada con éxito!`, 'success');
+                hideAddEntityModal();
+                await loadLookupMaps(); // Recargar mapas después de agregar
+                await populateSelects(); // Volver a poblar selectores
+                showManageEntityModal(`Gestionar ${entityType}s`, entityType); // Volver al modal de gestión
+            } catch (error) {
+                console.error(`Error al agregar ${entityType}:`, error);
+                showStatusMessage(`Error al agregar ${entityType}: ` + error.message, 'error');
+            }
+        });
 
 
         // --- Inicialización ---
